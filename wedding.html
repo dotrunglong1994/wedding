@@ -1,0 +1,1900 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thiệp Cưới - Vĩnh Quang & Thúy An</title>
+  <meta name="description" content="Thiệp mời dự lễ cưới của Vĩnh Quang & Thúy An - 20 tháng 12 năm 2026" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Great+Vibes&family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Alex+Brush&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --primary: #7a0c16;
+      --primary-light: #9c1c28;
+      --primary-dark: #58060e;
+      --accent: #d4a373;
+      --accent-light: #fefae0;
+      --gold: #c9a84c;
+      --pink-soft: #fceceb;
+      --pink-badge: #ff4969;
+      --dark: #231815;
+      --text: #3c3330;
+      --text-light: #7c726e;
+      --bg-page: #e8eaee;
+      --card-bg: #ffffff;
+      --radius: 12px;
+      --shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: var(--bg-page);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      position: relative;
+      overflow-x: hidden;
+      color: var(--text);
+    }
+
+    /* ===== BACKGROUND FLOATING HEARTS ===== */
+    .hearts-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .heart-float {
+      position: absolute;
+      animation: floatHeart linear infinite;
+      opacity: 0;
+      color: #e05f7a;
+      user-select: none;
+    }
+
+    @keyframes floatHeart {
+      0% {
+        transform: translateY(100vh) scale(0.6) rotate(-15deg);
+        opacity: 0;
+      }
+
+      12% {
+        opacity: 0.65;
+      }
+
+      80% {
+        opacity: 0.45;
+      }
+
+      100% {
+        transform: translateY(-80px) scale(1.1) rotate(15deg);
+        opacity: 0;
+      }
+    }
+
+    /* ===== INVITATION CARD CONTAINER ===== */
+    .invitation-card {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 430px;
+      min-height: 100vh;
+      background: var(--card-bg);
+      margin: 0 auto;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.12);
+      overflow-x: hidden;
+    }
+
+    /* ===== MUSIC BUTTON ===== */
+    .music-btn {
+      position: fixed;
+      top: 18px;
+      right: calc(50% - 200px);
+      z-index: 999;
+      width: 42px;
+      height: 42px;
+      background: var(--primary);
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.9);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+      transition: transform 0.2s ease;
+    }
+
+    @media (max-width: 440px) {
+      .music-btn {
+        right: 14px;
+      }
+    }
+
+    .music-btn:hover {
+      transform: scale(1.08);
+    }
+
+    .music-btn .vinyl {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: conic-gradient(#111 0deg 90deg, #333 90deg 180deg, #111 180deg 270deg, #333 270deg 360deg);
+      position: relative;
+    }
+
+    .music-btn .vinyl::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px;
+      height: 8px;
+      background: #f7dcd6;
+      border-radius: 50%;
+    }
+
+    .music-btn.playing .vinyl {
+      animation: spinVinyl 2.4s linear infinite;
+    }
+
+    @keyframes spinVinyl {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ===== SECTION 1: COVER ===== */
+    .cover-section {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      min-height: 620px;
+      max-height: 820px;
+      overflow: hidden;
+    }
+
+    .cover-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+    }
+
+    .cover-gradient {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom,
+          rgba(0, 0, 0, 0.12) 0%,
+          rgba(0, 0, 0, 0.04) 40%,
+          rgba(60, 8, 14, 0.65) 75%,
+          rgba(40, 5, 9, 0.88) 100%);
+    }
+
+    .cover-text {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 30px 24px 50px;
+      text-align: center;
+      color: white;
+    }
+
+    .cover-sub {
+      font-family: 'Playfair Display', serif;
+      font-size: 13px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 8px;
+    }
+
+    .cover-title {
+      font-family: 'Great Vibes', cursive;
+      font-size: 50px;
+      line-height: 1.15;
+      color: #ffffff;
+      text-shadow: 0 3px 20px rgba(0, 0, 0, 0.6);
+      margin-bottom: 6px;
+    }
+
+    .cover-amp {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 30px;
+      color: #ffd1d7;
+      display: block;
+      margin: 2px 0;
+    }
+
+    .cover-date-pill {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 8px 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.5);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+      font-family: 'Playfair Display', serif;
+      letter-spacing: 3px;
+      font-size: 15px;
+      color: #fff;
+    }
+
+    .scroll-down-hint {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 11px;
+      letter-spacing: 1px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      animation: bounceHint 2s infinite ease-in-out;
+    }
+
+    @keyframes bounceHint {
+
+      0%,
+      100% {
+        transform: translate(-50%, 0);
+      }
+
+      50% {
+        transform: translate(-50%, 6px);
+      }
+    }
+
+    /* ===== COMMON SECTION HEADING ===== */
+    .sec-header {
+      text-align: center;
+      padding: 40px 20px 20px;
+    }
+
+    .sec-sub {
+      font-family: 'Playfair Display', serif;
+      font-size: 12px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .sec-title {
+      font-family: 'Great Vibes', cursive;
+      font-size: 36px;
+      color: var(--primary);
+    }
+
+    .sec-title-serif {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--primary);
+      text-transform: uppercase;
+    }
+
+    /* ===== SECTION 2: GIA ĐÌNH & CÔ DÂU CHÚ RỂ ===== */
+    .family-section {
+      padding: 34px 22px 24px;
+      background: #fff;
+    }
+
+    .family-intro {
+      text-align: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 17px;
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 28px;
+      padding: 0 10px;
+    }
+
+    .family-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 12px;
+      background: #faf6f5;
+      border: 1px solid #f0e3e2;
+      border-radius: var(--radius);
+      padding: 24px 14px;
+      position: relative;
+    }
+
+    .family-col {
+      text-align: center;
+    }
+
+    .family-badge {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+
+    .parent-name {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.5;
+      margin-bottom: 2px;
+    }
+
+    .parent-name strong {
+      color: #333;
+      font-weight: 500;
+    }
+
+    .couple-label {
+      font-family: 'Playfair Display', serif;
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--primary);
+      margin-top: 10px;
+      text-transform: uppercase;
+    }
+
+    .couple-name {
+      font-family: 'Great Vibes', cursive;
+      font-size: 28px;
+      color: var(--primary);
+      line-height: 1.2;
+    }
+
+    .family-divider {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-size: 20px;
+    }
+
+    .family-divider::before,
+    .family-divider::after {
+      content: '';
+      width: 1px;
+      height: 35px;
+      background: #dfc8c8;
+      display: block;
+      margin: 4px 0;
+    }
+
+    /* ===== SECTION 3: TIỆC CƯỚI (EVENT CARDS) ===== */
+    .events-section {
+      padding: 10px 18px 25px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .event-card {
+      background: var(--primary);
+      color: #fff;
+      border-radius: 16px;
+      padding: 24px 20px;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(122, 12, 22, 0.25);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .event-card::before {
+      content: '';
+      position: absolute;
+      top: -30px;
+      right: -30px;
+      width: 90px;
+      height: 90px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 50%;
+    }
+
+    .event-card::after {
+      content: '';
+      position: absolute;
+      bottom: -20px;
+      left: -20px;
+      width: 70px;
+      height: 70px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 50%;
+    }
+
+    .event-badge {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #ffe6ea;
+      margin-bottom: 8px;
+    }
+
+    .event-time {
+      font-size: 13px;
+      letter-spacing: 1.5px;
+      color: #ffccd3;
+      margin-bottom: 4px;
+    }
+
+    .event-date-large {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: #fff;
+      margin: 4px 0;
+    }
+
+    .event-lunar {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.8);
+      font-style: italic;
+      margin-bottom: 12px;
+    }
+
+    .event-venue {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .event-address {
+      font-size: 12.5px;
+      color: rgba(255, 255, 255, 0.85);
+      line-height: 1.5;
+      margin-bottom: 16px;
+      max-width: 320px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .event-map-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #ffffff;
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 9px 24px;
+      border-radius: 25px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .event-map-btn:hover {
+      background: #fff0f2;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    /* ===== SECTION 4: HÀNH TRÌNH TÌNH YÊU (LOVE ROAD) ===== */
+    .timeline-section {
+      padding: 30px 18px 40px;
+      background: #fff;
+      position: relative;
+    }
+
+    .road-container {
+      position: relative;
+      margin-top: 15px;
+      padding: 10px 0;
+    }
+
+    /* Road SVG Track background */
+    .road-svg-wrap {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .road-milestones {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .milestone-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #fffaf9;
+      border: 1px solid #fae2e2;
+      border-radius: 14px;
+      padding: 14px 16px;
+      box-shadow: 0 3px 12px rgba(224, 95, 122, 0.08);
+      position: relative;
+      transition: transform 0.2s ease;
+    }
+
+    .milestone-item:hover {
+      transform: translateY(-2px);
+    }
+
+    .milestone-icon-wrap {
+      width: 48px;
+      height: 48px;
+      min-width: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ffd3da, #fcc0cb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 4px 10px rgba(230, 80, 110, 0.2);
+    }
+
+    .milestone-info {
+      flex: 1;
+    }
+
+    .milestone-tag {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .milestone-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #2c1810;
+      margin: 2px 0;
+    }
+
+    .milestone-date {
+      font-size: 12px;
+      color: #8c736f;
+    }
+
+    /* ===== SECTION 5: LỊCH CƯỚI & NGÀY THÀNH HÔN ===== */
+    .calendar-section {
+      padding: 30px 20px 40px;
+      background: #faf7f5;
+    }
+
+    .calendar-card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      padding: 24px 18px;
+      border: 1px solid #f2e6e4;
+    }
+
+    .cal-header-bar {
+      background: var(--primary);
+      color: white;
+      text-align: center;
+      padding: 10px;
+      border-radius: 10px;
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      text-align: center;
+    }
+
+    .cal-day-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #999;
+      padding-bottom: 8px;
+    }
+
+    .cal-cell {
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: #444;
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .cal-cell.wedding-day {
+      background: var(--primary);
+      color: #ffffff;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(122, 12, 22, 0.4);
+      animation: pulseDay 2s infinite;
+    }
+
+    .cal-cell.wedding-day::after {
+      content: '♥';
+      position: absolute;
+      top: -4px;
+      right: -2px;
+      color: #ff3366;
+      font-size: 10px;
+    }
+
+    @keyframes pulseDay {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.08);
+      }
+    }
+
+    .calendar-footer-text {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    /* ===== SECTION 6: COUNTDOWN ===== */
+    .countdown-section {
+      padding: 30px 20px;
+      background: #fff;
+      text-align: center;
+    }
+
+    .countdown-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .cd-box {
+      background: #fbf5f4;
+      border: 1px solid #fae2e0;
+      border-radius: 12px;
+      padding: 14px 6px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    .cd-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .cd-label {
+      font-size: 11px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ===== SECTION 7: PHOTO QUOTE ===== */
+    .photo-quote-section {
+      position: relative;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .photo-quote-img {
+      width: 100%;
+      height: 480px;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+      opacity: 0.88;
+    }
+
+    .photo-quote-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(20, 5, 8, 0.85) 0%, rgba(0, 0, 0, 0.2) 60%, rgba(0, 0, 0, 0.3) 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 30px 24px;
+      text-align: center;
+      color: white;
+    }
+
+    .quote-badge {
+      font-family: 'Great Vibes', cursive;
+      font-size: 34px;
+      color: #ffd6dc;
+      margin-bottom: 6px;
+    }
+
+    .quote-content {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 16.5px;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.95);
+      margin-bottom: 8px;
+    }
+
+    /* ===== SECTION 8: RSVP FORM ===== */
+    .rsvp-section {
+      padding: 36px 20px;
+      background: #faf7f5;
+    }
+
+    .rsvp-box {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 26px 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      border: 1px solid #f0e3e1;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+      text-align: left;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 6px;
+    }
+
+    .form-input,
+    .form-select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #e2d7d5;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+      background: #faf9f8;
+    }
+
+    .form-input:focus,
+    .form-select:focus {
+      border-color: var(--primary);
+      background: #fff;
+    }
+
+    .radio-pill-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .radio-pill {
+      flex: 1;
+      position: relative;
+    }
+
+    .radio-pill input {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .radio-pill label {
+      display: block;
+      text-align: center;
+      padding: 10px 8px;
+      border: 1px solid #e0d0ce;
+      border-radius: 10px;
+      font-size: 13px;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #faf8f7;
+    }
+
+    .radio-pill input:checked+label {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      font-weight: 600;
+    }
+
+    .btn-submit-rsvp {
+      width: 100%;
+      padding: 14px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 4px 15px rgba(122, 12, 22, 0.25);
+    }
+
+    .btn-submit-rsvp:hover {
+      background: var(--primary-light);
+    }
+
+    .btn-submit-rsvp:active {
+      transform: scale(0.98);
+    }
+
+    .rsvp-success-msg {
+      display: none;
+      text-align: center;
+      padding: 20px 10px;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .rsvp-success-msg.active {
+      display: block;
+    }
+
+    /* ===== SECTION 9: HỘP MỪNG CƯỚI (GIFT / BANKING) ===== */
+    .gift-section {
+      padding: 34px 20px 40px;
+      background: #fff;
+      text-align: center;
+    }
+
+    .gift-icon-box {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 14px;
+      border-radius: 50%;
+      background: #fdeeee;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 4px 12px rgba(220, 80, 100, 0.15);
+    }
+
+    .gift-subtext {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 16px;
+      color: #777;
+      margin-bottom: 22px;
+    }
+
+    .bank-cards-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      text-align: left;
+    }
+
+    .bank-card {
+      background: #faf6f5;
+      border: 1px solid #f0dfdd;
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .bank-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .bank-owner-badge {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 12px;
+      text-transform: uppercase;
+    }
+
+    .bank-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #666;
+    }
+
+    .bank-details {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .bank-account-num {
+      font-family: monospace;
+      font-size: 16px;
+      font-weight: 700;
+      color: #222;
+      letter-spacing: 1px;
+    }
+
+    .bank-account-holder {
+      font-size: 13px;
+      color: #555;
+      font-weight: 500;
+    }
+
+    .btn-copy-account {
+      background: #ffffff;
+      border: 1px solid #d9c7c5;
+      color: var(--primary);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .btn-copy-account:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .btn-copy-account.copied {
+      background: #2e7d32;
+      color: white;
+      border-color: #2e7d32;
+    }
+
+    .qr-preview-box {
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #fff;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px dashed #e8d0ce;
+    }
+
+    .qr-img {
+      width: 76px;
+      height: 76px;
+      object-fit: contain;
+      border-radius: 6px;
+      background: #fff;
+    }
+
+    .qr-note {
+      font-size: 11.5px;
+      color: #777;
+      line-height: 1.4;
+    }
+
+    /* ===== SECTION 10: ALBUM OF LOVE ===== */
+    .album-section {
+      padding: 34px 0 20px;
+      background: #faf7f5;
+    }
+
+    .album-header-wrap {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .album-title-top {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      color: var(--primary);
+    }
+
+    .album-title-sub {
+      font-family: 'Great Vibes', cursive;
+      font-size: 24px;
+      color: #a88585;
+      margin: -4px 0;
+    }
+
+    .album-thumbs-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      padding: 0 16px;
+      margin-bottom: 12px;
+    }
+
+    .album-thumb {
+      width: 100%;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      border-radius: 8px;
+      cursor: pointer;
+      opacity: 0.55;
+      transition: all 0.25s ease;
+      border: 2px solid transparent;
+    }
+
+    .album-thumb.active,
+    .album-thumb:hover {
+      opacity: 1;
+      border-color: var(--primary);
+      transform: scale(1.02);
+    }
+
+    .album-main-display {
+      width: 100%;
+      max-height: 520px;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+      transition: opacity 0.25s ease;
+    }
+
+    /* ===== SECTION 11: LỜI CHÚC (WISHES) ===== */
+    .wishes-section {
+      padding: 34px 20px 50px;
+      background: #fff;
+    }
+
+    .wishes-box {
+      background: #faf7f5;
+      border-radius: 16px;
+      padding: 20px 16px;
+      border: 1px solid #f0e1df;
+    }
+
+    .wish-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .wish-name-input {
+      padding: 10px 14px;
+      border: 1px solid #e0cecc;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      outline: none;
+      background: #fff;
+    }
+
+    .wish-msg-input {
+      padding: 10px 14px;
+      border: 1px solid #e0cecc;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      outline: none;
+      resize: none;
+      height: 64px;
+      background: #fff;
+    }
+
+    .btn-send-wish {
+      padding: 11px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+
+    .btn-send-wish:hover {
+      background: var(--primary-light);
+    }
+
+    .wishes-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .wish-bubble {
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px 14px;
+      border: 1px solid #f4e3e2;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+      animation: fadeInWish 0.3s ease;
+    }
+
+    @keyframes fadeInWish {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .wish-sender-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+
+    .wish-sender-title span {
+      font-size: 10px;
+      font-weight: 400;
+      color: #999;
+    }
+
+    .wish-bubble-text {
+      font-size: 13px;
+      color: #444;
+      line-height: 1.45;
+    }
+
+    /* ===== FOOTER ===== */
+    .footer-bar {
+      padding: 30px 20px 40px;
+      text-align: center;
+      background: #fff6f6;
+      border-top: 1px solid #f5e4e4;
+      color: #8c736f;
+      font-size: 12.5px;
+    }
+
+    .footer-names {
+      font-family: 'Great Vibes', cursive;
+      font-size: 26px;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Background Floating Hearts -->
+  <div class="hearts-bg" id="heartsContainer"></div>
+
+  <!-- Music Toggle Button -->
+  <button class="music-btn" id="musicBtn" aria-label="Phát hoặc dừng nhạc">
+    <div class="vinyl"></div>
+  </button>
+
+  <!-- Main Wedding Invitation Card -->
+  <main class="invitation-card">
+
+    <!-- 1. COVER / HERO SECTION -->
+    <section class="cover-section" id="cover">
+      <img class="cover-img" id="coverImg" src="" alt="Ảnh cưới Vĩnh Quang & Thúy An" />
+      <div class="cover-gradient"></div>
+      <div class="cover-text">
+        <span class="cover-sub">INVITATION</span>
+        <h1 class="cover-title">
+          Vĩnh Quang
+          <span class="cover-amp">&</span>
+          Thúy An
+        </h1>
+        <div class="cover-date-pill">20 · 12 · 2026</div>
+      </div>
+      <div class="scroll-down-hint">
+        <span>Cuộn xuống</span>
+        <span>↓</span>
+      </div>
+    </section>
+
+    <!-- 2. GIA ĐÌNH & CÔ DÂU CHÚ RỂ (FAMILY & COUPLE INFO) -->
+    <section class="family-section" id="family">
+      <div class="sec-header" style="padding-top:10px;">
+        <span class="sec-sub">LỜI NGỎ</span>
+        <h2 class="sec-title">Gia Đình &amp; Đôi Uyên Ương</h2>
+      </div>
+
+      <p class="family-intro">
+        "Tình yêu đích thực không phải là tìm kiếm một người hoàn hảo, mà là học cách nhìn nhận một người không hoàn hảo một cách trọn vẹn nhất."
+      </p>
+
+      <div class="family-grid">
+        <!-- NHÀ TRAI -->
+        <div class="family-col">
+          <span class="family-badge">Nhà Trai</span>
+          <div class="parent-name">Ông: <strong>Nguyễn Văn Hùng</strong></div>
+          <div class="parent-name">Bà: <strong>Trần Thị Mai</strong></div>
+          <div class="couple-label">Chú Rể</div>
+          <div class="couple-name">Vĩnh Quang</div>
+        </div>
+
+        <!-- DIVIDER -->
+        <div class="family-divider">❦</div>
+
+        <!-- NHÀ GÁI -->
+        <div class="family-col">
+          <span class="family-badge">Nhà Gái</span>
+          <div class="parent-name">Ông: <strong>Lê Văn Dũng</strong></div>
+          <div class="parent-name">Bà: <strong>Phạm Thị Lan</strong></div>
+          <div class="couple-label">Cô Dâu</div>
+          <div class="couple-name">Thúy An</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. TIỆC CƯỚI (EVENT CARDS: NHÀ GÁI & NHÀ TRAI) -->
+    <section class="events-section" id="events">
+      <!-- Thẻ Tiệc Cưới Nhà Gái -->
+      <div class="event-card">
+        <div class="event-badge">TIỆC CƯỚI NHÀ GÁI</div>
+        <div class="event-time">VÀO LÚC 11:00 • CHỦ NHẬT</div>
+        <div class="event-date-large">20 . 12 . 2026</div>
+        <div class="event-lunar">(Tức ngày 16 tháng 10 năm Bính Ngọ)</div>
+        <div class="event-venue">TẠI TƯ GIA NHÀ GÁI</div>
+        <div class="event-address">Số 128 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh</div>
+        <a href="https://maps.google.com/?q=Số+128+Đường+Lê+Lợi+Quận+1+TP+Hồ+Chí+Minh" target="_blank" class="event-map-btn" rel="noopener noreferrer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>
+          XEM BẢN ĐỒ
+        </a>
+      </div>
+
+      <!-- Thẻ Tiệc Cưới Nhà Trai -->
+      <div class="event-card">
+        <div class="event-badge">TIỆC CƯỚI NHÀ TRAI</div>
+        <div class="event-time">VÀO LÚC 17:30 • CHỦ NHẬT</div>
+        <div class="event-date-large">20 . 12 . 2026</div>
+        <div class="event-lunar">(Tức ngày 16 tháng 10 năm Bính Ngọ)</div>
+        <div class="event-venue">TẠI TƯ GIA NHÀ TRAI</div>
+        <div class="event-address">Số 86 Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh</div>
+        <a href="https://maps.google.com/?q=Số+86+Đường+Nguyễn+Huệ+Quận+1+TP+Hồ+Chí+Minh" target="_blank" class="event-map-btn" rel="noopener noreferrer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>
+          XEM BẢN ĐỒ
+        </a>
+      </div>
+    </section>
+
+    <!-- 4. HÀNH TRÌNH TÌNH YÊU (LOVE ROAD / TIMELINE) -->
+    <section class="timeline-section" id="timeline">
+      <div class="sec-header" style="padding-top:10px;">
+        <span class="sec-sub">CÂU CHUYỆN</span>
+        <h2 class="sec-title">Hành Trình Yêu</h2>
+      </div>
+
+      <div class="road-container">
+        <div class="road-milestones">
+          <!-- Mốc 1: Gặp gỡ -->
+          <div class="milestone-item">
+            <div class="milestone-icon-wrap">☕</div>
+            <div class="milestone-info">
+              <span class="milestone-tag">Mốc số 1</span>
+              <div class="milestone-title">Lần Đầu Gặp Gỡ</div>
+              <div class="milestone-date">Tháng 05, 2021 — Buổi chiều định mệnh tại quán cà phê góc phố</div>
+            </div>
+          </div>
+
+          <!-- Mốc 2: Hẹn hò -->
+          <div class="milestone-item">
+            <div class="milestone-icon-wrap">💌</div>
+            <div class="milestone-info">
+              <span class="milestone-tag">Mốc số 2</span>
+              <div class="milestone-title">Chính Thức Hẹn Hò</div>
+              <div class="milestone-date">14.02.2022 — Ngày ta chính thức nắm chặt tay nhau bước chung lối</div>
+            </div>
+          </div>
+
+          <!-- Mốc 3: Lời cầu hôn -->
+          <div class="milestone-item">
+            <div class="milestone-icon-wrap">💍</div>
+            <div class="milestone-info">
+              <span class="milestone-tag">Mốc số 3</span>
+              <div class="milestone-title">Lời Cầu Hôn Ngọt Ngào</div>
+              <div class="milestone-date">20.10.2025 — Khoảnh khắc em gật đầu đồng ý làm vợ anh</div>
+            </div>
+          </div>
+
+          <!-- Mốc 4: Ngày chung đôi -->
+          <div class="milestone-item">
+            <div class="milestone-icon-wrap">🏰</div>
+            <div class="milestone-info">
+              <span class="milestone-tag">Mốc số 4</span>
+              <div class="milestone-title">Ngày Chung Đôi</div>
+              <div class="milestone-date">20.12.2026 — Lễ cưới đánh dấu hành trình trăm năm hạnh phúc</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. LỊCH CƯỚI (CALENDAR) -->
+    <section class="calendar-section" id="calendar">
+      <div class="sec-header" style="padding-top:10px;">
+        <span class="sec-sub">TIẾT ĐIỂM HẸN</span>
+        <h2 class="sec-title-serif">Tháng 12 Năm 2026</h2>
+      </div>
+
+      <div class="calendar-card">
+        <div class="cal-header-bar">THÁNG 12 / 2026</div>
+        <div class="cal-grid">
+          <div class="cal-day-title">T2</div>
+          <div class="cal-day-title">T3</div>
+          <div class="cal-day-title">T4</div>
+          <div class="cal-day-title">T5</div>
+          <div class="cal-day-title">T6</div>
+          <div class="cal-day-title">T7</div>
+          <div class="cal-day-title">CN</div>
+
+          <!-- Days 1 to 31 -->
+          <div class="cal-cell">1</div>
+          <div class="cal-cell">2</div>
+          <div class="cal-cell">3</div>
+          <div class="cal-cell">4</div>
+          <div class="cal-cell">5</div>
+          <div class="cal-cell">6</div>
+          <div class="cal-cell">7</div>
+          <div class="cal-cell">8</div>
+          <div class="cal-cell">9</div>
+          <div class="cal-cell">10</div>
+          <div class="cal-cell">11</div>
+          <div class="cal-cell">12</div>
+          <div class="cal-cell">13</div>
+          <div class="cal-cell">14</div>
+          <div class="cal-cell">15</div>
+          <div class="cal-cell">16</div>
+          <div class="cal-cell">17</div>
+          <div class="cal-cell">18</div>
+          <div class="cal-cell">19</div>
+          <div class="cal-cell wedding-day">20</div>
+          <div class="cal-cell">21</div>
+          <div class="cal-cell">22</div>
+          <div class="cal-cell">23</div>
+          <div class="cal-cell">24</div>
+          <div class="cal-cell">25</div>
+          <div class="cal-cell">26</div>
+          <div class="cal-cell">27</div>
+          <div class="cal-cell">28</div>
+          <div class="cal-cell">29</div>
+          <div class="cal-cell">30</div>
+          <div class="cal-cell">31</div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+        </div>
+
+        <div class="calendar-footer-text">
+          ❤ Chủ Nhật, 20 Tháng 12, 2026 (Tức ngày 16/10 Bính Ngọ) ❤
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. ĐẾM NGƯỢC (COUNTDOWN TIMER) -->
+    <section class="countdown-section" id="countdown">
+      <span class="sec-sub">CÙNG CHỜ ĐÓN</span>
+      <h2 class="sec-title-serif" style="font-size:18px;">Đếm Ngược Đến Ngày Trọng Đại</h2>
+
+      <div class="countdown-grid">
+        <div class="cd-box">
+          <span class="cd-number" id="cd-days">--</span>
+          <span class="cd-label">Ngày</span>
+        </div>
+        <div class="cd-box">
+          <span class="cd-number" id="cd-hours">--</span>
+          <span class="cd-label">Giờ</span>
+        </div>
+        <div class="cd-box">
+          <span class="cd-number" id="cd-mins">--</span>
+          <span class="cd-label">Phút</span>
+        </div>
+        <div class="cd-box">
+          <span class="cd-number" id="cd-secs">--</span>
+          <span class="cd-label">Giây</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. ẢNH ĐÔI & QUOTE (LOVE STORY QUOTE) -->
+    <section class="photo-quote-section" id="quote">
+      <img class="photo-quote-img" id="quoteImg" src="" alt="Khoảnh khắc yêu thương" />
+      <div class="photo-quote-overlay">
+        <div class="quote-badge">Love &amp; Forever</div>
+        <p class="quote-content">
+          "Loại bỏ tất cả những lời yêu thương hoa mỹ, có lẽ tình yêu thực sự là sự đồng hành bền bỉ bên nhau qua năm tháng."
+        </p>
+      </div>
+    </section>
+
+    <!-- 8. XÁC NHẬN THAM DỰ (RSVP FORM) -->
+    <section class="rsvp-section" id="rsvp">
+      <div class="sec-header" style="padding-top:0;">
+        <span class="sec-sub">PHẢN HỒI</span>
+        <h2 class="sec-title-serif">Xác Nhận Tham Dự</h2>
+      </div>
+
+      <div class="rsvp-box">
+        <form id="rsvpForm" onsubmit="event.preventDefault(); submitRsvpForm();">
+          <div class="form-group">
+            <label class="form-label" for="guestName">Họ và tên của bạn</label>
+            <input class="form-input" id="guestName" type="text" placeholder="Nhập tên của bạn..." required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Bạn sẽ đến chung vui chứ?</label>
+            <div class="radio-pill-group">
+              <div class="radio-pill">
+                <input type="radio" id="att-yes" name="attendance" value="yes" checked />
+                <label for="att-yes">Có, chắc chắn đến ❤</label>
+              </div>
+              <div class="radio-pill">
+                <input type="radio" id="att-no" name="attendance" value="no" />
+                <label for="att-no">Rất tiếc không thể đến</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Khách mời của bên nào?</label>
+            <div class="radio-pill-group">
+              <div class="radio-pill">
+                <input type="radio" id="side-groom" name="guestSide" value="groom" checked />
+                <label for="side-groom">Bên Nhà Trai</label>
+              </div>
+              <div class="radio-pill">
+                <input type="radio" id="side-bride" name="guestSide" value="bride" />
+                <label for="side-bride">Bên Nhà Gái</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="guestCount">Số lượng người tham dự</label>
+            <select class="form-select" id="guestCount">
+              <option value="1">1 người</option>
+              <option value="2">2 người (đi cùng người thương/bạn)</option>
+              <option value="3">3 người (gia đình nhỏ)</option>
+              <option value="4">4 người</option>
+              <option value="5+">5 người trở lên</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn-submit-rsvp">Gửi Xác Nhận Tham Dự</button>
+        </form>
+
+        <div class="rsvp-success-msg" id="rsvpSuccessMsg">
+          <div style="font-size: 42px; margin-bottom: 8px;">🎉</div>
+          <div style="font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:var(--primary); margin-bottom:6px;">
+            Cảm Ơn Bạn Đã Xác Nhận!
+          </div>
+          <div style="font-size:13.5px; color:#666;">
+            Sự hiện diện của bạn là niềm vinh hạnh to lớn cho hai gia đình chúng mình 💕
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. HỘP MỪNG CƯỚI (GIFT & BANKING QR) -->
+    <section class="gift-section" id="gift">
+      <div class="gift-icon-box">🎁</div>
+      <span class="sec-sub">CHÚC PHÚC</span>
+      <h2 class="sec-title-serif" style="margin-bottom:6px;">Hộp Mừng Cưới</h2>
+      <p class="gift-subtext">Gửi trao yêu thương và lời chúc tốt đẹp tới Cô Dâu – Chú Rể</p>
+
+      <div class="bank-cards-grid">
+        <!-- Chú Rể -->
+        <div class="bank-card">
+          <div class="bank-card-header">
+            <span class="bank-owner-badge">Mừng Cưới Chú Rể</span>
+            <span class="bank-name">MB BANK</span>
+          </div>
+          <div class="bank-details">
+            <div>
+              <div class="bank-account-num" id="accGroom">0988 123 456</div>
+              <div class="bank-account-holder">NGUYEN VINH QUANG</div>
+            </div>
+            <button class="btn-copy-account" onclick="copyAccount('accGroom', this)">
+              <span>Sao chép STK</span>
+            </button>
+          </div>
+          <div class="qr-preview-box">
+            <svg class="qr-img" viewBox="0 0 100 100" fill="#2c1810">
+              <rect width="100" height="100" fill="#fff" />
+              <!-- Top Left finder -->
+              <rect x="10" y="10" width="24" height="24" fill="#7a0c16" />
+              <rect x="14" y="14" width="16" height="16" fill="#fff" />
+              <rect x="18" y="18" width="8" height="8" fill="#7a0c16" />
+              <!-- Top Right finder -->
+              <rect x="66" y="10" width="24" height="24" fill="#7a0c16" />
+              <rect x="70" y="14" width="16" height="16" fill="#fff" />
+              <rect x="74" y="18" width="8" height="8" fill="#7a0c16" />
+              <!-- Bottom Left finder -->
+              <rect x="10" y="66" width="24" height="24" fill="#7a0c16" />
+              <rect x="14" y="70" width="16" height="16" fill="#fff" />
+              <rect x="18" y="74" width="8" height="8" fill="#7a0c16" />
+              <!-- Data modules -->
+              <rect x="42" y="12" width="6" height="6" fill="#7a0c16" />
+              <rect x="52" y="12" width="6" height="6" fill="#7a0c16" />
+              <rect x="42" y="24" width="6" height="6" fill="#7a0c16" />
+              <rect x="52" y="32" width="6" height="6" fill="#7a0c16" />
+              <rect x="20" y="44" width="6" height="6" fill="#7a0c16" />
+              <rect x="32" y="44" width="6" height="6" fill="#7a0c16" />
+              <rect x="44" y="44" width="12" height="12" fill="#7a0c16" />
+              <rect x="64" y="44" width="6" height="6" fill="#7a0c16" />
+              <rect x="76" y="44" width="6" height="6" fill="#7a0c16" />
+              <rect x="42" y="64" width="6" height="6" fill="#7a0c16" />
+              <rect x="52" y="74" width="6" height="6" fill="#7a0c16" />
+              <rect x="64" y="64" width="12" height="12" fill="#7a0c16" />
+              <rect x="80" y="80" width="6" height="6" fill="#7a0c16" />
+            </svg>
+            <div class="qr-note">
+              Quét mã QR qua app ngân hàng bất kỳ để gửi quà mừng tới <strong>Chú Rể Vĩnh Quang</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cô Dâu -->
+        <div class="bank-card">
+          <div class="bank-card-header">
+            <span class="bank-owner-badge" style="background:#b3394b;">Mừng Cưới Cô Dâu</span>
+            <span class="bank-name">VIETCOMBANK</span>
+          </div>
+          <div class="bank-details">
+            <div>
+              <div class="bank-account-num" id="accBride">1012 345 678</div>
+              <div class="bank-account-holder">LE THUY AN</div>
+            </div>
+            <button class="btn-copy-account" onclick="copyAccount('accBride', this)">
+              <span>Sao chép STK</span>
+            </button>
+          </div>
+          <div class="qr-preview-box">
+            <svg class="qr-img" viewBox="0 0 100 100" fill="#2c1810">
+              <rect width="100" height="100" fill="#fff" />
+              <!-- Top Left finder -->
+              <rect x="10" y="10" width="24" height="24" fill="#b3394b" />
+              <rect x="14" y="14" width="16" height="16" fill="#fff" />
+              <rect x="18" y="18" width="8" height="8" fill="#b3394b" />
+              <!-- Top Right finder -->
+              <rect x="66" y="10" width="24" height="24" fill="#b3394b" />
+              <rect x="70" y="14" width="16" height="16" fill="#fff" />
+              <rect x="74" y="18" width="8" height="8" fill="#b3394b" />
+              <!-- Bottom Left finder -->
+              <rect x="10" y="66" width="24" height="24" fill="#b3394b" />
+              <rect x="14" y="70" width="16" height="16" fill="#fff" />
+              <rect x="18" y="74" width="8" height="8" fill="#b3394b" />
+              <!-- Data modules -->
+              <rect x="42" y="12" width="6" height="6" fill="#b3394b" />
+              <rect x="52" y="20" width="6" height="6" fill="#b3394b" />
+              <rect x="42" y="32" width="6" height="6" fill="#b3394b" />
+              <rect x="20" y="44" width="6" height="6" fill="#b3394b" />
+              <rect x="34" y="44" width="6" height="6" fill="#b3394b" />
+              <rect x="48" y="48" width="10" height="10" fill="#b3394b" />
+              <rect x="68" y="44" width="6" height="6" fill="#b3394b" />
+              <rect x="76" y="52" width="6" height="6" fill="#b3394b" />
+              <rect x="42" y="68" width="6" height="6" fill="#b3394b" />
+              <rect x="54" y="76" width="6" height="6" fill="#b3394b" />
+              <rect x="68" y="68" width="10" height="10" fill="#b3394b" />
+              <rect x="80" y="78" width="6" height="6" fill="#b3394b" />
+            </svg>
+            <div class="qr-note">
+              Quét mã QR qua app ngân hàng bất kỳ để gửi quà mừng tới <strong>Cô Dâu Thúy An</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. ALBUM OF LOVE -->
+    <section class="album-section" id="album">
+      <div class="album-header-wrap">
+        <div class="album-title-top">ALBUM</div>
+        <div class="album-title-sub">of Love</div>
+      </div>
+
+      <div class="album-thumbs-row" id="albumThumbsRow"></div>
+      <img id="albumMainImg" class="album-main-display" src="" alt="Ảnh trong album cưới" />
+    </section>
+
+    <!-- 11. SỔ LƯU BÚT & LỜI CHÚC (WISHES BOARD) -->
+    <section class="wishes-section" id="wishes">
+      <div class="sec-header" style="padding-top:0;">
+        <span class="sec-sub">LỜI CHÚC TỪ TRÁI TIM</span>
+        <h2 class="sec-title-serif">Sổ Lưu Bút</h2>
+      </div>
+
+      <div class="wishes-box">
+        <div class="wish-input-group">
+          <input class="wish-name-input" id="wishSenderName" type="text" placeholder="Tên của bạn..." maxlength="40" />
+          <textarea class="wish-msg-input" id="wishMessageText" placeholder="Gửi lời chúc yêu thương đến cô dâu chú rể..." maxlength="200"></textarea>
+          <button class="btn-send-wish" onclick="handleSendWish()">
+            <span>Gửi Lời Chúc</span>
+            <span>💝</span>
+          </button>
+        </div>
+
+        <ul class="wishes-list" id="wishesListContainer">
+          <li class="wish-bubble">
+            <div class="wish-sender-title">Phương Mai 💕 <span>Vừa xong</span></div>
+            <div class="wish-bubble-text">Chúc hai bạn trăm năm hòa hợp, đầu bạc răng long, mãi mãi hạnh phúc như ngày đầu nhé!</div>
+          </li>
+          <li class="wish-bubble">
+            <div class="wish-sender-title">Tuấn Kiệt 🎉 <span>5 phút trước</span></div>
+            <div class="wish-bubble-text">Mừng hạnh phúc hai người bạn thân! Chúc đôi uyên ương sớm đón thêm thành viên nhí dễ thương!</div>
+          </li>
+          <li class="wish-bubble">
+            <div class="wish-sender-title">Khánh Linh ✨ <span>15 phút trước</span></div>
+            <div class="wish-bubble-text">Cô dâu chú rể đẹp đôi nhất quả đất! Chúc tổ ấm nhỏ luôn ngập tràn tiếng cười và yêu thương!</div>
+          </li>
+          <li class="wish-bubble">
+            <div class="wish-sender-title">Hoàng Long &amp; Nhóm Bạn 🎊 <span>30 phút trước</span></div>
+            <div class="wish-bubble-text">Chúc hai bạn trăm năm gắn kết, cùng nhau xây dựng một gia đình thật êm ấm, thịnh vượng!</div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer-bar">
+      <div class="footer-names">Vĩnh Quang &amp; Thúy An</div>
+      <p>Cảm ơn bạn đã luôn đồng hành và chia sẻ niềm vui cùng chúng mình!</p>
+    </footer>
+
+  </main>
+
+  <script>
+    // ====== ẢNH CƯỚI CHẤT LƯỢNG CAO (LOCAL ARTIFACT PATHS) ======
+    const WEDDING_IMAGES = {
+      hero: 'C:/Users/ngocg/.gemini/antigravity-ide/brain/56792a9c-b9ad-48f5-a8e5-e4cc7a2ece75/wedding_couple_hero_1790785774102.jpg',
+      p2: 'C:/Users/ngocg/.gemini/antigravity-ide/brain/56792a9c-b9ad-48f5-a8e5-e4cc7a2ece75/wedding_couple_2_1790785798028.jpg',
+      p3: 'C:/Users/ngocg/.gemini/antigravity-ide/brain/56792a9c-b9ad-48f5-a8e5-e4cc7a2ece75/wedding_couple_3_1790785809106.jpg',
+      p4: 'C:/Users/ngocg/.gemini/antigravity-ide/brain/56792a9c-b9ad-48f5-a8e5-e4cc7a2ece75/wedding_couple_4_1790785820861.jpg',
+    };
+
+    // Gán ảnh bìa, ảnh quote và ảnh album
+    document.getElementById('coverImg').src = WEDDING_IMAGES.hero;
+    document.getElementById('quoteImg').src = WEDDING_IMAGES.p2;
+    document.getElementById('albumMainImg').src = WEDDING_IMAGES.hero;
+
+    // Album Thumbnails
+    const albumList = [
+      WEDDING_IMAGES.hero,
+      WEDDING_IMAGES.p2,
+      WEDDING_IMAGES.p3,
+      WEDDING_IMAGES.p4,
+    ];
+
+    const thumbsContainer = document.getElementById('albumThumbsRow');
+    albumList.forEach((src, idx) => {
+      const img = document.createElement('img');
+      img.className = 'album-thumb' + (idx === 0 ? ' active' : '');
+      img.src = src;
+      img.alt = 'Ảnh cưới ' + (idx + 1);
+      img.onclick = function () {
+        document.querySelectorAll('.album-thumb').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        const main = document.getElementById('albumMainImg');
+        main.style.opacity = '0';
+        setTimeout(() => {
+          main.src = src;
+          main.style.opacity = '1';
+        }, 200);
+      };
+      thumbsContainer.appendChild(img);
+    });
+
+    // ====== FLOATING HEARTS BACKGROUND ======
+    const heartsBg = document.getElementById('heartsContainer');
+    const heartIcons = ['♡', '♥', '❤', '💕', '💖', '💗'];
+
+    function spawnHeart() {
+      const el = document.createElement('div');
+      el.className = 'heart-float';
+      el.textContent = heartIcons[Math.floor(Math.random() * heartIcons.length)];
+      el.style.left = (Math.random() * 95) + 'vw';
+      el.style.fontSize = (12 + Math.random() * 16) + 'px';
+      const duration = 7 + Math.random() * 8;
+      el.style.animationDuration = duration + 's';
+      heartsBg.appendChild(el);
+      setTimeout(() => el.remove(), (duration + 1) * 1000);
+    }
+
+    setInterval(spawnHeart, 900);
+    for (let i = 0; i < 6; i++) {
+      setTimeout(spawnHeart, i * 400);
+    }
+
+    // ====== MUSIC PLAYER ======
+    const musicBtn = document.getElementById('musicBtn');
+    let isMusicPlaying = false;
+    const audio = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3');
+    audio.loop = true;
+    audio.volume = 0.45;
+
+    musicBtn.addEventListener('click', () => {
+      if (!isMusicPlaying) {
+        audio.play().then(() => {
+          isMusicPlaying = true;
+          musicBtn.classList.add('playing');
+        }).catch(() => {
+          isMusicPlaying = true;
+          musicBtn.classList.add('playing');
+        });
+      } else {
+        audio.pause();
+        isMusicPlaying = false;
+        musicBtn.classList.remove('playing');
+      }
+    });
+
+    // Tự động phát khi người dùng chạm hoặc cuộn lần đầu
+    function initAudioOnFirstInteraction() {
+      if (!isMusicPlaying) {
+        audio.play().then(() => {
+          isMusicPlaying = true;
+          musicBtn.classList.add('playing');
+        }).catch(() => {});
+      }
+      window.removeEventListener('click', initAudioOnFirstInteraction);
+      window.removeEventListener('scroll', initAudioOnFirstInteraction);
+    }
+    window.addEventListener('click', initAudioOnFirstInteraction, { once: true });
+    window.addEventListener('scroll', initAudioOnFirstInteraction, { once: true });
+
+    // ====== COUNTDOWN TIMER ======
+    const WEDDING_TARGET = new Date('2026-12-20T11:00:00');
+
+    function updateCountdownTimer() {
+      const now = new Date();
+      let diff = WEDDING_TARGET - now;
+      if (diff < 0) diff = 0;
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+      document.getElementById('cd-days').textContent = String(days).padStart(2, '0');
+      document.getElementById('cd-hours').textContent = String(hours).padStart(2, '0');
+      document.getElementById('cd-mins').textContent = String(mins).padStart(2, '0');
+      document.getElementById('cd-secs').textContent = String(secs).padStart(2, '0');
+    }
+
+    updateCountdownTimer();
+    setInterval(updateCountdownTimer, 1000);
+
+    // ====== RSVP SUBMISSION ======
+    function submitRsvpForm() {
+      const name = document.getElementById('guestName').value.trim();
+      if (!name) return;
+
+      document.getElementById('rsvpForm').style.display = 'none';
+      const success = document.getElementById('rsvpSuccessMsg');
+      success.classList.add('active');
+
+      // Tự động thêm một lời chúc từ khách mời vừa xác nhận
+      addNewWish(name + ' 💕', 'Rất vui vì được mời tham dự ngày trọng đại của hai bạn!');
+    }
+
+    // ====== SAO CHÉP SỐ TÀI KHOẢN ======
+    function copyAccount(elementId, btnElement) {
+      const text = document.getElementById(elementId).innerText.replace(/\s+/g, '');
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = btnElement.innerHTML;
+        btnElement.classList.add('copied');
+        btnElement.innerHTML = '<span>Đã sao chép! ✓</span>';
+        setTimeout(() => {
+          btnElement.classList.remove('copied');
+          btnElement.innerHTML = originalText;
+        }, 2200);
+      }).catch(() => {
+        alert('Số tài khoản: ' + text);
+      });
+    }
+
+    // ====== SỔ LƯU BÚT & LỜI CHÚC ======
+    function addNewWish(sender, message) {
+      const list = document.getElementById('wishesListContainer');
+      const item = document.createElement('li');
+      item.className = 'wish-bubble';
+      item.innerHTML = `
+        <div class="wish-sender-title">${sender} <span>Vừa xong</span></div>
+        <div class="wish-bubble-text">${message}</div>
+      `;
+      list.insertBefore(item, list.firstChild);
+    }
+
+    function handleSendWish() {
+      const nameInput = document.getElementById('wishSenderName');
+      const msgInput = document.getElementById('wishMessageText');
+
+      const name = nameInput.value.trim() || 'Người bạn thân';
+      const message = msgInput.value.trim();
+
+      if (!message) {
+        msgInput.focus();
+        return;
+      }
+
+      addNewWish(name + ' ✨', message);
+      msgInput.value = '';
+      nameInput.value = '';
+    }
+  </script>
+</body>
+
+</html>
