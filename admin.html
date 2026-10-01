@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin – Tạo Thiệp Cưới</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@600&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3350;
+      --accent: #7c4dff;
+      --accent2: #c850c0;
+      --gold: #f5a623;
+      --text: #e8eaf6;
+      --text-muted: #8891b4;
+      --success: #00e5a0;
+      --danger: #ff5252;
+      --radius: 12px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    .admin-header {
+      background: linear-gradient(135deg, #1a0533 0%, #0d1b4b 50%, #0f1117 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-brand .logo-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .header-brand h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: var(--text);
+    }
+
+    .header-brand p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .btn-generate {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      box-shadow: 0 4px 20px rgba(124, 77, 255, 0.4);
+    }
+
+    .btn-generate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(124, 77, 255, 0.5);
+    }
+
+    /* LAYOUT */
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 0;
+      height: calc(100vh - 80px);
+      overflow: hidden;
+    }
+
+    .form-area {
+      padding: 32px;
+      overflow-y: auto;
+      height: 100%;
+    }
+
+    /* SECTION GROUPS */
+    .section-group {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+
+    .section-group-header {
+      padding: 16px 20px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .section-group-header .badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .section-group-header .chevron {
+      margin-left: auto;
+      transition: transform 0.3s;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .section-group-header.collapsed .chevron {
+      transform: rotate(-90deg);
+    }
+
+    .section-group-body {
+      padding: 20px;
+    }
+
+    .section-group-body.hidden {
+      display: none;
+    }
+
+    /* FORM FIELDS */
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .field-row.single {
+      grid-template-columns: 1fr;
+    }
+
+    .field-row.triple {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .field-group {
+      margin-bottom: 16px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 6px;
+    }
+
+    .field-label .required {
+      color: var(--danger);
+      margin-left: 2px;
+    }
+
+    .field-input,
+    .field-select,
+    .field-textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 13.5px;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+
+    .field-input:focus,
+    .field-select:focus,
+    .field-textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124, 77, 255, 0.15);
+    }
+
+    .field-textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+
+    .field-select option {
+      background: var(--surface);
+    }
+
+    /* IMAGE UPLOAD */
+    .img-upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .img-upload-zone:hover {
+      border-color: var(--accent);
+      background: rgba(124, 77, 255, 0.05);
+    }
+
+    .img-upload-zone.has-image {
+      border-color: var(--success);
+      padding: 0;
+    }
+
+    .img-upload-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .img-upload-zone img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 10px;
+      display: block;
+    }
+
+    .img-upload-placeholder {
+      pointer-events: none;
+    }
+
+    .img-upload-placeholder .upload-icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .img-upload-placeholder p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .img-upload-placeholder strong {
+      color: var(--accent);
+    }
+
+    .img-remove-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(255, 82, 82, 0.9);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      font-size: 12px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+    }
+
+    .has-image .img-remove-btn {
+      display: flex;
+    }
+
+    .has-image .img-upload-placeholder {
+      display: none;
+    }
+
+    .album-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .album-item .img-upload-zone {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .album-item .img-upload-zone img {
+      height: 100%;
+      width: 100%;
+    }
+
+    /* PREVIEW */
+    .preview-panel {
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .preview-header {
+      padding: 16px 20px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .preview-header span {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .preview-badge {
+      font-size: 10px;
+      background: rgba(0, 229, 160, 0.15);
+      color: var(--success);
+      padding: 3px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(0, 229, 160, 0.3);
+    }
+
+    .preview-frame-wrap {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: #0a0c12;
+      min-height: 0;
+    }
+
+    .phone-mockup {
+      width: 260px;
+      height: 540px;
+      border: 8px solid #2a2d3e;
+      border-radius: 36px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      flex-shrink: 0;
+    }
+
+    .phone-mockup::before {
+      content: '';
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 5px;
+      background: #2a2d3e;
+      border-radius: 3px;
+      z-index: 10;
+    }
+
+    #previewFrame {
+      width: 430px;
+      height: 860px;
+      border: none;
+      transform: scale(0.604);
+      transform-origin: top left;
+      background: white;
+    }
+
+    /* PROGRESS */
+    .progress-bar {
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width 0.5s ease;
+      border-radius: 2px;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 14px 24px;
+      border-radius: 50px;
+      font-size: 14px;
+      z-index: 9999;
+      transition: transform 0.4s cubic-bezier(.34, 1.56, .64, 1), opacity 0.4s;
+      opacity: 0;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* MISC */
+    .field-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 16px 0;
+    }
+
+    .sub-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      margin-top: 4px;
+    }
+
+    .help-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
+
+    @media (max-width: 900px) {
+      .admin-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-panel {
+        display: none;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .field-row {
+        grid-template-columns: 1fr;
+      }
+
+      .admin-header {
+        padding: 14px 16px;
+      }
+
+      .form-area {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="admin-header">
+    <div class="header-brand">
+      <div class="logo-icon">&#x1F492;</div>
+      <div>
+        <h1>Wedding Builder</h1>
+        <p>Tạo thiệp cưới đẹp, không cần code</p>
+      </div>
+    </div>
+    <button class="btn-generate" onclick="generateWedding()">&#x2B07;&#xFE0F; Tạo &amp; Tải Thiệp</button>
+  </header>
+
+  <div class="admin-layout">
+    <div class="form-area" id="formArea">
+
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+
+      <!-- 1. CÔ DÂU & CHÚ RỂ -->
+      <div class="section-group">
+        <div class="section-group-header" onclick="toggleSection(this)">
+          <div class="badge" style="background:rgba(244,63,94,0.15);">&#x1F48D;</div>
+          Cô Dâu &amp; Chú Rể
+          <span class="chevron">&#x25BE;</span>
+        </div>
+        <div class="section-group-body">
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Tên Chú Rể <span class="required">*</span></label>
+              <input class="field-input" id="groomName" type="text" value="Vĩnh Quang" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tên Cô Dâu <span class="required">*</span></label>
+              <input class="field-input" id="brideName" type="text" value="Thúy An" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-divider"></div>
+          <div class="sub-label">Nhà Trai</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Tên ông (bố chú rể)</label>
+              <input class="field-input" id="groomFather" type="text" value="Nguyễn Văn Hùng" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tên bà (mẹ chú rể)</label>
+              <input class="field-input" id="groomMother" type="text" value="Trần Thị Mai" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="sub-label">Nhà Gái</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Tên ông (bố cô dâu)</label>
+              <input class="field-input" id="brideFather" type="text" value="Lê Văn Dũng" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tên bà (mẹ cô dâu)</label>
+              <input class="field-input" id="brideMother" type="text" value="Phạm Thị Lan" oninput="liveUpdate()" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. NGÀY & ĐỊA ĐIỂM -->
+      <div class="section-group">
+        <div class="section-group-header" onclick="toggleSection(this)">
+          <div class="badge" style="background:rgba(245,166,35,0.15);">&#x1F4C5;</div>
+          Ngày Cưới &amp; Địa Điểm
+          <span class="chevron">&#x25BE;</span>
+        </div>
+        <div class="section-group-body">
+          <div class="sub-label">Thông tin ngày</div>
+          <div class="field-row triple">
+            <div class="field-group">
+              <label class="field-label">Ngày <span class="required">*</span></label>
+              <input class="field-input" id="weddingDay" type="number" min="1" max="31" value="20"
+                oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tháng <span class="required">*</span></label>
+              <input class="field-input" id="weddingMonth" type="number" min="1" max="12" value="12"
+                oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Năm <span class="required">*</span></label>
+              <input class="field-input" id="weddingYear" type="number" min="2024" max="2040" value="2026"
+                oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Thứ trong tuần</label>
+              <select class="field-select" id="weddingDayOfWeek" oninput="liveUpdate()">
+                <option selected>Chủ Nhật</option>
+                <option>Thứ Hai</option>
+                <option>Thứ Ba</option>
+                <option>Thứ Tư</option>
+                <option>Thứ Năm</option>
+                <option>Thứ Sáu</option>
+                <option>Thứ Bảy</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Ngày âm lịch (hiển thị)</label>
+              <input class="field-input" id="lunarDate" type="text" value="16 tháng 10 năm Bính Ngọ"
+                oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-divider"></div>
+          <div class="sub-label">Tiệc Nhà Gái</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Giờ tiệc</label>
+              <input class="field-input" id="brideTime" type="text" value="11:00" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tên địa điểm</label>
+              <input class="field-input" id="brideVenue" type="text" value="TƯ GIA NHÀ GÁI" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Địa chỉ nhà gái</label>
+              <input class="field-input" id="brideAddress" type="text"
+                value="Số 128 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Link Google Maps nhà gái</label>
+              <input class="field-input" id="brideMapUrl" type="url"
+                value="https://maps.google.com/?q=Số+128+Đường+Lê+Lợi+Quận+1+TP+Hồ+Chí+Minh" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-divider"></div>
+          <div class="sub-label">Tiệc Nhà Trai</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Giờ tiệc</label>
+              <input class="field-input" id="groomTime" type="text" value="17:30" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tên địa điểm</label>
+              <input class="field-input" id="groomVenue" type="text" value="TƯ GIA NHÀ TRAI" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Địa chỉ nhà trai</label>
+              <input class="field-input" id="groomAddress" type="text"
+                value="Số 86 Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Link Google Maps nhà trai</label>
+              <input class="field-input" id="groomMapUrl" type="url"
+                value="https://maps.google.com/?q=Số+86+Đường+Nguyễn+Huệ+Quận+1+TP+Hồ+Chí+Minh"
+                oninput="liveUpdate()" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. HÌNH ẢNH -->
+      <div class="section-group">
+        <div class="section-group-header" onclick="toggleSection(this)">
+          <div class="badge" style="background:rgba(124,77,255,0.15);">&#x1F5BC;&#xFE0F;</div>
+          Hình Ảnh
+          <span class="chevron">&#x25BE;</span>
+        </div>
+        <div class="section-group-body">
+          <div class="sub-label">Ảnh bìa (Hero)</div>
+          <div class="img-upload-zone" id="zoneHero">
+            <input type="file" accept="image/*" onchange="handleImageUpload(this,'hero','zoneHero','imgHero')" />
+            <div class="img-upload-placeholder">
+              <div class="upload-icon">&#x1F5BC;&#xFE0F;</div>
+              <strong>Chọn ảnh bìa</strong>
+              <p>JPG, PNG, WEBP — Khuyến nghị tỷ lệ 9:16</p>
+            </div>
+            <img id="imgHero" src="" alt="" style="display:none;" />
+            <button class="img-remove-btn" onclick="removeImage(event,'hero','zoneHero','imgHero')">&#x2715;</button>
+          </div>
+          <div class="field-divider"></div>
+          <div class="sub-label">Ảnh đôi (Quote section)</div>
+          <div class="img-upload-zone" id="zoneQuote">
+            <input type="file" accept="image/*" onchange="handleImageUpload(this,'quote','zoneQuote','imgQuote')" />
+            <div class="img-upload-placeholder">
+              <div class="upload-icon">&#x1F491;</div>
+              <strong>Chọn ảnh đôi</strong>
+              <p>Xuất hiện trong phần câu quote cảm xúc</p>
+            </div>
+            <img id="imgQuote" src="" alt="" style="display:none;" />
+            <button class="img-remove-btn" onclick="removeImage(event,'quote','zoneQuote','imgQuote')">&#x2715;</button>
+          </div>
+          <div class="field-divider"></div>
+          <div class="sub-label">Album ảnh (tối đa 4 ảnh)</div>
+          <div class="album-grid">
+            <div class="album-item">
+              <div class="img-upload-zone" id="zoneAlbum0">
+                <input type="file" accept="image/*"
+                  onchange="handleImageUpload(this,'album0','zoneAlbum0','imgAlbum0')" />
+                <div class="img-upload-placeholder">
+                  <div class="upload-icon" style="font-size:20px">&#x1F4F7;</div>
+                  <p>Ảnh 1</p>
+                </div>
+                <img id="imgAlbum0" src="" alt="" style="display:none;" />
+                <button class="img-remove-btn"
+                  onclick="removeImage(event,'album0','zoneAlbum0','imgAlbum0')">&#x2715;</button>
+              </div>
+            </div>
+            <div class="album-item">
+              <div class="img-upload-zone" id="zoneAlbum1">
+                <input type="file" accept="image/*"
+                  onchange="handleImageUpload(this,'album1','zoneAlbum1','imgAlbum1')" />
+                <div class="img-upload-placeholder">
+                  <div class="upload-icon" style="font-size:20px">&#x1F4F7;</div>
+                  <p>Ảnh 2</p>
+                </div>
+                <img id="imgAlbum1" src="" alt="" style="display:none;" />
+                <button class="img-remove-btn"
+                  onclick="removeImage(event,'album1','zoneAlbum1','imgAlbum1')">&#x2715;</button>
+              </div>
+            </div>
+            <div class="album-item">
+              <div class="img-upload-zone" id="zoneAlbum2">
+                <input type="file" accept="image/*"
+                  onchange="handleImageUpload(this,'album2','zoneAlbum2','imgAlbum2')" />
+                <div class="img-upload-placeholder">
+                  <div class="upload-icon" style="font-size:20px">&#x1F4F7;</div>
+                  <p>Ảnh 3</p>
+                </div>
+                <img id="imgAlbum2" src="" alt="" style="display:none;" />
+                <button class="img-remove-btn"
+                  onclick="removeImage(event,'album2','zoneAlbum2','imgAlbum2')">&#x2715;</button>
+              </div>
+            </div>
+            <div class="album-item">
+              <div class="img-upload-zone" id="zoneAlbum3">
+                <input type="file" accept="image/*"
+                  onchange="handleImageUpload(this,'album3','zoneAlbum3','imgAlbum3')" />
+                <div class="img-upload-placeholder">
+                  <div class="upload-icon" style="font-size:20px">&#x1F4F7;</div>
+                  <p>Ảnh 4</p>
+                </div>
+                <img id="imgAlbum3" src="" alt="" style="display:none;" />
+                <button class="img-remove-btn"
+                  onclick="removeImage(event,'album3','zoneAlbum3','imgAlbum3')">&#x2715;</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. NGÂN HÀNG -->
+      <div class="section-group">
+        <div class="section-group-header" onclick="toggleSection(this)">
+          <div class="badge" style="background:rgba(0,229,160,0.15);">&#x1F3E6;</div>
+          Hộp Mừng Cưới (Ngân Hàng)
+          <span class="chevron">&#x25BE;</span>
+        </div>
+        <div class="section-group-body">
+          <div class="sub-label">Tài khoản Chú Rể</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Ngân hàng</label>
+              <input class="field-input" id="groomBank" type="text" value="MB BANK" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Số tài khoản</label>
+              <input class="field-input" id="groomAccountNum" type="text" value="0988 123 456" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Tên chủ TK (IN HOA)</label>
+              <input class="field-input" id="groomAccountName" type="text" value="NGUYEN VINH QUANG"
+                oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Ảnh QR chú rể (tuỳ chọn)</label>
+            <div class="img-upload-zone" id="zoneQrGroom" style="max-width:160px;">
+              <input type="file" accept="image/*"
+                onchange="handleImageUpload(this,'qrGroom','zoneQrGroom','imgQrGroom')" />
+              <div class="img-upload-placeholder">
+                <div class="upload-icon" style="font-size:20px">&#x1F4F1;</div>
+                <p>Ảnh QR</p>
+              </div>
+              <img id="imgQrGroom" src="" alt="" style="display:none;" />
+              <button class="img-remove-btn"
+                onclick="removeImage(event,'qrGroom','zoneQrGroom','imgQrGroom')">&#x2715;</button>
+            </div>
+          </div>
+          <div class="field-divider"></div>
+          <div class="sub-label">Tài khoản Cô Dâu</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Ngân hàng</label>
+              <input class="field-input" id="brideBank" type="text" value="VIETCOMBANK" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Số tài khoản</label>
+              <input class="field-input" id="brideAccountNum" type="text" value="1012 345 678" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Tên chủ TK (IN HOA)</label>
+              <input class="field-input" id="brideAccountName" type="text" value="LE THUY AN" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Ảnh QR cô dâu (tuỳ chọn)</label>
+            <div class="img-upload-zone" id="zoneQrBride" style="max-width:160px;">
+              <input type="file" accept="image/*"
+                onchange="handleImageUpload(this,'qrBride','zoneQrBride','imgQrBride')" />
+              <div class="img-upload-placeholder">
+                <div class="upload-icon" style="font-size:20px">&#x1F4F1;</div>
+                <p>Ảnh QR</p>
+              </div>
+              <img id="imgQrBride" src="" alt="" style="display:none;" />
+              <button class="img-remove-btn"
+                onclick="removeImage(event,'qrBride','zoneQrBride','imgQrBride')">&#x2715;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. NHẠC -->
+      <div class="section-group">
+        <div class="section-group-header" onclick="toggleSection(this)">
+          <div class="badge" style="background:rgba(96,165,250,0.15);">&#x1F3B5;</div>
+          Nhạc Nền
+          <span class="chevron">&#x25BE;</span>
+        </div>
+        <div class="section-group-body">
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">URL file nhạc MP3</label>
+              <input class="field-input" id="musicUrl" type="url"
+                value="https://www.dropbox.com/scl/fi/t7v88qalu94lpnydv2ynr/nhac.mp3?rlkey=iqlmgddkoxytbism6wyh2o497&st=wboutcjj&raw=1" oninput="liveUpdate()" />
+              <p class="help-text">Dán link direct MP3 hoặc đường dẫn file nhạc.</p>
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Âm lượng (0.0 – 1.0)</label>
+              <input class="field-input" id="musicVolume" type="number" min="0" max="1" step="0.05" value="0.45"
+                oninput="liveUpdate()" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. NỘI DUNG -->
+      <div class="section-group">
+        <div class="section-group-header" onclick="toggleSection(this)">
+          <div class="badge" style="background:rgba(251,146,60,0.15);">&#x270D;&#xFE0F;</div>
+          Nội Dung &amp; Câu Chuyện
+          <span class="chevron">&#x25BE;</span>
+        </div>
+        <div class="section-group-body">
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Câu quote trên ảnh đôi</label>
+              <textarea class="field-textarea" id="quoteText"
+                oninput="liveUpdate()">"Loại bỏ tất cả những lời yêu thương hoa mỹ, có lẽ tình yêu thực sự là sự đồng hành bền bỉ bên nhau qua năm tháng."</textarea>
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Câu mở đầu (Lời ngỏ)</label>
+              <textarea class="field-textarea" id="introText"
+                oninput="liveUpdate()">"Tình yêu đích thực không phải là tìm kiếm một người hoàn hảo, mà là học cách nhìn nhận một người không hoàn hảo một cách trọn vẹn nhất."</textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. LỊCH TRÌNH -->
+      <div class="section-group">
+        <div class="section-group-header" onclick="toggleSection(this)">
+          <div class="badge" style="background:rgba(96,165,250,0.15);">&#x1F4CB;</div>
+          Lịch Trình Lễ Cưới
+          <span class="chevron">&#x25BE;</span>
+        </div>
+        <div class="section-group-body">
+          <p class="help-text" style="margin-bottom:16px;">Chỉnh sửa 4 mục lịch trình xuất hiện trong thiệp cưới.</p>
+
+          <!-- Item 1 -->
+          <div class="sub-label">Mục 1</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Giờ</label>
+              <input class="field-input" id="sch0Time" type="text" value="17:00" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tiêu đề</label>
+              <input class="field-input" id="sch0Title" type="text" value="Đón Khách & Chụp Ảnh"
+                oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Mô tả</label>
+              <textarea class="field-textarea" id="sch0Desc"
+                oninput="liveUpdate()">Đón tiếp quý khách, chụp ảnh lưu niệm tại photobooth và thưởng thức tiệc trà chào mừng.</textarea>
+            </div>
+          </div>
+
+          <div class="field-divider"></div>
+          <!-- Item 2 -->
+          <div class="sub-label">Mục 2</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Giờ</label>
+              <input class="field-input" id="sch1Time" type="text" value="17:30" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tiêu đề</label>
+              <input class="field-input" id="sch1Title" type="text" value="Hôn Lễ Thành Hôn" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Mô tả</label>
+              <textarea class="field-textarea" id="sch1Desc"
+                oninput="liveUpdate()">Nghi thức trao nhẫn cưới, cắt bánh, rót rượu mừng và lời thề ước trăm năm trước hai họ.</textarea>
+            </div>
+          </div>
+
+          <div class="field-divider"></div>
+          <!-- Item 3 -->
+          <div class="sub-label">Mục 3</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Giờ</label>
+              <input class="field-input" id="sch2Time" type="text" value="18:00" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tiêu đề</label>
+              <input class="field-input" id="sch2Title" type="text" value="Khai Tiệc Mừng" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Mô tả</label>
+              <textarea class="field-textarea" id="sch2Desc"
+                oninput="liveUpdate()">Cùng nâng ly chúc phúc cho đôi uyên ương và thưởng thức tiệc cưới ấm cúng.</textarea>
+            </div>
+          </div>
+
+          <div class="field-divider"></div>
+          <!-- Item 4 -->
+          <div class="sub-label">Mục 4</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Giờ</label>
+              <input class="field-input" id="sch3Time" type="text" value="19:30" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tiêu đề</label>
+              <input class="field-input" id="sch3Title" type="text" value="Giao Lưu & Âm Nhạc" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Mô tả</label>
+              <textarea class="field-textarea" id="sch3Desc"
+                oninput="liveUpdate()">Minigame vui nhộn, bốc thăm may mắn và các tiết mục văn nghệ cùng bạn bè.</textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div style="text-align:center;padding:20px 0 40px;">
+        <button class="btn-generate" onclick="generateWedding()"
+          style="margin:0 auto;font-size:16px;padding:16px 40px;">
+          &#x1F492; Tạo &amp; Tải Thiệp Cưới
+        </button>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:12px;">File HTML sẽ được tải về máy — đẩy lên server
+          là dùng được ngay!</p>
+      </div>
+    </div><!-- end form-area -->
+
+    <!-- PREVIEW -->
+    <div class="preview-panel">
+      <div class="preview-header">
+        <span>&#x1F4F1; Preview</span>
+        <span class="preview-badge">LIVE</span>
+      </div>
+      <div class="preview-frame-wrap">
+        <div class="phone-mockup">
+          <iframe id="previewFrame" title="Preview"
+            srcdoc="<div style='display:flex;align-items:center;justify-content:center;height:100%;background:#0f1117;color:#8891b4;font-family:sans-serif;font-size:13px;'>Nhập thông tin để xem preview</div>"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ============================================================
+    // IMAGE STORE
+    // ============================================================
+    const images = { hero: null, quote: null, album0: null, album1: null, album2: null, album3: null, qrGroom: null, qrBride: null };
+
+    function handleImageUpload(input, key, zoneId, imgId) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        images[key] = e.target.result;
+        const zone = document.getElementById(zoneId);
+        const imgEl = document.getElementById(imgId);
+        zone.classList.add('has-image');
+        imgEl.src = e.target.result;
+        imgEl.style.display = 'block';
+        liveUpdate();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeImage(evt, key, zoneId, imgId) {
+      evt.preventDefault(); evt.stopPropagation();
+      images[key] = null;
+      const zone = document.getElementById(zoneId);
+      const imgEl = document.getElementById(imgId);
+      zone.classList.remove('has-image');
+      imgEl.src = ''; imgEl.style.display = 'none';
+      const inp = zone.querySelector('input[type="file"]');
+      if (inp) inp.value = '';
+      liveUpdate();
+    }
+
+    // ============================================================
+    // COLLAPSIBLE
+    // ============================================================
+    function toggleSection(header) {
+      const body = header.nextElementSibling;
+      const collapsed = body.classList.toggle('hidden');
+      header.classList.toggle('collapsed', collapsed);
+    }
+
+    // ============================================================
+    // CONFIG FROM FORM
+    function getConfig() {
+      const v = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+      return {
+        groomName: v('groomName'), brideName: v('brideName'),
+        groomFather: v('groomFather'), groomMother: v('groomMother'),
+        brideFather: v('brideFather'), brideMother: v('brideMother'),
+        weddingDay: v('weddingDay'), weddingMonth: v('weddingMonth'), weddingYear: v('weddingYear'),
+        weddingDayOfWeek: v('weddingDayOfWeek'), lunarDate: v('lunarDate'),
+        brideTime: v('brideTime'), brideVenue: v('brideVenue'), brideAddress: v('brideAddress'), brideMapUrl: v('brideMapUrl'),
+        groomTime: v('groomTime'), groomVenue: v('groomVenue'), groomAddress: v('groomAddress'), groomMapUrl: v('groomMapUrl'),
+        groomBank: v('groomBank'), groomAccountNum: v('groomAccountNum'), groomAccountName: v('groomAccountName'),
+        brideBank: v('brideBank'), brideAccountNum: v('brideAccountNum'), brideAccountName: v('brideAccountName'),
+        musicUrl: v('musicUrl'), musicVolume: v('musicVolume'),
+        quoteText: v('quoteText'), introText: v('introText'),
+        schedule: [
+          { time: v('sch0Time'), title: v('sch0Title'), desc: v('sch0Desc') },
+          { time: v('sch1Time'), title: v('sch1Title'), desc: v('sch1Desc') },
+          { time: v('sch2Time'), title: v('sch2Title'), desc: v('sch2Desc') },
+          { time: v('sch3Time'), title: v('sch3Title'), desc: v('sch3Desc') },
+        ],
+      };
+    }
+
+    // ============================================================
+    // LIVE PREVIEW
+    // ============================================================
+    let previewTimer = null;
+    function liveUpdate() {
+      updateProgress();
+      clearTimeout(previewTimer);
+      previewTimer = setTimeout(() => {
+        document.getElementById('previewFrame').srcdoc = buildWeddingHTML(getConfig());
+      }, 700);
+    }
+
+    function updateProgress() {
+      const fields = ['groomName', 'brideName', 'weddingDay', 'weddingMonth', 'weddingYear', 'brideAddress', 'groomAddress', 'groomAccountNum', 'brideAccountNum', 'musicUrl'];
+      const v = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+      const filled = fields.filter(id => v(id)).length;
+      const imgFilled = ['hero', 'album0'].filter(k => images[k]).length;
+      const pct = Math.round(((filled + imgFilled) / (fields.length + 2)) * 100);
+      document.getElementById('progressFill').style.width = pct + '%';
+    }
+
+    // ============================================================
+    // HTML ESCAPE
+    // ============================================================
+    function esc(str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function defaultQR(color) {
+      return '<svg class="qr-img" viewBox="0 0 100 100"><rect width="100" height="100" fill="#fff"/>'
+        + '<rect x="10" y="10" width="24" height="24" fill="' + color + '"/><rect x="14" y="14" width="16" height="16" fill="#fff"/><rect x="18" y="18" width="8" height="8" fill="' + color + '"/>'
+        + '<rect x="66" y="10" width="24" height="24" fill="' + color + '"/><rect x="70" y="14" width="16" height="16" fill="#fff"/><rect x="74" y="18" width="8" height="8" fill="' + color + '"/>'
+        + '<rect x="10" y="66" width="24" height="24" fill="' + color + '"/><rect x="14" y="70" width="16" height="16" fill="#fff"/><rect x="18" y="74" width="8" height="8" fill="' + color + '"/>'
+        + '<rect x="42" y="12" width="6" height="6" fill="' + color + '"/><rect x="52" y="20" width="6" height="6" fill="' + color + '"/>'
+        + '<rect x="44" y="44" width="12" height="12" fill="' + color + '"/><rect x="64" y="44" width="6" height="6" fill="' + color + '"/>'
+        + '<rect x="42" y="64" width="6" height="6" fill="' + color + '"/><rect x="64" y="64" width="12" height="12" fill="' + color + '"/>'
+        + '</svg>';
+    }
+
+    // ============================================================
+    // BUILD WEDDING HTML
+    // ============================================================
+    function buildWeddingHTML(c) {
+      const dateDisplay = c.weddingDay + ' · ' + c.weddingMonth + ' · ' + c.weddingYear;
+      const dateFull = c.weddingDay + ' . ' + c.weddingMonth + ' . ' + c.weddingYear;
+      const mo2 = String(c.weddingMonth).padStart(2, '0');
+      const d2 = String(c.weddingDay).padStart(2, '0');
+      const wISO = c.weddingYear + '-' + mo2 + '-' + d2;
+
+      const PH_SVG_HERO = 'data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 width%3D%22430%22 height%3D%22700%22%3E%3Crect width%3D%22430%22 height%3D%22700%22 fill%3D%22%23f5e6e8%22/%3E%3Ctext x%3D%22215%22 y%3D%22350%22 font-family%3D%22sans-serif%22 font-size%3D%2218%22 fill%3D%22%23c9a8b2%22 text-anchor%3D%22middle%22%3E%E1%BA%A2nh B%C3%ACa%3C/text%3E%3C/svg%3E';
+      const PH_SVG_QUOTE = 'data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 width%3D%22430%22 height%3D%22400%22%3E%3Crect width%3D%22430%22 height%3D%22400%22 fill%3D%22%23f5e6e8%22/%3E%3Ctext x%3D%22215%22 y%3D%22200%22 font-family%3D%22sans-serif%22 font-size%3D%2218%22 fill%3D%22%23c9a8b2%22 text-anchor%3D%22middle%22%3E%E1%BA%A2nh %C4%90%C3%B4i%3C/text%3E%3C/svg%3E';
+
+      const imgHero = images.hero || PH_SVG_HERO;
+      const imgQuote = images.quote || PH_SVG_QUOTE;
+      const imgA0 = images.album0 || imgHero;
+      const imgA1 = images.album1 || imgQuote;
+      const imgA2 = images.album2 || imgHero;
+      const imgA3 = images.album3 || imgQuote;
+
+      const qrGroomHTML = images.qrGroom ? '<img src="' + images.qrGroom + '" class="qr-img" alt="QR" />' : defaultQR('#7a0c16');
+      const qrBrideHTML = images.qrBride ? '<img src="' + images.qrBride + '" class="qr-img" alt="QR" />' : defaultQR('#b3394b');
+
+      const albumJSON = JSON.stringify([imgA0, imgA1, imgA2, imgA3]);
+
+      return `<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Thiệp Cưới - ${esc(c.groomName)} &amp; ${esc(c.brideName)}</title>
+<meta name="description" content="Thiệp mời dự lễ cưới của ${esc(c.groomName)} &amp; ${esc(c.brideName)} - ngày ${esc(c.weddingDay)} tháng ${esc(c.weddingMonth)} năm ${esc(c.weddingYear)}"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Great+Vibes&family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#7a0c16;--primary-light:#9c1c28;--primary-dark:#58060e;--accent:#d4a373;--gold:#c9a84c;--pink-soft:#fceceb;--dark:#231815;--text:#3c3330;--text-light:#7c726e;--bg-page:#e8eaee;--card-bg:#fff;--radius:14px;--shadow:0 8px 30px rgba(0,0,0,.08)}
+html{scroll-behavior:smooth}
+body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg-page);min-height:100vh;display:flex;justify-content:center;align-items:flex-start;position:relative;overflow-x:hidden;color:var(--text)}
+.hearts-bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
+.heart-float{position:absolute;animation:floatHeart linear infinite;opacity:0;color:#e05f7a;user-select:none}
+@keyframes floatHeart{0%{transform:translateY(100vh) scale(.6) rotate(-15deg);opacity:0}12%{opacity:.65}80%{opacity:.45}100%{transform:translateY(-80px) scale(1.1) rotate(15deg);opacity:0}}
+.invitation-card{position:relative;z-index:1;width:100%;max-width:430px;background:var(--card-bg);box-shadow:0 0 60px rgba(0,0,0,.15);overflow:hidden}
+.music-btn{position:fixed;top:16px;right:16px;z-index:999;width:44px;height:44px;border-radius:50%;background:rgba(122,12,22,.92);border:2px solid rgba(255,255,255,.3);cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);transition:all .3s;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.music-btn:hover{transform:scale(1.1)}
+.vinyl{width:20px;height:20px;border-radius:50%;background:conic-gradient(#fff 0deg 60deg,#aaa 60deg 120deg,#fff 120deg 180deg,#aaa 180deg 240deg,#fff 240deg 300deg,#aaa 300deg 360deg);position:relative}
+.vinyl::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;border-radius:50%;background:#7a0c16}
+.music-btn.playing .vinyl{animation:spin 2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.floating-like-btn{position:fixed;bottom:24px;right:16px;z-index:999;background:rgba(122,12,22,.92);border:2px solid rgba(255,255,255,.25);color:#fff;border-radius:50px;padding:8px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;font-family:'Be Vietnam Pro',sans-serif;backdrop-filter:blur(8px);transition:all .3s;box-shadow:0 4px 16px rgba(122,12,22,.4)}
+.floating-like-btn:hover{transform:scale(1.07)}
+.like-burst-heart{position:fixed;pointer-events:none;font-size:22px;z-index:9999;animation:burstHeart 1s ease-out forwards}
+@keyframes burstHeart{0%{transform:translate(0,0) rotate(0deg) scale(1);opacity:1}100%{transform:translate(calc(var(--rand-x)*1px),-120px) rotate(calc(var(--rand-rot)*1deg)) scale(.3);opacity:0}}
+.cover-section{position:relative;height:100svh;min-height:580px;overflow:hidden}
+.cover-img{width:100%;height:100%;object-fit:cover;display:block}
+.cover-gradient{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(35,24,21,.1) 0%,rgba(35,24,21,.15) 40%,rgba(35,24,21,.75) 75%,rgba(35,24,21,.92) 100%)}
+.cover-text{position:absolute;bottom:90px;left:0;right:0;text-align:center;color:#fff;padding:0 24px}
+.cover-sub{font-size:11px;letter-spacing:4px;text-transform:uppercase;opacity:.8;margin-bottom:10px;display:block;font-weight:300}
+.cover-title{font-family:'Great Vibes',cursive;font-size:58px;font-weight:400;line-height:1.1;text-shadow:0 2px 20px rgba(0,0,0,.5);margin-bottom:14px}
+.cover-amp{color:var(--gold);font-family:'Great Vibes',cursive;display:block;font-size:36px;margin:4px 0}
+.cover-date-pill{display:inline-block;background:rgba(201,168,76,.25);border:1px solid rgba(201,168,76,.5);color:var(--gold);padding:7px 20px;border-radius:50px;font-size:13px;letter-spacing:3px;backdrop-filter:blur(4px)}
+.scroll-down-hint{position:absolute;bottom:28px;left:0;right:0;text-align:center;color:rgba(255,255,255,.6);font-size:12px;display:flex;flex-direction:column;align-items:center;gap:4px;animation:bounce 2s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+section{padding:28px 20px}
+.sec-header{text-align:center;margin-bottom:20px}
+.sec-sub{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--primary);font-weight:600;display:block;margin-bottom:6px}
+.sec-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--dark)}
+.sec-title-serif{font-family:'Playfair Display',serif;font-size:20px;color:var(--dark);text-align:center}
+.family-section{background:var(--pink-soft)}
+.family-intro{text-align:center;font-style:italic;color:var(--text-light);font-size:13px;line-height:1.7;margin-bottom:20px;padding:0 8px}
+.family-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center}
+.family-col{text-align:center}
+.family-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--primary);background:rgba(122,12,22,.08);padding:3px 10px;border-radius:20px;margin-bottom:8px}
+.parent-name{font-size:12.5px;color:var(--text-light);line-height:1.5}
+.couple-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--primary);margin-top:10px;font-weight:600}
+.couple-name{font-family:'Playfair Display',serif;font-size:22px;color:var(--dark);margin-top:2px}
+.family-divider{font-size:22px;color:var(--gold);text-align:center}
+.events-section{background:#fff;padding:20px 16px;display:flex;flex-direction:column;gap:14px}
+.event-card{background:linear-gradient(135deg,#fff9f9,#fff);border:1px solid rgba(122,12,22,.1);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+.event-badge{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--primary);margin-bottom:6px}
+.event-time{font-size:12px;color:var(--text-light);margin-bottom:2px}
+.event-date-large{font-family:'Playfair Display',serif;font-size:24px;color:var(--dark);font-weight:700;margin-bottom:2px}
+.event-lunar{font-size:11px;color:var(--text-light);font-style:italic;margin-bottom:6px}
+.event-venue{font-size:12px;font-weight:600;color:var(--primary);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.event-address{font-size:12.5px;color:var(--text-light);margin-bottom:12px}
+.event-actions{display:flex;gap:8px;flex-wrap:wrap}
+.event-btn{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--primary);background:rgba(122,12,22,.07);border:1px solid rgba(122,12,22,.15);padding:7px 14px;border-radius:50px;text-decoration:none;transition:all .2s;font-family:'Be Vietnam Pro',sans-serif}
+.event-btn:hover{background:var(--primary);color:#fff}
+.schedule-section{background:var(--pink-soft)}
+.schedule-timeline{display:flex;flex-direction:column;gap:0;position:relative}
+.schedule-timeline::before{content:'';position:absolute;left:56px;top:8px;bottom:8px;width:2px;background:linear-gradient(to bottom,var(--primary),rgba(122,12,22,.1))}
+.schedule-item{display:grid;grid-template-columns:48px 1fr;grid-template-rows:auto auto;gap:0 12px;position:relative;padding-bottom:20px}
+.schedule-dot{position:absolute;left:50px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--primary);border:2px solid #fff;box-shadow:0 0 0 3px rgba(122,12,22,.15)}
+.schedule-time{font-size:12px;font-weight:700;color:var(--primary);padding-top:2px;text-align:right;padding-right:4px}
+.schedule-title{font-size:14px;font-weight:700;color:var(--dark);padding-top:2px}
+.schedule-desc{grid-column:2;font-size:12px;color:var(--text-light);line-height:1.6;margin-top:3px}
+.calendar-section{background:#fff}
+.calendar-card{background:linear-gradient(135deg,#fff9f9,#fff);border:1px solid rgba(122,12,22,.1);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.cal-header-bar{background:var(--primary);color:#fff;text-align:center;padding:12px;font-size:13px;font-weight:700;letter-spacing:2px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0}
+.cal-day-title{text-align:center;font-size:10.5px;font-weight:700;color:var(--text-light);padding:8px 4px;background:rgba(122,12,22,.04)}
+.cal-cell{text-align:center;padding:8px 4px;font-size:12.5px;color:var(--text)}
+.cal-cell.wedding-day{background:var(--primary);color:#fff;font-weight:700;border-radius:50%;margin:2px;display:flex;align-items:center;justify-content:center}
+.calendar-footer-text{text-align:center;padding:12px;font-size:12px;color:var(--primary);font-style:italic;border-top:1px solid rgba(122,12,22,.08)}
+.countdown-section{background:linear-gradient(135deg,var(--primary-dark),var(--primary));color:#fff;text-align:center;padding:30px 20px}
+.countdown-section .sec-sub{color:rgba(255,255,255,.7)}
+.countdown-section .sec-title-serif{color:#fff}
+.countdown-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px}
+.cd-box{background:rgba(255,255,255,.12);border-radius:12px;padding:14px 8px;border:1px solid rgba(255,255,255,.15)}
+.cd-number{display:block;font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:#fff}
+.cd-label{display:block;font-size:11px;opacity:.7;margin-top:3px;letter-spacing:1px}
+.photo-quote-section{position:relative;height:320px;overflow:hidden}
+.photo-quote-img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-quote-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(35,24,21,.85) 0%,rgba(35,24,21,.4) 60%,transparent 100%);display:flex;flex-direction:column;justify-content:flex-end;padding:24px 20px}
+.quote-badge{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.quote-content{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:#fff;line-height:1.65}
+.rsvp-section{background:var(--pink-soft)}
+.rsvp-box{background:#fff;border-radius:14px;padding:20px;box-shadow:var(--shadow)}
+.form-group{margin-bottom:14px}
+.form-label{font-size:12.5px;font-weight:600;color:var(--text);display:block;margin-bottom:6px}
+.form-input,.form-select{width:100%;border:1.5px solid #e2d6d3;border-radius:8px;padding:10px 14px;font-size:13.5px;font-family:'Be Vietnam Pro',sans-serif;color:var(--text);background:#fff;transition:border-color .2s;outline:none}
+.form-input:focus,.form-select:focus{border-color:var(--primary)}
+.radio-pill-group{display:flex;gap:8px;flex-wrap:wrap}
+.radio-pill input{display:none}
+.radio-pill label{display:block;padding:8px 16px;border-radius:50px;border:1.5px solid #e2d6d3;font-size:12.5px;cursor:pointer;transition:all .2s;font-weight:500}
+.radio-pill input:checked+label{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-submit-rsvp{width:100%;background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;border:none;padding:14px;border-radius:10px;font-size:14px;font-weight:700;font-family:'Be Vietnam Pro',sans-serif;cursor:pointer;margin-top:4px;transition:all .2s}
+.btn-submit-rsvp:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(122,12,22,.3)}
+.rsvp-success-msg{display:none;text-align:center;padding:20px}
+.rsvp-success-msg.active{display:block}
+.gift-section{background:#fff;text-align:center}
+.gift-icon-box{font-size:36px;margin-bottom:6px}
+.gift-subtext{font-size:13px;color:var(--text-light);margin-bottom:18px}
+.gift-tabs{display:flex;gap:8px;margin-bottom:16px;justify-content:center}
+.gift-tab-btn{padding:8px 22px;border-radius:50px;border:1.5px solid rgba(122,12,22,.25);background:transparent;color:var(--primary);font-size:13px;font-weight:600;cursor:pointer;font-family:'Be Vietnam Pro',sans-serif;transition:all .2s}
+.gift-tab-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.bank-card{background:linear-gradient(135deg,#fff9f9,#fff);border:1px solid rgba(122,12,22,.1);border-radius:14px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px}
+.bank-card-header{display:flex;align-items:center;justify-content:space-between}
+.bank-owner-badge{background:var(--primary);color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;padding:3px 10px;border-radius:20px}
+.bank-name{font-size:13px;font-weight:700;color:var(--dark)}
+.bank-details{display:flex;align-items:center;justify-content:space-between}
+.bank-account-num{font-size:20px;font-weight:700;color:var(--dark);letter-spacing:1px}
+.bank-account-holder{font-size:11.5px;color:var(--text-light);margin-top:2px}
+.btn-copy-account{background:rgba(122,12,22,.07);border:1px solid rgba(122,12,22,.2);color:var(--primary);padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;font-family:'Be Vietnam Pro',sans-serif;cursor:pointer;transition:all .2s}
+.btn-copy-account.copied{background:var(--primary);color:#fff}
+.qr-preview-box{text-align:center}
+.qr-img{width:140px;height:140px;display:block;margin:0 auto 10px;object-fit:contain}
+.qr-note{font-size:11.5px;color:var(--text-light);line-height:1.5}
+.album-section{background:var(--dark);padding:28px 16px}
+.album-header-wrap{text-align:center;margin-bottom:16px}
+.album-title-top{font-size:11px;letter-spacing:4px;color:rgba(255,255,255,.5);text-transform:uppercase}
+.album-title-sub{font-family:'Great Vibes',cursive;font-size:38px;color:var(--gold)}
+.album-thumbs-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.album-thumb{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;opacity:.6;transition:all .2s;border:2px solid transparent}
+.album-thumb.active{opacity:1;border-color:var(--gold)}
+.album-main-display{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;cursor:zoom-in;transition:opacity .15s}
+.album-zoom-hint{text-align:center;font-size:11px;color:rgba(255,255,255,.4);margin-top:8px}
+.wishes-section{background:var(--pink-soft)}
+.wishes-box{background:#fff;border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+.wish-input-group{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.wish-name-input,.wish-msg-input{border:1.5px solid #e2d6d3;border-radius:8px;padding:10px 14px;font-size:13px;font-family:'Be Vietnam Pro',sans-serif;color:var(--text);outline:none;transition:border-color .2s}
+.wish-name-input:focus,.wish-msg-input:focus{border-color:var(--primary)}
+.wish-msg-input{resize:none;min-height:70px}
+.btn-send-wish{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;border:none;padding:11px;border-radius:8px;font-size:13px;font-weight:600;font-family:'Be Vietnam Pro',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.wishes-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+.wish-bubble{background:var(--pink-soft);border-radius:10px;padding:12px 14px}
+.wish-sender-title{font-size:12px;font-weight:700;color:var(--primary);margin-bottom:4px;display:flex;align-items:center;justify-content:space-between}
+.wish-sender-title span{font-size:11px;color:var(--text-light);font-weight:400}
+.wish-bubble-text{font-size:13px;color:var(--text);line-height:1.6}
+.footer-bar{background:var(--primary-dark);color:rgba(255,255,255,.85);text-align:center;padding:24px 20px}
+.footer-names{font-family:'Great Vibes',cursive;font-size:32px;color:var(--gold);margin-bottom:8px}
+.footer-bar p{font-size:12px;opacity:.7}
+.lightbox-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;align-items:center;justify-content:center}
+.lightbox-modal.active{display:flex}
+.lightbox-img{max-width:90vw;max-height:85vh;object-fit:contain;border-radius:8px}
+.lightbox-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer}
+.lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:28px;cursor:pointer}
+.lightbox-nav.prev{left:12px}
+.lightbox-nav.next{right:12px}
+</style>
+</head>
+<body>
+<div class="hearts-bg" id="heartsContainer"></div>
+<button class="music-btn" id="musicBtn" aria-label="Nhạc"><div class="vinyl"></div></button>
+<button class="floating-like-btn" id="floatingLikeBtn" aria-label="Tim">&#x1F496;<span id="likeCount">520</span></button>
+
+<main class="invitation-card">
+
+<section class="cover-section" id="cover">
+  <img class="cover-img" src="${imgHero}" alt="Ảnh cưới ${esc(c.groomName)} &amp; ${esc(c.brideName)}"/>
+  <div class="cover-gradient"></div>
+  <div class="cover-text">
+    <span class="cover-sub">INVITATION</span>
+    <h1 class="cover-title">${esc(c.groomName)}<span class="cover-amp">&amp;</span>${esc(c.brideName)}</h1>
+    <div class="cover-date-pill">${dateDisplay}</div>
+  </div>
+  <div class="scroll-down-hint"><span>Cuộn xuống</span><span>↓</span></div>
+</section>
+
+<section class="family-section" id="family">
+  <div class="sec-header" style="padding-top:10px;">
+    <span class="sec-sub">LỜI NGỎ</span>
+    <h2 class="sec-title">Gia Đình &amp; Đôi Uyên Ương</h2>
+  </div>
+  <p class="family-intro">${esc(c.introText)}</p>
+  <div class="family-grid">
+    <div class="family-col">
+      <span class="family-badge">Nhà Trai</span>
+      <div class="parent-name">Ông: <strong>${esc(c.groomFather)}</strong></div>
+      <div class="parent-name">Bà: <strong>${esc(c.groomMother)}</strong></div>
+      <div class="couple-label">Chú Rể</div>
+      <div class="couple-name">${esc(c.groomName)}</div>
+    </div>
+    <div class="family-divider">❦</div>
+    <div class="family-col">
+      <span class="family-badge">Nhà Gái</span>
+      <div class="parent-name">Ông: <strong>${esc(c.brideFather)}</strong></div>
+      <div class="parent-name">Bà: <strong>${esc(c.brideMother)}</strong></div>
+      <div class="couple-label">Cô Dâu</div>
+      <div class="couple-name">${esc(c.brideName)}</div>
+    </div>
+  </div>
+</section>
+
+<section class="events-section" id="events">
+  <div class="event-card">
+    <div class="event-badge">TIỆC CƯỚI NHÀ GÁI</div>
+    <div class="event-time">VÀO LÚC ${esc(c.brideTime)} • ${esc(c.weddingDayOfWeek).toUpperCase()}</div>
+    <div class="event-date-large">${dateFull}</div>
+    <div class="event-lunar">(Tức ngày ${esc(c.lunarDate)})</div>
+    <div class="event-venue">TẠI ${esc(c.brideVenue).toUpperCase()}</div>
+    <div class="event-address">${esc(c.brideAddress)}</div>
+    <div class="event-actions">
+      <a href="${esc(c.brideMapUrl)}" target="_blank" class="event-btn" rel="noopener noreferrer">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        Xem Bản Đồ
+      </a>
+    </div>
+  </div>
+  <div class="event-card">
+    <div class="event-badge">TIỆC CƯỚI NHÀ TRAI</div>
+    <div class="event-time">VÀO LÚC ${esc(c.groomTime)} • ${esc(c.weddingDayOfWeek).toUpperCase()}</div>
+    <div class="event-date-large">${dateFull}</div>
+    <div class="event-lunar">(Tức ngày ${esc(c.lunarDate)})</div>
+    <div class="event-venue">TẠI ${esc(c.groomVenue).toUpperCase()}</div>
+    <div class="event-address">${esc(c.groomAddress)}</div>
+    <div class="event-actions">
+      <a href="${esc(c.groomMapUrl)}" target="_blank" class="event-btn" rel="noopener noreferrer">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        Xem Bản Đồ
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="schedule-section" id="schedule">
+  <div class="sec-header" style="padding-top:10px;">
+    <span class="sec-sub">LỊCH TRÌNH</span>
+    <h2 class="sec-title-serif" style="font-size:18px;">Chương Trình Lễ Cưới</h2>
+  </div>
+  <div class="schedule-timeline">
+    ${c.schedule.map(s => `<div class="schedule-item"><div class="schedule-dot"></div><div class="schedule-time">${esc(s.time)}</div><div class="schedule-title">${esc(s.title)}</div><div class="schedule-desc">${esc(s.desc)}</div></div>`).join('\n    ')}
+  </div>
+</section>
+
+<section class="calendar-section" id="calendar">
+  <div class="sec-header" style="padding-top:10px;">
+    <span class="sec-sub">TIẾT ĐIỂM HẸN</span>
+    <h2 class="sec-title-serif">Tháng ${esc(c.weddingMonth)} Năm ${esc(c.weddingYear)}</h2>
+  </div>
+  <div class="calendar-card">
+    <div class="cal-header-bar">THÁNG ${esc(c.weddingMonth)} / ${esc(c.weddingYear)}</div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="calendar-footer-text">❤ ${esc(c.weddingDayOfWeek)}, ${esc(c.weddingDay)} Tháng ${esc(c.weddingMonth)}, ${esc(c.weddingYear)} (Tức ngày ${esc(c.lunarDate)}) ❤</div>
+  </div>
+</section>
+
+<section class="countdown-section" id="countdown">
+  <span class="sec-sub">CÙNG CHỜ ĐÓN</span>
+  <h2 class="sec-title-serif" style="font-size:18px;">Đếm Ngược Đến Ngày Trọng Đại</h2>
+  <div class="countdown-grid">
+    <div class="cd-box"><span class="cd-number" id="cd-days">--</span><span class="cd-label">Ngày</span></div>
+    <div class="cd-box"><span class="cd-number" id="cd-hours">--</span><span class="cd-label">Giờ</span></div>
+    <div class="cd-box"><span class="cd-number" id="cd-mins">--</span><span class="cd-label">Phút</span></div>
+    <div class="cd-box"><span class="cd-number" id="cd-secs">--</span><span class="cd-label">Giây</span></div>
+  </div>
+</section>
+
+<section class="photo-quote-section" id="quote">
+  <img class="photo-quote-img" src="${imgQuote}" alt="Khoảnh khắc yêu thương"/>
+  <div class="photo-quote-overlay">
+    <div class="quote-badge">Love &amp; Forever</div>
+    <p class="quote-content">${esc(c.quoteText)}</p>
+  </div>
+</section>
+
+<section class="rsvp-section" id="rsvp">
+  <div class="sec-header" style="padding-top:0;">
+    <span class="sec-sub">PHẢN HỒI</span>
+    <h2 class="sec-title-serif">Xác Nhận Tham Dự</h2>
+  </div>
+  <div class="rsvp-box">
+    <form id="rsvpForm" onsubmit="event.preventDefault();submitRsvpForm();">
+      <div class="form-group"><label class="form-label" for="guestName">Họ và tên</label><input class="form-input" id="guestName" type="text" placeholder="Nhập tên..." required/></div>
+      <div class="form-group"><label class="form-label">Bạn sẽ đến chứ?</label>
+        <div class="radio-pill-group">
+          <div class="radio-pill"><input type="radio" id="att-yes" name="attendance" value="yes" checked/><label for="att-yes">Có, chắc chắn đến ❤</label></div>
+          <div class="radio-pill"><input type="radio" id="att-no" name="attendance" value="no"/><label for="att-no">Rất tiếc không thể đến</label></div>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Khách mời bên nào?</label>
+        <div class="radio-pill-group">
+          <div class="radio-pill"><input type="radio" id="side-groom" name="guestSide" value="groom" checked/><label for="side-groom">Bên Nhà Trai</label></div>
+          <div class="radio-pill"><input type="radio" id="side-bride" name="guestSide" value="bride"/><label for="side-bride">Bên Nhà Gái</label></div>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label" for="guestCount">Số người tham dự</label>
+        <select class="form-select" id="guestCount"><option>1 người</option><option>2 người</option><option>3 người</option><option>4 người</option><option>5+ người</option></select>
+      </div>
+      <button type="submit" class="btn-submit-rsvp">Gửi Xác Nhận Tham Dự</button>
+    </form>
+    <div class="rsvp-success-msg" id="rsvpSuccessMsg">
+      <div style="font-size:42px;margin-bottom:8px;">🎉</div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--primary);margin-bottom:6px;">Cảm Ơn Bạn Đã Xác Nhận!</div>
+      <div style="font-size:13.5px;color:#666;">Sự hiện diện của bạn là niềm vinh hạnh 💕</div>
+    </div>
+  </div>
+</section>
+
+<section class="gift-section" id="gift">
+  <div class="gift-icon-box">🎁</div>
+  <span class="sec-sub">CHÚC PHÚC</span>
+  <h2 class="sec-title-serif" style="margin-bottom:6px;">Hộp Mừng Cưới</h2>
+  <p class="gift-subtext">Gửi trao yêu thương tới Cô Dâu – Chú Rể</p>
+  <div class="gift-tabs">
+    <button class="gift-tab-btn active" id="tabGroomBtn" onclick="switchGiftTab('groom')">Mừng Chú Rể</button>
+    <button class="gift-tab-btn" id="tabBrideBtn" onclick="switchGiftTab('bride')">Mừng Cô Dâu</button>
+  </div>
+  <div id="tabGroomContent" class="bank-card">
+    <div class="bank-card-header"><span class="bank-owner-badge">Chú Rể</span><span class="bank-name">${esc(c.groomBank)}</span></div>
+    <div class="bank-details">
+      <div><div class="bank-account-num" id="accGroom">${esc(c.groomAccountNum)}</div><div class="bank-account-holder">${esc(c.groomAccountName)}</div></div>
+      <button class="btn-copy-account" onclick="copyAccount('accGroom',this)"><span>Sao chép STK</span></button>
+    </div>
+    <div class="qr-preview-box">${qrGroomHTML}<div class="qr-note">Quét QR để mừng <strong>Chú Rể ${esc(c.groomName)}</strong></div></div>
+  </div>
+  <div id="tabBrideContent" class="bank-card" style="display:none;">
+    <div class="bank-card-header"><span class="bank-owner-badge" style="background:#b3394b;">Cô Dâu</span><span class="bank-name">${esc(c.brideBank)}</span></div>
+    <div class="bank-details">
+      <div><div class="bank-account-num" id="accBride">${esc(c.brideAccountNum)}</div><div class="bank-account-holder">${esc(c.brideAccountName)}</div></div>
+      <button class="btn-copy-account" onclick="copyAccount('accBride',this)"><span>Sao chép STK</span></button>
+    </div>
+    <div class="qr-preview-box">${qrBrideHTML}<div class="qr-note">Quét QR để mừng <strong>Cô Dâu ${esc(c.brideName)}</strong></div></div>
+  </div>
+</section>
+
+<section class="album-section" id="album">
+  <div class="album-header-wrap"><div class="album-title-top">ALBUM</div><div class="album-title-sub">of Love</div></div>
+  <div class="album-thumbs-row" id="albumThumbsRow"></div>
+  <img id="albumMainImg" class="album-main-display" src="${imgA0}" alt="Ảnh album" onclick="openLightbox(currentAlbumIndex)"/>
+  <div class="album-zoom-hint">🔍 Nhấn để xem toàn màn hình</div>
+</section>
+
+<section class="wishes-section" id="wishes">
+  <div class="sec-header" style="padding-top:0;">
+    <span class="sec-sub">LỜI CHÚC TỪ TRÁI TIM</span>
+    <h2 class="sec-title-serif">Sổ Lưu Bút</h2>
+  </div>
+  <div class="wishes-box">
+    <div class="wish-input-group">
+      <input class="wish-name-input" id="wishSenderName" type="text" placeholder="Tên của bạn..." maxlength="40"/>
+      <textarea class="wish-msg-input" id="wishMessageText" placeholder="Gửi lời chúc..." maxlength="200"></textarea>
+      <button class="btn-send-wish" onclick="handleSendWish()"><span>Gửi Lời Chúc</span><span>💝</span></button>
+    </div>
+    <ul class="wishes-list" id="wishesListContainer">
+      <li class="wish-bubble"><div class="wish-sender-title">Phương Mai 💕 <span>Vừa xong</span></div><div class="wish-bubble-text">Chúc hai bạn trăm năm hòa hợp, mãi mãi hạnh phúc!</div></li>
+      <li class="wish-bubble"><div class="wish-sender-title">Tuấn Kiệt 🎉 <span>5 phút trước</span></div><div class="wish-bubble-text">Chúc đôi uyên ương sớm đón thêm thành viên nhí dễ thương!</div></li>
+    </ul>
+  </div>
+</section>
+
+<footer class="footer-bar">
+  <div class="footer-names">${esc(c.groomName)} &amp; ${esc(c.brideName)}</div>
+  <p>Cảm ơn bạn đã luôn đồng hành và chia sẻ niềm vui cùng chúng mình!</p>
+</footer>
+</main>
+
+<div class="lightbox-modal" id="lightboxModal">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <button class="lightbox-nav prev" onclick="navigateLightbox(-1)">‹</button>
+  <img id="lightboxImg" class="lightbox-img" src="" alt="Ảnh phóng to"/>
+  <button class="lightbox-nav next" onclick="navigateLightbox(1)">›</button>
+</div>
+
+<script>
+const albumList = ${albumJSON};
+let currentAlbumIndex = 0;
+const thumbsContainer = document.getElementById('albumThumbsRow');
+albumList.forEach((src, idx) => {
+  const img = document.createElement('img');
+  img.className = 'album-thumb' + (idx === 0 ? ' active' : '');
+  img.src = src; img.alt = 'Ảnh ' + (idx+1);
+  img.onclick = () => selectAlbumPhoto(idx);
+  thumbsContainer.appendChild(img);
+});
+function selectAlbumPhoto(idx) {
+  currentAlbumIndex = idx;
+  document.querySelectorAll('.album-thumb').forEach((t,i) => t.classList.toggle('active', i===idx));
+  const m = document.getElementById('albumMainImg');
+  m.style.opacity = '0'; setTimeout(() => { m.src = albumList[idx]; m.style.opacity = '1'; }, 150);
+}
+function openLightbox(idx) { currentAlbumIndex=idx; document.getElementById('lightboxImg').src=albumList[idx]; document.getElementById('lightboxModal').classList.add('active'); }
+function closeLightbox() { document.getElementById('lightboxModal').classList.remove('active'); }
+function navigateLightbox(dir) { currentAlbumIndex=(currentAlbumIndex+dir+albumList.length)%albumList.length; document.getElementById('lightboxImg').src=albumList[currentAlbumIndex]; selectAlbumPhoto(currentAlbumIndex); }
+document.getElementById('lightboxModal').addEventListener('click', e => { if(e.target.id==='lightboxModal') closeLightbox(); });
+
+const heartsBg = document.getElementById('heartsContainer');
+const heartIcons = ['♡','♥','❤','💕','💖','💗'];
+function spawnHeart() {
+  const el = document.createElement('div'); el.className='heart-float';
+  el.textContent = heartIcons[Math.floor(Math.random()*heartIcons.length)];
+  el.style.left=(Math.random()*95)+'vw'; el.style.fontSize=(12+Math.random()*16)+'px';
+  const d=7+Math.random()*8; el.style.animationDuration=d+'s';
+  heartsBg.appendChild(el); setTimeout(()=>el.remove(),(d+1)*1000);
+}
+setInterval(spawnHeart,900); for(let i=0;i<6;i++) setTimeout(spawnHeart,i*400);
+
+let currentLikeCount=520;
+document.getElementById('floatingLikeBtn').addEventListener('click',function(e){
+  currentLikeCount++; document.getElementById('likeCount').textContent=currentLikeCount;
+  const rect=this.getBoundingClientRect(), hs=['💖','💕','❤️','💝','✨'];
+  for(let i=0;i<5;i++) setTimeout(()=>{
+    const h=document.createElement('div'); h.className='like-burst-heart';
+    h.textContent=hs[Math.floor(Math.random()*hs.length)];
+    h.style.left=(rect.left+15)+'px'; h.style.top=(rect.top+5)+'px';
+    h.style.setProperty('--rand-x',(Math.random()-.5)*120); h.style.setProperty('--rand-rot',(Math.random()-.5)*60);
+    document.body.appendChild(h); setTimeout(()=>h.remove(),1000);
+  },i*60);
+});
+
+const musicBtn=document.getElementById('musicBtn'); let isMusicPlaying=false;
+const audio=new Audio('${esc(c.musicUrl)}'); audio.loop=true; audio.volume=${parseFloat(c.musicVolume) || 0.45};
+musicBtn.addEventListener('click',()=>{
+  if(!isMusicPlaying){audio.play().then(()=>{isMusicPlaying=true;musicBtn.classList.add('playing');}).catch(()=>{isMusicPlaying=true;musicBtn.classList.add('playing');});}
+  else{audio.pause();isMusicPlaying=false;musicBtn.classList.remove('playing');}
+});
+function initAudio(){if(!isMusicPlaying){audio.play().then(()=>{isMusicPlaying=true;musicBtn.classList.add('playing');}).catch(()=>{});}window.removeEventListener('click',initAudio);window.removeEventListener('scroll',initAudio);}
+window.addEventListener('click',initAudio,{once:true}); window.addEventListener('scroll',initAudio,{once:true});
+
+const WEDDING_TARGET=new Date('${wISO}T11:00:00');
+function updateCountdown(){
+  let diff=WEDDING_TARGET-new Date(); if(diff<0)diff=0;
+  document.getElementById('cd-days').textContent=String(Math.floor(diff/(864e5))).padStart(2,'0');
+  document.getElementById('cd-hours').textContent=String(Math.floor((diff%864e5)/36e5)).padStart(2,'0');
+  document.getElementById('cd-mins').textContent=String(Math.floor((diff%36e5)/6e4)).padStart(2,'0');
+  document.getElementById('cd-secs').textContent=String(Math.floor((diff%6e4)/1e3)).padStart(2,'0');
+}
+updateCountdown(); setInterval(updateCountdown,1000);
+
+(function buildCal(){
+  const yr=${parseInt(c.weddingYear) || 2026}, mo=${parseInt(c.weddingMonth) || 12}, wd=${parseInt(c.weddingDay) || 20};
+  const fd=new Date(yr,mo-1,1).getDay(), dim=new Date(yr,mo,0).getDate();
+  const off=fd===0?6:fd-1;
+  const grid=document.getElementById('calGrid'); if(!grid)return;
+  ['T2','T3','T4','T5','T6','T7','CN'].forEach(d=>{const h=document.createElement('div');h.className='cal-day-title';h.textContent=d;grid.appendChild(h);});
+  for(let i=0;i<off;i++){const c=document.createElement('div');c.className='cal-cell';grid.appendChild(c);}
+  for(let d=1;d<=dim;d++){const c=document.createElement('div');c.className='cal-cell'+(d===wd?' wedding-day':'');c.textContent=d;grid.appendChild(c);}
+  const rem=(off+dim)%7; if(rem>0)for(let i=0;i<7-rem;i++){const c=document.createElement('div');c.className='cal-cell';grid.appendChild(c);}
+})();
+
+function switchGiftTab(type){
+  document.getElementById('tabGroomBtn').classList.toggle('active',type==='groom');
+  document.getElementById('tabBrideBtn').classList.toggle('active',type==='bride');
+  document.getElementById('tabGroomContent').style.display=type==='groom'?'flex':'none';
+  document.getElementById('tabBrideContent').style.display=type==='bride'?'flex':'none';
+}
+
+function submitRsvpForm(){
+  const name=document.getElementById('guestName').value.trim(); if(!name)return;
+  document.getElementById('rsvpForm').style.display='none';
+  document.getElementById('rsvpSuccessMsg').classList.add('active');
+  addNewWish(name+' 💕','Rất vui vì được mời tham dự ngày trọng đại của hai bạn!');
+}
+
+function copyAccount(elementId,btnElement){
+  const text=document.getElementById(elementId).innerText.replace(/\s+/g,'');
+  navigator.clipboard.writeText(text).then(()=>{const o=btnElement.innerHTML;btnElement.classList.add('copied');btnElement.innerHTML='<span>Đã sao chép! ✓</span>';setTimeout(()=>{btnElement.classList.remove('copied');btnElement.innerHTML=o;},2200);}).catch(()=>alert('STK: '+text));
+}
+
+function addNewWish(sender,message){
+  const list=document.getElementById('wishesListContainer');
+  const item=document.createElement('li');item.className='wish-bubble';
+  item.innerHTML=\`<div class="wish-sender-title">\${sender} <span>Vừa xong</span></div><div class="wish-bubble-text">\${message}</div>\`;
+  list.insertBefore(item,list.firstChild);
+}
+
+function handleSendWish(){
+  const ni=document.getElementById('wishSenderName'),mi=document.getElementById('wishMessageText');
+  const name=ni.value.trim()||'Người bạn thân',msg=mi.value.trim();
+  if(!msg){mi.focus();return;}
+  addNewWish(name+' ✨',msg); mi.value=''; ni.value='';
+}
+<\/script>
+</body>
+</html>`;
+    }
+
+    // ============================================================
+    // GENERATE & DOWNLOAD
+    // ============================================================
+    function generateWedding() {
+      const c = getConfig();
+      if (!c.groomName || !c.brideName) { showToast('⚠️ Vui lòng nhập tên cô dâu và chú rể!'); return; }
+      showToast('⏳ Đang tạo thiệp...');
+      setTimeout(() => {
+        try {
+          const html = buildWeddingHTML(c);
+          const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          const gn = c.groomName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+          const bn = c.brideName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+          a.download = 'thiep-cuoi-' + gn + '-' + bn + '.html';
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showToast('✅ Thiệp đã được tạo và tải xuống!');
+        } catch (e) {
+          showToast('❌ Lỗi: ' + e.message);
+        }
+      }, 100);
+    }
+
+    // ============================================================
+    // TOAST
+    // ============================================================
+    let toastTimer = null;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+    }
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      updateProgress();
+      setTimeout(() => liveUpdate(), 400);
+    });
+  </script>
+</body>
+
+</html>
