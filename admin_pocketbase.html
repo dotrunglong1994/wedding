@@ -1,0 +1,1919 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin PocketBase – Quản Trị Thiệp Cưới</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@600&display=swap"
+    rel="stylesheet" />
+  <!-- PocketBase JavaScript SDK -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pocketbase/0.21.5/pocketbase.umd.js"></script>
+
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3350;
+      --accent: #7c4dff;
+      --accent2: #c850c0;
+      --gold: #f5a623;
+      --text: #e8eaf6;
+      --text-muted: #8891b4;
+      --success: #00e5a0;
+      --danger: #ff5252;
+      --warning: #ffb703;
+      --radius: 12px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    .admin-header {
+      background: linear-gradient(135deg, #1a0533 0%, #0d1b4b 50%, #0f1117 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-brand .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .header-brand h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 19px;
+      color: var(--text);
+    }
+
+    .header-brand p {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* PB BAR */
+    .pb-control-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pb-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 6px 12px;
+      color: var(--text-muted);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #777;
+    }
+
+    .status-dot.online {
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    .status-dot.offline {
+      background: var(--danger);
+      box-shadow: 0 0 8px var(--danger);
+    }
+
+    .status-dot.connecting {
+      background: var(--warning);
+      animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { opacity: 0.4; }
+      to { opacity: 1; }
+    }
+
+    .btn-action {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 9px 16px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.25s;
+      font-family: 'Be Vietnam Pro', sans-serif;
+    }
+
+    .btn-action:hover {
+      background: #2a304b;
+      border-color: var(--accent);
+    }
+
+    .btn-save-pb {
+      background: linear-gradient(135deg, #00b09b, #96c93d);
+      color: #fff;
+      border: none;
+      padding: 9px 20px;
+      border-radius: 50px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      box-shadow: 0 4px 15px rgba(0, 176, 155, 0.35);
+    }
+
+    .btn-save-pb:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 176, 155, 0.5);
+    }
+
+    .btn-save-pb:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-generate {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s;
+      font-family: 'Be Vietnam Pro', sans-serif;
+    }
+
+    .btn-generate:hover {
+      transform: translateY(-1px);
+    }
+
+    /* LAYOUT */
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 1fr 390px;
+      gap: 0;
+      height: calc(100vh - 72px);
+      overflow: hidden;
+    }
+
+    .form-area {
+      padding: 28px 32px 60px;
+      overflow-y: auto;
+      height: 100%;
+    }
+
+    /* SECTION GROUPS */
+    .section-group {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 22px;
+      overflow: hidden;
+    }
+
+    .section-group-header {
+      padding: 15px 20px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .section-group-header .badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .section-group-header .chevron {
+      margin-left: auto;
+      transition: transform 0.3s;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .section-group-header.collapsed .chevron {
+      transform: rotate(-90deg);
+    }
+
+    .section-group-body {
+      padding: 20px;
+    }
+
+    .section-group-body.hidden {
+      display: none;
+    }
+
+    /* FORM FIELDS */
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .field-row.single {
+      grid-template-columns: 1fr;
+    }
+
+    .field-row.triple {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .field-group {
+      margin-bottom: 16px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 6px;
+    }
+
+    .field-label .required {
+      color: var(--danger);
+      margin-left: 2px;
+    }
+
+    .field-input,
+    .field-select,
+    .field-textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 13.5px;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+
+    .field-input:focus,
+    .field-select:focus,
+    .field-textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124, 77, 255, 0.15);
+    }
+
+    .field-textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+
+    .field-select option {
+      background: var(--surface);
+    }
+
+    /* IMAGE UPLOAD */
+    .img-upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative;
+      background: rgba(255, 255, 255, 0.02);
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .img-upload-zone:hover {
+      border-color: var(--accent);
+      background: rgba(124, 77, 255, 0.05);
+    }
+
+    .img-upload-zone.has-image {
+      border-style: solid;
+      border-color: var(--border);
+      padding: 0;
+    }
+
+    .img-upload-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .img-upload-placeholder {
+      pointer-events: none;
+    }
+
+    .img-upload-zone.has-image .img-upload-placeholder {
+      display: none;
+    }
+
+    .img-upload-zone img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+      border-radius: calc(var(--radius) - 2px);
+      max-height: 220px;
+    }
+
+    .img-upload-zone.has-image img {
+      display: block;
+    }
+
+    .img-remove-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      border: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      z-index: 5;
+    }
+
+    .img-upload-zone.has-image .img-remove-btn {
+      display: flex;
+    }
+
+    .album-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .album-item .img-upload-zone {
+      aspect-ratio: 1;
+      min-height: unset;
+      padding: 8px;
+    }
+
+    .album-item img {
+      height: 100%;
+      max-height: unset;
+    }
+
+    /* PREVIEW PANEL */
+    .preview-panel {
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .preview-header {
+      padding: 16px 20px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .preview-badge {
+      font-size: 10px;
+      background: rgba(0, 229, 160, 0.15);
+      color: var(--success);
+      padding: 3px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(0, 229, 160, 0.3);
+      font-weight: 700;
+    }
+
+    .preview-frame-wrap {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: #0a0c12;
+      min-height: 0;
+    }
+
+    .phone-mockup {
+      width: 270px;
+      height: 560px;
+      border: 8px solid #2a2d3e;
+      border-radius: 36px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+      flex-shrink: 0;
+    }
+
+    .phone-mockup::before {
+      content: '';
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 5px;
+      background: #2a2d3e;
+      border-radius: 3px;
+      z-index: 10;
+    }
+
+    #previewFrame {
+      width: 430px;
+      height: 890px;
+      border: none;
+      transform: scale(0.627);
+      transform-origin: top left;
+      background: white;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 24px;
+      border-radius: 50px;
+      font-size: 13.5px;
+      z-index: 9999;
+      transition: transform 0.4s cubic-bezier(.34, 1.56, .64, 1), opacity 0.4s;
+      opacity: 0;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .field-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 16px 0;
+    }
+
+    .sub-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      margin-top: 4px;
+    }
+
+    .help-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* SPINNER */
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+
+    .btn-save-pb.loading .spinner {
+      display: inline-block;
+    }
+
+    .btn-save-pb.loading .btn-text {
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 960px) {
+      .admin-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+      .preview-panel {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header class="admin-header">
+    <div class="header-brand">
+      <div class="logo-icon">&#x1F492;</div>
+      <div>
+        <h1>Wedding Admin</h1>
+        <p>Quản trị Backend PocketBase &amp; Real-time Preview</p>
+      </div>
+    </div>
+
+    <!-- POCKETBASE CONTROLS -->
+    <div class="pb-control-bar">
+      <!-- Status Pill -->
+      <div class="pb-status-pill" id="pbStatusPill" title="PocketBase Status">
+        <span class="status-dot connecting" id="statusDot"></span>
+        <span id="statusText">Đang kết nối...</span>
+      </div>
+
+      <!-- Config PB URL & Login -->
+      <button class="btn-action" onclick="openPbModal()" title="Cài đặt kết nối PocketBase">
+        ⚙️ <span id="authBtnLabel">Cấu hình PB</span>
+      </button>
+
+      <!-- Refresh from PB -->
+      <button class="btn-action" onclick="loadFromPocketBase()" title="Tải dữ liệu mới nhất từ server">
+        🔄 Đồng bộ
+      </button>
+
+      <!-- Save to PocketBase -->
+      <button class="btn-save-pb" id="btnSavePb" onclick="saveToPocketBase()">
+        <span class="spinner"></span>
+        <span class="btn-text">💾 Lưu Thay Đổi</span>
+      </button>
+
+      <!-- Export Static HTML (Fallback) -->
+      <button class="btn-generate" onclick="generateWedding()" title="Tải file HTML thiệp cưới offline">
+        ⬇️ Xuất HTML
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN LAYOUT -->
+  <div class="admin-layout">
+    <div class="form-area" id="formArea">
+
+      <!-- 1. CÔ DÂU & CHÚ RỂ -->
+      <div class="section-group">
+        <div class="section-group-header" onclick="toggleSection(this)">
+          <div class="badge" style="background:rgba(244,63,94,0.15);">&#x1F48D;</div>
+          Cô Dâu &amp; Chú Rể
+          <span class="chevron">&#x25BE;</span>
+        </div>
+        <div class="section-group-body">
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Tên Chú Rể <span class="required">*</span></label>
+              <input class="field-input" id="groomName" type="text" value="Vĩnh Quang" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tên Cô Dâu <span class="required">*</span></label>
+              <input class="field-input" id="brideName" type="text" value="Thúy An" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-divider"></div>
+          <div class="sub-label">Nhà Trai</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Tên ông (bố chú rể)</label>
+              <input class="field-input" id="groomFather" type="text" value="Nguyễn Văn Hùng" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tên bà (mẹ chú rể)</label>
+              <input class="field-input" id="groomMother" type="text" value="Trần Thị Mai" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="sub-label">Nhà Gái</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Tên ông (bố cô dâu)</label>
+              <input class="field-input" id="brideFather" type="text" value="Lê Văn Dũng" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tên bà (mẹ cô dâu)</label>
+              <input class="field-input" id="brideMother" type="text" value="Phạm Thị Lan" oninput="liveUpdate()" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. NGÀY & ĐỊA ĐIỂM -->
+      <div class="section-group">
+        <div class="section-group-header" onclick="toggleSection(this)">
+          <div class="badge" style="background:rgba(245,166,35,0.15);">&#x1F4C5;</div>
+          Ngày Cưới &amp; Địa Điểm
+          <span class="chevron">&#x25BE;</span>
+        </div>
+        <div class="section-group-body">
+          <div class="sub-label">Thông tin ngày</div>
+          <div class="field-row triple">
+            <div class="field-group">
+              <label class="field-label">Ngày <span class="required">*</span></label>
+              <input class="field-input" id="weddingDay" type="number" min="1" max="31" value="20"
+                oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tháng <span class="required">*</span></label>
+              <input class="field-input" id="weddingMonth" type="number" min="1" max="12" value="12"
+                oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Năm <span class="required">*</span></label>
+              <input class="field-input" id="weddingYear" type="number" min="2024" max="2040" value="2026"
+                oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Thứ trong tuần</label>
+              <select class="field-select" id="weddingDayOfWeek" oninput="liveUpdate()">
+                <option selected>Chủ Nhật</option>
+                <option>Thứ Hai</option>
+                <option>Thứ Ba</option>
+                <option>Thứ Tư</option>
+                <option>Thứ Năm</option>
+                <option>Thứ Sáu</option>
+                <option>Thứ Bảy</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Ngày âm lịch (hiển thị)</label>
+              <input class="field-input" id="lunarDate" type="text" value="16 tháng 10 năm Bính Ngọ"
+                oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-divider"></div>
+          <div class="sub-label">Tiệc Nhà Gái</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Giờ tiệc</label>
+              <input class="field-input" id="brideTime" type="text" value="11:00" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tên địa điểm</label>
+              <input class="field-input" id="brideVenue" type="text" value="TƯ GIA NHÀ GÁI" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Địa chỉ nhà gái</label>
+              <input class="field-input" id="brideAddress" type="text"
+                value="Số 128 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Link Google Maps nhà gái</label>
+              <input class="field-input" id="brideMapUrl" type="url"
+                value="https://maps.google.com/?q=Số+128+Đường+Lê+Lợi+Quận+1+TP+Hồ+Chí+Minh" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-divider"></div>
+          <div class="sub-label">Tiệc Nhà Trai</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Giờ tiệc</label>
+              <input class="field-input" id="groomTime" type="text" value="17:30" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tên địa điểm</label>
+              <input class="field-input" id="groomVenue" type="text" value="TƯ GIA NHÀ TRAI" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Địa chỉ nhà trai</label>
+              <input class="field-input" id="groomAddress" type="text"
+                value="Số 86 Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Link Google Maps nhà trai</label>
+              <input class="field-input" id="groomMapUrl" type="url"
+                value="https://maps.google.com/?q=Số+86+Đường+Nguyễn+Huệ+Quận+1+TP+Hồ+Chí+Minh"
+                oninput="liveUpdate()" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. HÌNH ẢNH (PocketBase Storage) -->
+      <div class="section-group">
+        <div class="section-group-header" onclick="toggleSection(this)">
+          <div class="badge" style="background:rgba(124,77,255,0.15);">&#x1F5BC;&#xFE0F;</div>
+          Hình Ảnh (Lưu Trực Tiếp Trên PocketBase)
+          <span class="chevron">&#x25BE;</span>
+        </div>
+        <div class="section-group-body">
+          <div class="sub-label">Ảnh bìa (Hero)</div>
+          <div class="img-upload-zone" id="zoneHero">
+            <input type="file" accept="image/*" onchange="handleImageFileSelect(this,'hero','zoneHero','imgHero')" />
+            <div class="img-upload-placeholder">
+              <div style="font-size:24px;margin-bottom:6px;">&#x1F5BC;&#xFE0F;</div>
+              <strong>Chọn hoặc thả ảnh bìa</strong>
+              <p class="help-text">JPG, PNG, WEBP — Khuyến nghị tỉ lệ 9:16</p>
+            </div>
+            <img id="imgHero" src="" alt="Hero" />
+            <button class="img-remove-btn" onclick="removeImage(event,'hero','zoneHero','imgHero')">&#x2715;</button>
+          </div>
+
+          <div class="field-divider"></div>
+          <div class="sub-label">Ảnh đôi (Quote section)</div>
+          <div class="img-upload-zone" id="zoneQuote">
+            <input type="file" accept="image/*" onchange="handleImageFileSelect(this,'quote','zoneQuote','imgQuote')" />
+            <div class="img-upload-placeholder">
+              <div style="font-size:24px;margin-bottom:6px;">&#x1F491;</div>
+              <strong>Chọn ảnh đôi</strong>
+              <p class="help-text">Xuất hiện trong phần câu quote cảm xúc</p>
+            </div>
+            <img id="imgQuote" src="" alt="Quote" />
+            <button class="img-remove-btn" onclick="removeImage(event,'quote','zoneQuote','imgQuote')">&#x2715;</button>
+          </div>
+
+          <div class="field-divider"></div>
+          <div class="sub-label">Album ảnh cưới (4 ảnh)</div>
+          <div class="album-grid">
+            <div class="album-item">
+              <div class="img-upload-zone" id="zoneAlbum0">
+                <input type="file" accept="image/*"
+                  onchange="handleImageFileSelect(this,'album0','zoneAlbum0','imgAlbum0')" />
+                <div class="img-upload-placeholder">
+                  <div style="font-size:20px;">📷</div>
+                  <p class="help-text">Ảnh 1</p>
+                </div>
+                <img id="imgAlbum0" src="" alt="Album 1" />
+                <button class="img-remove-btn"
+                  onclick="removeImage(event,'album0','zoneAlbum0','imgAlbum0')">&#x2715;</button>
+              </div>
+            </div>
+            <div class="album-item">
+              <div class="img-upload-zone" id="zoneAlbum1">
+                <input type="file" accept="image/*"
+                  onchange="handleImageFileSelect(this,'album1','zoneAlbum1','imgAlbum1')" />
+                <div class="img-upload-placeholder">
+                  <div style="font-size:20px;">📷</div>
+                  <p class="help-text">Ảnh 2</p>
+                </div>
+                <img id="imgAlbum1" src="" alt="Album 2" />
+                <button class="img-remove-btn"
+                  onclick="removeImage(event,'album1','zoneAlbum1','imgAlbum1')">&#x2715;</button>
+              </div>
+            </div>
+            <div class="album-item">
+              <div class="img-upload-zone" id="zoneAlbum2">
+                <input type="file" accept="image/*"
+                  onchange="handleImageFileSelect(this,'album2','zoneAlbum2','imgAlbum2')" />
+                <div class="img-upload-placeholder">
+                  <div style="font-size:20px;">📷</div>
+                  <p class="help-text">Ảnh 3</p>
+                </div>
+                <img id="imgAlbum2" src="" alt="Album 3" />
+                <button class="img-remove-btn"
+                  onclick="removeImage(event,'album2','zoneAlbum2','imgAlbum2')">&#x2715;</button>
+              </div>
+            </div>
+            <div class="album-item">
+              <div class="img-upload-zone" id="zoneAlbum3">
+                <input type="file" accept="image/*"
+                  onchange="handleImageFileSelect(this,'album3','zoneAlbum3','imgAlbum3')" />
+                <div class="img-upload-placeholder">
+                  <div style="font-size:20px;">📷</div>
+                  <p class="help-text">Ảnh 4</p>
+                </div>
+                <img id="imgAlbum3" src="" alt="Album 4" />
+                <button class="img-remove-btn"
+                  onclick="removeImage(event,'album3','zoneAlbum3','imgAlbum3')">&#x2715;</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. NGÂN HÀNG & QR -->
+      <div class="section-group">
+        <div class="section-group-header" onclick="toggleSection(this)">
+          <div class="badge" style="background:rgba(0,229,160,0.15);">&#x1F3E6;</div>
+          Hộp Mừng Cưới (Ngân Hàng)
+          <span class="chevron">&#x25BE;</span>
+        </div>
+        <div class="section-group-body">
+          <div class="sub-label">Tài khoản Chú Rể</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Ngân hàng</label>
+              <input class="field-input" id="groomBank" type="text" value="MB BANK" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Số tài khoản</label>
+              <input class="field-input" id="groomAccountNum" type="text" value="0988 123 456" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Tên chủ TK (IN HOA)</label>
+              <input class="field-input" id="groomAccountName" type="text" value="NGUYEN VINH QUANG"
+                oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Ảnh QR chú rể</label>
+            <div class="img-upload-zone" id="zoneQrGroom" style="max-width:160px;">
+              <input type="file" accept="image/*"
+                onchange="handleImageFileSelect(this,'qrGroom','zoneQrGroom','imgQrGroom')" />
+              <div class="img-upload-placeholder">
+                <div style="font-size:20px;">📱</div>
+                <p class="help-text">Ảnh QR</p>
+              </div>
+              <img id="imgQrGroom" src="" alt="QR Chú Rể" />
+              <button class="img-remove-btn"
+                onclick="removeImage(event,'qrGroom','zoneQrGroom','imgQrGroom')">&#x2715;</button>
+            </div>
+          </div>
+
+          <div class="field-divider"></div>
+          <div class="sub-label">Tài khoản Cô Dâu</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Ngân hàng</label>
+              <input class="field-input" id="brideBank" type="text" value="VIETCOMBANK" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Số tài khoản</label>
+              <input class="field-input" id="brideAccountNum" type="text" value="1012 345 678" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Tên chủ TK (IN HOA)</label>
+              <input class="field-input" id="brideAccountName" type="text" value="LE THUY AN" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Ảnh QR cô dâu</label>
+            <div class="img-upload-zone" id="zoneQrBride" style="max-width:160px;">
+              <input type="file" accept="image/*"
+                onchange="handleImageFileSelect(this,'qrBride','zoneQrBride','imgQrBride')" />
+              <div class="img-upload-placeholder">
+                <div style="font-size:20px;">📱</div>
+                <p class="help-text">Ảnh QR</p>
+              </div>
+              <img id="imgQrBride" src="" alt="QR Cô Dâu" />
+              <button class="img-remove-btn"
+                onclick="removeImage(event,'qrBride','zoneQrBride','imgQrBride')">&#x2715;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. NHẠC & CÂU CHUYỆN -->
+      <div class="section-group">
+        <div class="section-group-header" onclick="toggleSection(this)">
+          <div class="badge" style="background:rgba(96,165,250,0.15);">&#x1F3B5;</div>
+          Nhạc Nền &amp; Nội Dung
+          <span class="chevron">&#x25BE;</span>
+        </div>
+        <div class="section-group-body">
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">URL file nhạc MP3</label>
+              <input class="field-input" id="musicUrl" type="url"
+                value="https://www.dropbox.com/scl/fi/t7v88qalu94lpnydv2ynr/nhac.mp3?rlkey=iqlmgddkoxytbism6wyh2o497&st=wboutcjj&raw=1"
+                oninput="liveUpdate()" />
+              <p class="help-text">Link trực tiếp MP3 hoặc Dropbox raw file.</p>
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Âm lượng (0.0 – 1.0)</label>
+              <input class="field-input" id="musicVolume" type="number" min="0" max="1" step="0.05" value="0.45"
+                oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-divider"></div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Câu quote trên ảnh đôi</label>
+              <textarea class="field-textarea" id="quoteText"
+                oninput="liveUpdate()">"Loại bỏ tất cả những lời yêu thương hoa mỹ, có lẽ tình yêu thực sự là sự đồng hành bền bỉ bên nhau qua năm tháng."</textarea>
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Câu mở đầu (Lời ngỏ)</label>
+              <textarea class="field-textarea" id="introText"
+                oninput="liveUpdate()">"Tình yêu đích thực không phải là tìm kiếm một người hoàn hảo, mà là học cách nhìn nhận một người không hoàn hảo một cách trọn vẹn nhất."</textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. LỊCH TRÌNH LỄ CƯỚI -->
+      <div class="section-group">
+        <div class="section-group-header" onclick="toggleSection(this)">
+          <div class="badge" style="background:rgba(251,146,60,0.15);">&#x1F4CB;</div>
+          Lịch Trình Lễ Cưới
+          <span class="chevron">&#x25BE;</span>
+        </div>
+        <div class="section-group-body">
+          <p class="help-text" style="margin-bottom:16px;">Chỉnh sửa 4 mốc thời gian hiển thị trong thiệp cưới.</p>
+
+          <!-- Item 1 -->
+          <div class="sub-label">Mốc 1</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Giờ</label>
+              <input class="field-input" id="sch0Time" type="text" value="17:00" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tiêu đề</label>
+              <input class="field-input" id="sch0Title" type="text" value="Đón Khách & Chụp Ảnh"
+                oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Mô tả</label>
+              <textarea class="field-textarea" id="sch0Desc"
+                oninput="liveUpdate()">Đón tiếp quý khách, chụp ảnh lưu niệm tại photobooth và thưởng thức tiệc trà chào mừng.</textarea>
+            </div>
+          </div>
+
+          <div class="field-divider"></div>
+          <!-- Item 2 -->
+          <div class="sub-label">Mốc 2</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Giờ</label>
+              <input class="field-input" id="sch1Time" type="text" value="17:30" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tiêu đề</label>
+              <input class="field-input" id="sch1Title" type="text" value="Hôn Lễ Thành Hôn" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Mô tả</label>
+              <textarea class="field-textarea" id="sch1Desc"
+                oninput="liveUpdate()">Nghi thức trao nhẫn cưới, cắt bánh, rót rượu mừng và lời thề ước trăm năm trước hai họ.</textarea>
+            </div>
+          </div>
+
+          <div class="field-divider"></div>
+          <!-- Item 3 -->
+          <div class="sub-label">Mốc 3</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Giờ</label>
+              <input class="field-input" id="sch2Time" type="text" value="18:00" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tiêu đề</label>
+              <input class="field-input" id="sch2Title" type="text" value="Khai Tiệc Mừng" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Mô tả</label>
+              <textarea class="field-textarea" id="sch2Desc"
+                oninput="liveUpdate()">Cùng nâng ly chúc phúc cho đôi uyên ương và thưởng thức tiệc cưới ấm cúng.</textarea>
+            </div>
+          </div>
+
+          <div class="field-divider"></div>
+          <!-- Item 4 -->
+          <div class="sub-label">Mốc 4</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Giờ</label>
+              <input class="field-input" id="sch3Time" type="text" value="19:30" oninput="liveUpdate()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Tiêu đề</label>
+              <input class="field-input" id="sch3Title" type="text" value="Giao Lưu & Âm Nhạc" oninput="liveUpdate()" />
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field-group">
+              <label class="field-label">Mô tả</label>
+              <textarea class="field-textarea" id="sch3Desc"
+                oninput="liveUpdate()">Minigame vui nhộn, bốc thăm may mắn và các tiết mục văn nghệ cùng bạn bè.</textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end form-area -->
+
+    <!-- PREVIEW PANEL -->
+    <div class="preview-panel">
+      <div class="preview-header">
+        <span>📱 Xem Trước Trực Tiếp</span>
+        <span class="preview-badge">LIVE PREVIEW</span>
+      </div>
+      <div class="preview-frame-wrap">
+        <div class="phone-mockup">
+          <iframe id="previewFrame" title="Preview"
+            srcdoc="<div style='display:flex;align-items:center;justify-content:center;height:100%;background:#0f1117;color:#8891b4;font-family:sans-serif;font-size:13px;'>Đang tải preview...</div>"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CẤU HÌNH POCKETBASE & ĐĂNG NHẬP -->
+  <div class="modal-overlay" id="pbModal">
+    <div class="modal-box">
+      <div class="modal-title">
+        <span>⚙️ Cấu Hình PocketBase</span>
+        <button class="modal-close" onclick="closePbModal()">✕</button>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">URL Server PocketBase</label>
+        <input class="field-input" id="pbUrlInput" type="url" value="http://127.0.0.1:8090"
+          placeholder="http://127.0.0.1:8090" />
+        <p class="help-text">Chạy lệnh: <code>./pocketbase serve</code> trên máy hoặc VPS.</p>
+      </div>
+
+      <div class="field-divider"></div>
+      <div class="sub-label">Xác Thực Quản Trị (Tuỳ chọn)</div>
+
+      <div id="authStatusText" style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px;">
+        Chưa đăng nhập. (Nếu Collection đặt API Rule public thì không cần đăng nhập).
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Email Quản Trị / Tài Khoản</label>
+        <input class="field-input" id="authEmail" type="email" placeholder="admin@example.com" />
+      </div>
+      <div class="field-group">
+        <label class="field-label">Mật Khẩu</label>
+        <input class="field-input" id="authPassword" type="password" placeholder="••••••••" />
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+        <button class="btn-action" onclick="logoutPocketBase()" id="btnLogout" style="display:none;">Đăng Xuất</button>
+        <button class="btn-save-pb" onclick="applyPbConfig()">Lưu &amp; Kết Nối</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ============================================================
+    // POCKETBASE CLIENT STATE
+    // ============================================================
+    const DEFAULT_PB_URL = localStorage.getItem('pb_url') || 'http://127.0.0.1:8090';
+    const COLLECTION_NAME = 'wedding_content';
+
+    let pb = new PocketBase(DEFAULT_PB_URL);
+    let currentRecordId = null;
+
+    const DEFAULT_IMAGES = {
+      hero: 'images/wedding_couple_hero.jpg',
+      quote: 'images/wedding_couple_2.jpg',
+      album0: 'images/wedding_couple_hero.jpg',
+      album1: 'images/wedding_couple_2.jpg',
+      album2: 'images/wedding_couple_3.jpg',
+      album3: 'images/wedding_couple_4.jpg',
+      qrGroom: null,
+      qrBride: null
+    };
+
+    // Image state: holds display URLs (base64, remote url, or blob)
+    const images = { ...DEFAULT_IMAGES };
+
+    // Pending File objects to be uploaded to PocketBase via FormData
+    const pendingFiles = {
+      hero: null, quote: null,
+      album0: null, album1: null, album2: null, album3: null,
+      qrGroom: null, qrBride: null
+    };
+
+    // ============================================================
+    // INITIALIZATION & CONNECTION TEST
+    // ============================================================
+    window.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('pbUrlInput').value = DEFAULT_PB_URL;
+      initDefaultImageZones();
+      checkAuthStatus();
+      await initPocketBase();
+      setTimeout(liveUpdate, 300);
+    });
+
+    function initDefaultImageZones() {
+      const keys = [
+        { key: 'hero', zone: 'zoneHero', img: 'imgHero' },
+        { key: 'quote', zone: 'zoneQuote', img: 'imgQuote' },
+        { key: 'album0', zone: 'zoneAlbum0', img: 'imgAlbum0' },
+        { key: 'album1', zone: 'zoneAlbum1', img: 'imgAlbum1' },
+        { key: 'album2', zone: 'zoneAlbum2', img: 'imgAlbum2' },
+        { key: 'album3', zone: 'zoneAlbum3', img: 'imgAlbum3' },
+      ];
+      keys.forEach(({ key, zone, img }) => {
+        if (images[key]) {
+          const zoneEl = document.getElementById(zone);
+          const imgEl = document.getElementById(img);
+          if (zoneEl && imgEl) {
+            zoneEl.classList.add('has-image');
+            imgEl.src = images[key];
+            imgEl.style.display = 'block';
+          }
+        }
+      });
+    }
+
+    async function initPocketBase() {
+      updateStatusBadge('connecting', 'Đang kết nối...');
+      try {
+        const health = await pb.health.check();
+        if (health && health.code === 200) {
+          updateStatusBadge('online', 'Đã kết nối PocketBase');
+          await loadFromPocketBase();
+        } else {
+          updateStatusBadge('offline', 'Không thể kết nối');
+        }
+      } catch (err) {
+        console.warn('PocketBase connect warning:', err);
+        updateStatusBadge('offline', 'Chưa bật PocketBase');
+      }
+    }
+
+    function updateStatusBadge(status, text) {
+      const dot = document.getElementById('statusDot');
+      const label = document.getElementById('statusText');
+      dot.className = 'status-dot ' + status;
+      label.textContent = text;
+    }
+
+    function checkAuthStatus() {
+      const authLabel = document.getElementById('authBtnLabel');
+      const authStatus = document.getElementById('authStatusText');
+      const btnLogout = document.getElementById('btnLogout');
+
+      if (pb.authStore.isValid) {
+        const email = pb.authStore.model ? pb.authStore.model.email : 'Admin';
+        authLabel.textContent = '👤 ' + email;
+        authStatus.textContent = '✅ Đã đăng nhập: ' + email;
+        btnLogout.style.display = 'block';
+      } else {
+        authLabel.textContent = 'Cấu hình PB';
+        authStatus.textContent = 'Chưa đăng nhập. Nếu collection đặt public thì vẫn lưu bình thường.';
+        btnLogout.style.display = 'none';
+      }
+    }
+
+    // ============================================================
+    // LOAD FROM POCKETBASE
+    // ============================================================
+    async function loadFromPocketBase() {
+      try {
+        showToast('⏳ Đang tải dữ liệu từ PocketBase...');
+        // Try getting the first record in the collection
+        const records = await pb.collection(COLLECTION_NAME).getList(1, 1);
+
+        if (records.items && records.items.length > 0) {
+          const rec = records.items[0];
+          currentRecordId = rec.id;
+          populateFormWithRecord(rec);
+          showToast('✅ Đã tải dữ liệu từ PocketBase!');
+          liveUpdate();
+        } else {
+          showToast('ℹ️ Chưa có dữ liệu trên PocketBase. Sử dụng form mẫu!');
+        }
+      } catch (err) {
+        console.warn('Load record error:', err);
+        let msg = err.message || 'Lỗi không xác định';
+        if (err.status === 404) {
+          msg = 'Chưa có Collection "wedding_content" trên PocketBase! Hãy import file pb_schema.json.';
+        } else if (err.status === 400 || err.status === 403) {
+          msg = 'Collection đang bị khóa API Rules! Hãy vào PocketBase mở khóa (Unlock) hoặc bấm nút ⚙️ để Đăng nhập Admin.';
+        }
+        showToast('⚠️ ' + msg);
+      }
+    }
+
+    function populateFormWithRecord(rec) {
+      const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el && val !== undefined && val !== null) el.value = val;
+      };
+
+      // Populate text fields
+      setVal('groomName', rec.groomName);
+      setVal('brideName', rec.brideName);
+      setVal('groomFather', rec.groomFather);
+      setVal('groomMother', rec.groomMother);
+      setVal('brideFather', rec.brideFather);
+      setVal('brideMother', rec.brideMother);
+
+      setVal('weddingDay', rec.weddingDay);
+      setVal('weddingMonth', rec.weddingMonth);
+      setVal('weddingYear', rec.weddingYear);
+      setVal('weddingDayOfWeek', rec.weddingDayOfWeek);
+      setVal('lunarDate', rec.lunarDate);
+
+      setVal('brideTime', rec.brideTime);
+      setVal('brideVenue', rec.brideVenue);
+      setVal('brideAddress', rec.brideAddress);
+      setVal('brideMapUrl', rec.brideMapUrl);
+
+      setVal('groomTime', rec.groomTime);
+      setVal('groomVenue', rec.groomVenue);
+      setVal('groomAddress', rec.groomAddress);
+      setVal('groomMapUrl', rec.groomMapUrl);
+
+      setVal('groomBank', rec.groomBank);
+      setVal('groomAccountNum', rec.groomAccountNum);
+      setVal('groomAccountName', rec.groomAccountName);
+
+      setVal('brideBank', rec.brideBank);
+      setVal('brideAccountNum', rec.brideAccountNum);
+      setVal('brideAccountName', rec.brideAccountName);
+
+      setVal('musicUrl', rec.musicUrl);
+      setVal('musicVolume', rec.musicVolume);
+      setVal('quoteText', rec.quoteText);
+      setVal('introText', rec.introText);
+
+      // Schedule items
+      if (Array.isArray(rec.schedule)) {
+        rec.schedule.forEach((item, idx) => {
+          if (idx < 4) {
+            setVal('sch' + idx + 'Time', item.time);
+            setVal('sch' + idx + 'Title', item.title);
+            setVal('sch' + idx + 'Desc', item.desc);
+          }
+        });
+      }
+
+      // Populate image fields from PocketBase files
+      const imgKeys = [
+        { key: 'hero', zone: 'zoneHero', img: 'imgHero' },
+        { key: 'quote', zone: 'zoneQuote', img: 'imgQuote' },
+        { key: 'album0', zone: 'zoneAlbum0', img: 'imgAlbum0' },
+        { key: 'album1', zone: 'zoneAlbum1', img: 'imgAlbum1' },
+        { key: 'album2', zone: 'zoneAlbum2', img: 'imgAlbum2' },
+        { key: 'album3', zone: 'zoneAlbum3', img: 'imgAlbum3' },
+        { key: 'qrGroom', zone: 'zoneQrGroom', img: 'imgQrGroom' },
+        { key: 'qrBride', zone: 'zoneQrBride', img: 'imgQrBride' },
+      ];
+
+      imgKeys.forEach(({ key, zone, img }) => {
+        if (rec[key]) {
+          const fileUrl = pb.files.getUrl(rec, rec[key]);
+          images[key] = fileUrl;
+          pendingFiles[key] = null; // already on server
+
+          const zoneEl = document.getElementById(zone);
+          const imgEl = document.getElementById(img);
+          if (zoneEl && imgEl) {
+            zoneEl.classList.add('has-image');
+            imgEl.src = fileUrl;
+            imgEl.style.display = 'block';
+          }
+        }
+      });
+    }
+
+    // ============================================================
+    // SAVE TO POCKETBASE
+    // ============================================================
+    async function saveToPocketBase() {
+      const btn = document.getElementById('btnSavePb');
+      btn.disabled = true;
+      btn.classList.add('loading');
+      showToast('⏳ Đang lưu dữ liệu & upload ảnh...');
+
+      try {
+        const c = getConfig();
+        const formData = new FormData();
+
+        // Append text fields
+        Object.keys(c).forEach(k => {
+          if (k === 'schedule') {
+            formData.append(k, JSON.stringify(c[k]));
+          } else {
+            formData.append(k, c[k]);
+          }
+        });
+
+        // Append pending files
+        Object.keys(pendingFiles).forEach(k => {
+          if (pendingFiles[k] instanceof File) {
+            formData.append(k, pendingFiles[k]);
+          }
+        });
+
+        let savedRecord;
+        if (currentRecordId) {
+          savedRecord = await pb.collection(COLLECTION_NAME).update(currentRecordId, formData);
+        } else {
+          // Check again if any record exists, otherwise create
+          const exist = await pb.collection(COLLECTION_NAME).getList(1, 1);
+          if (exist.items.length > 0) {
+            currentRecordId = exist.items[0].id;
+            savedRecord = await pb.collection(COLLECTION_NAME).update(currentRecordId, formData);
+          } else {
+            savedRecord = await pb.collection(COLLECTION_NAME).create(formData);
+            currentRecordId = savedRecord.id;
+          }
+        }
+
+        // Clear pending files
+        Object.keys(pendingFiles).forEach(k => { pendingFiles[k] = null; });
+
+        // Update image URLs from newly saved record
+        populateFormWithRecord(savedRecord);
+        showToast('✅ Đã lưu lên PocketBase thành công!');
+        updateStatusBadge('online', 'Đã đồng bộ');
+      } catch (err) {
+        console.error('Save to PocketBase failed:', err);
+        let msg = err.message || 'Lỗi không xác định';
+        if (err.status === 400 || err.status === 403) {
+          msg = 'Không có quyền ghi dữ liệu! Hãy mở khóa Create/Update Rule trong PocketBase hoặc bấm ⚙️ để Đăng nhập Admin.';
+        } else if (err.status === 404) {
+          msg = 'Chưa tìm thấy Collection "wedding_content". Hãy import file pb_schema.json!';
+        }
+        showToast('❌ ' + msg);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+      }
+    }
+
+    // ============================================================
+    // IMAGE HANDLING (Local Preview + Queue for Upload)
+    // ============================================================
+    function handleImageFileSelect(input, key, zoneId, imgId) {
+      const file = input.files[0];
+      if (!file) return;
+
+      pendingFiles[key] = file;
+
+      // Show immediate local preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        images[key] = e.target.result;
+        const zone = document.getElementById(zoneId);
+        const imgEl = document.getElementById(imgId);
+        zone.classList.add('has-image');
+        imgEl.src = e.target.result;
+        imgEl.style.display = 'block';
+        liveUpdate();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeImage(evt, key, zoneId, imgId) {
+      evt.preventDefault();
+      evt.stopPropagation();
+
+      images[key] = null;
+      pendingFiles[key] = ''; // blank to clear on server
+
+      const zone = document.getElementById(zoneId);
+      const imgEl = document.getElementById(imgId);
+      zone.classList.remove('has-image');
+      imgEl.src = '';
+      imgEl.style.display = 'none';
+
+      const inp = zone.querySelector('input[type="file"]');
+      if (inp) inp.value = '';
+
+      liveUpdate();
+    }
+
+    // ============================================================
+    // MODAL & AUTH
+    // ============================================================
+    function openPbModal() {
+      document.getElementById('pbModal').classList.add('active');
+    }
+
+    function closePbModal() {
+      document.getElementById('pbModal').classList.remove('active');
+    }
+
+    async function applyPbConfig() {
+      const newUrl = document.getElementById('pbUrlInput').value.trim();
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+
+      if (newUrl) {
+        localStorage.setItem('pb_url', newUrl);
+        pb = new PocketBase(newUrl);
+      }
+
+      if (email && password) {
+        try {
+          showToast('⏳ Đang xác thực...');
+          // Try user auth first, if fails try admin auth
+          try {
+            await pb.collection('users').authWithPassword(email, password);
+          } catch {
+            await pb.admins.authWithPassword(email, password);
+          }
+          showToast('✅ Đăng nhập thành công!');
+        } catch (err) {
+          showToast('❌ Đăng nhập thất bại: ' + err.message);
+        }
+      }
+
+      checkAuthStatus();
+      closePbModal();
+      await initPocketBase();
+    }
+
+    function logoutPocketBase() {
+      pb.authStore.clear();
+      checkAuthStatus();
+      showToast('Đã đăng xuất khỏi PocketBase.');
+    }
+
+    // ============================================================
+    // COLLAPSIBLE ACCORDION
+    // ============================================================
+    function toggleSection(header) {
+      const body = header.nextElementSibling;
+      const collapsed = body.classList.toggle('hidden');
+      header.classList.toggle('collapsed', collapsed);
+    }
+
+    // ============================================================
+    // GET CONFIG FROM FORM
+    // ============================================================
+    function getConfig() {
+      const v = id => {
+        const el = document.getElementById(id);
+        return el ? el.value.trim() : '';
+      };
+      return {
+        groomName: v('groomName'), brideName: v('brideName'),
+        groomFather: v('groomFather'), groomMother: v('groomMother'),
+        brideFather: v('brideFather'), brideMother: v('brideMother'),
+        weddingDay: v('weddingDay'), weddingMonth: v('weddingMonth'), weddingYear: v('weddingYear'),
+        weddingDayOfWeek: v('weddingDayOfWeek'), lunarDate: v('lunarDate'),
+        brideTime: v('brideTime'), brideVenue: v('brideVenue'), brideAddress: v('brideAddress'), brideMapUrl: v('brideMapUrl'),
+        groomTime: v('groomTime'), groomVenue: v('groomVenue'), groomAddress: v('groomAddress'), groomMapUrl: v('groomMapUrl'),
+        groomBank: v('groomBank'), groomAccountNum: v('groomAccountNum'), groomAccountName: v('groomAccountName'),
+        brideBank: v('brideBank'), brideAccountNum: v('brideAccountNum'), brideAccountName: v('brideAccountName'),
+        musicUrl: v('musicUrl'), musicVolume: v('musicVolume'),
+        quoteText: v('quoteText'), introText: v('introText'),
+        schedule: [
+          { time: v('sch0Time'), title: v('sch0Title'), desc: v('sch0Desc') },
+          { time: v('sch1Time'), title: v('sch1Title'), desc: v('sch1Desc') },
+          { time: v('sch2Time'), title: v('sch2Title'), desc: v('sch2Desc') },
+          { time: v('sch3Time'), title: v('sch3Title'), desc: v('sch3Desc') },
+        ],
+      };
+    }
+
+    // ============================================================
+    // LIVE PREVIEW GENERATOR
+    // ============================================================
+    let previewTimer = null;
+    function liveUpdate() {
+      clearTimeout(previewTimer);
+      previewTimer = setTimeout(() => {
+        document.getElementById('previewFrame').srcdoc = buildWeddingHTML(getConfig());
+      }, 500);
+    }
+
+    function esc(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function defaultQR(color) {
+      return '<svg class="qr-img" viewBox="0 0 100 100"><rect width="100" height="100" fill="#fff"/>'
+        + '<rect x="10" y="10" width="24" height="24" fill="' + color + '"/><rect x="14" y="14" width="16" height="16" fill="#fff"/><rect x="18" y="18" width="8" height="8" fill="' + color + '"/>'
+        + '<rect x="66" y="10" width="24" height="24" fill="' + color + '"/><rect x="70" y="14" width="16" height="16" fill="#fff"/><rect x="74" y="18" width="8" height="8" fill="' + color + '"/>'
+        + '<rect x="10" y="66" width="24" height="24" fill="' + color + '"/><rect x="14" y="70" width="16" height="16" fill="#fff"/><rect x="18" y="74" width="8" height="8" fill="' + color + '"/>'
+        + '<rect x="42" y="12" width="6" height="6" fill="' + color + '"/><rect x="52" y="20" width="6" height="6" fill="' + color + '"/>'
+        + '<rect x="44" y="44" width="12" height="12" fill="' + color + '"/><rect x="64" y="44" width="6" height="6" fill="' + color + '"/>'
+        + '<rect x="42" y="64" width="6" height="6" fill="' + color + '"/><rect x="64" y="64" width="12" height="12" fill="' + color + '"/>'
+        + '</svg>';
+    }
+
+    // ============================================================
+    // BUILD WEDDING HTML (Preview & Export)
+    // ============================================================
+    function buildWeddingHTML(c) {
+      const dateDisplay = c.weddingDay + ' · ' + c.weddingMonth + ' · ' + c.weddingYear;
+      const dateFull = c.weddingDay + ' . ' + c.weddingMonth + ' . ' + c.weddingYear;
+      const mo2 = String(c.weddingMonth).padStart(2, '0');
+      const d2 = String(c.weddingDay).padStart(2, '0');
+      const wISO = c.weddingYear + '-' + mo2 + '-' + d2;
+
+      const PH_HERO = 'data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 width%3D%22430%22 height%3D%22700%22%3E%3Crect width%3D%22430%22 height%3D%22700%22 fill%3D%22%23f5e6e8%22/%3E%3Ctext x%3D%22215%22 y%3D%22350%22 font-family%3D%22sans-serif%22 font-size%3D%2218%22 fill%3D%22%23c9a8b2%22 text-anchor%3D%22middle%22%3EẢnh Bìa%3C/text%3E%3C/svg%3E';
+      const imgHero = images.hero || DEFAULT_IMAGES.hero;
+      const imgQuote = images.quote || DEFAULT_IMAGES.quote;
+      const imgA0 = images.album0 || DEFAULT_IMAGES.album0;
+      const imgA1 = images.album1 || DEFAULT_IMAGES.album1;
+      const imgA2 = images.album2 || DEFAULT_IMAGES.album2;
+      const imgA3 = images.album3 || DEFAULT_IMAGES.album3;
+
+      const qrGroomHTML = images.qrGroom ? '<img src="' + images.qrGroom + '" class="qr-img" alt="QR" />' : defaultQR('#7a0c16');
+      const qrBrideHTML = images.qrBride ? '<img src="' + images.qrBride + '" class="qr-img" alt="QR" />' : defaultQR('#b3394b');
+      const albumJSON = JSON.stringify([imgA0, imgA1, imgA2, imgA3]);
+
+      return `<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Thiệp Cưới - ${esc(c.groomName)} &amp; ${esc(c.brideName)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Great+Vibes&family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#7a0c16;--primary-light:#9c1c28;--primary-dark:#58060e;--accent:#d4a373;--gold:#c9a84c;--pink-soft:#fceceb;--dark:#231815;--text:#3c3330;--text-light:#7c726e;--bg-page:#e8eaee;--card-bg:#fff;--radius:14px;--shadow:0 8px 30px rgba(0,0,0,.08)}
+html{scroll-behavior:smooth}
+body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg-page);min-height:100vh;display:flex;justify-content:center;align-items:flex-start;position:relative;overflow-x:hidden;color:var(--text)}
+.hearts-bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
+.heart-float{position:absolute;animation:floatHeart linear infinite;opacity:0;color:#e05f7a;user-select:none}
+@keyframes floatHeart{0%{transform:translateY(100vh) scale(.6) rotate(-15deg);opacity:0}12%{opacity:.65}80%{opacity:.45}100%{transform:translateY(-80px) scale(1.1) rotate(15deg);opacity:0}}
+.invitation-card{position:relative;z-index:1;width:100%;max-width:430px;background:var(--card-bg);box-shadow:0 0 60px rgba(0,0,0,.15);overflow:hidden}
+.music-btn{position:fixed;top:16px;right:16px;z-index:999;width:44px;height:44px;border-radius:50%;background:rgba(122,12,22,.92);border:2px solid rgba(255,255,255,.3);cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);transition:all .3s;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.music-btn:hover{transform:scale(1.1)}
+.vinyl{width:20px;height:20px;border-radius:50%;background:conic-gradient(#fff 0deg 60deg,#aaa 60deg 120deg,#fff 120deg 180deg,#aaa 180deg 240deg,#fff 240deg 300deg,#aaa 300deg 360deg);position:relative}
+.vinyl::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;border-radius:50%;background:#7a0c16}
+.music-btn.playing .vinyl{animation:spin 2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.floating-like-btn{position:fixed;bottom:24px;right:16px;z-index:999;background:rgba(122,12,22,.92);border:2px solid rgba(255,255,255,.25);color:#fff;border-radius:50px;padding:8px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;font-family:'Be Vietnam Pro',sans-serif;backdrop-filter:blur(8px);transition:all .3s;box-shadow:0 4px 16px rgba(122,12,22,.4)}
+.floating-like-btn:hover{transform:scale(1.07)}
+.cover-section{position:relative;height:100svh;min-height:580px;overflow:hidden}
+.cover-img{width:100%;height:100%;object-fit:cover;display:block}
+.cover-gradient{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(35,24,21,.1) 0%,rgba(35,24,21,.15) 40%,rgba(35,24,21,.75) 75%,rgba(35,24,21,.92) 100%)}
+.cover-text{position:absolute;bottom:90px;left:0;right:0;text-align:center;color:#fff;padding:0 24px}
+.cover-sub{font-size:11px;letter-spacing:4px;text-transform:uppercase;opacity:.8;margin-bottom:10px;display:block;font-weight:300}
+.cover-title{font-family:'Great Vibes',cursive;font-size:58px;font-weight:400;line-height:1.1;text-shadow:0 2px 20px rgba(0,0,0,.5);margin-bottom:14px}
+.cover-amp{color:var(--gold);font-family:'Great Vibes',cursive;display:block;font-size:36px;margin:4px 0}
+.cover-date-pill{display:inline-block;background:rgba(201,168,76,.25);border:1px solid rgba(201,168,76,.5);color:var(--gold);padding:7px 20px;border-radius:50px;font-size:13px;letter-spacing:3px;backdrop-filter:blur(4px)}
+section{padding:28px 20px}
+.sec-header{text-align:center;margin-bottom:20px}
+.sec-sub{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--primary);font-weight:600;display:block;margin-bottom:6px}
+.sec-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--dark)}
+.sec-title-serif{font-family:'Playfair Display',serif;font-size:20px;color:var(--dark);text-align:center}
+.family-section{background:var(--pink-soft)}
+.family-intro{text-align:center;font-style:italic;color:var(--text-light);font-size:13px;line-height:1.7;margin-bottom:20px;padding:0 8px}
+.family-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center}
+.family-col{text-align:center}
+.family-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--primary);background:rgba(122,12,22,.08);padding:3px 10px;border-radius:20px;margin-bottom:8px}
+.parent-name{font-size:12.5px;color:var(--text-light);line-height:1.5}
+.couple-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--primary);margin-top:10px;font-weight:600}
+.couple-name{font-family:'Playfair Display',serif;font-size:22px;color:var(--dark);margin-top:2px}
+.family-divider{font-size:22px;color:var(--gold);text-align:center}
+.events-section{background:#fff;padding:20px 16px;display:flex;flex-direction:column;gap:14px}
+.event-card{background:linear-gradient(135deg,#fff9f9,#fff);border:1px solid rgba(122,12,22,.1);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+.event-badge{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--primary);margin-bottom:6px}
+.event-time{font-size:12px;color:var(--text-light);margin-bottom:2px}
+.event-date-large{font-family:'Playfair Display',serif;font-size:24px;color:var(--dark);font-weight:700;margin-bottom:2px}
+.event-venue{font-size:12px;font-weight:600;color:var(--primary);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.event-address{font-size:12.5px;color:var(--text-light);margin-bottom:12px}
+.event-btn{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--primary);background:rgba(122,12,22,.07);border:1px solid rgba(122,12,22,.15);padding:7px 14px;border-radius:50px;text-decoration:none}
+.schedule-section{background:var(--pink-soft)}
+.schedule-timeline{display:flex;flex-direction:column;gap:0;position:relative}
+.schedule-timeline::before{content:'';position:absolute;left:56px;top:8px;bottom:8px;width:2px;background:linear-gradient(to bottom,var(--primary),rgba(122,12,22,.1))}
+.schedule-item{display:grid;grid-template-columns:48px 1fr;gap:0 12px;position:relative;padding-bottom:20px}
+.schedule-dot{position:absolute;left:50px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--primary);border:2px solid #fff;box-shadow:0 0 0 3px rgba(122,12,22,.15)}
+.schedule-time{font-size:12px;font-weight:700;color:var(--primary);text-align:right;padding-right:4px}
+.schedule-title{font-size:14px;font-weight:700;color:var(--dark)}
+.schedule-desc{grid-column:2;font-size:12px;color:var(--text-light);line-height:1.6;margin-top:3px}
+.calendar-section{background:#fff}
+.calendar-card{background:linear-gradient(135deg,#fff9f9,#fff);border:1px solid rgba(122,12,22,.1);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.cal-header-bar{background:var(--primary);color:#fff;text-align:center;padding:12px;font-size:13px;font-weight:700;letter-spacing:2px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0}
+.cal-day-title{text-align:center;font-size:10.5px;font-weight:700;color:var(--text-light);padding:8px 4px;background:rgba(122,12,22,.04)}
+.cal-cell{text-align:center;padding:8px 4px;font-size:12.5px;color:var(--text)}
+.cal-cell.wedding-day{background:var(--primary);color:#fff;font-weight:700;border-radius:50%;margin:2px;display:flex;align-items:center;justify-content:center}
+.calendar-footer-text{text-align:center;padding:12px;font-size:12px;color:var(--primary);font-style:italic}
+.countdown-section{background:linear-gradient(135deg,var(--primary-dark),var(--primary));color:#fff;text-align:center;padding:30px 20px}
+.countdown-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px}
+.cd-box{background:rgba(255,255,255,.12);border-radius:12px;padding:14px 8px;border:1px solid rgba(255,255,255,.15)}
+.cd-number{display:block;font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:#fff}
+.cd-label{display:block;font-size:11px;opacity:.7;margin-top:3px}
+.photo-quote-section{position:relative;height:320px;overflow:hidden}
+.photo-quote-img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-quote-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(35,24,21,.85) 0%,rgba(35,24,21,.4) 60%,transparent 100%);display:flex;flex-direction:column;justify-content:flex-end;padding:24px 20px}
+.quote-badge{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.quote-content{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:#fff;line-height:1.65}
+.gift-section{background:#fff;text-align:center}
+.bank-card{background:linear-gradient(135deg,#fff9f9,#fff);border:1px solid rgba(122,12,22,.1);border-radius:14px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px}
+.bank-card-header{display:flex;align-items:center;justify-content:space-between}
+.bank-owner-badge{background:var(--primary);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px}
+.bank-name{font-size:13px;font-weight:700;color:var(--dark)}
+.bank-account-num{font-size:20px;font-weight:700;color:var(--dark);letter-spacing:1px}
+.bank-account-holder{font-size:11.5px;color:var(--text-light);margin-top:2px}
+.qr-img{width:140px;height:140px;display:block;margin:0 auto 10px;object-fit:contain}
+.album-section{background:var(--dark);padding:28px 16px}
+.album-thumbs-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.album-thumb{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;opacity:.6}
+.album-thumb.active{opacity:1;border:2px solid var(--gold)}
+.album-main-display{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px}
+.footer-bar{background:var(--primary-dark);color:rgba(255,255,255,.85);text-align:center;padding:24px 20px}
+.footer-names{font-family:'Great Vibes',cursive;font-size:32px;color:var(--gold);margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="hearts-bg" id="heartsContainer"></div>
+<button class="music-btn" id="musicBtn"><div class="vinyl"></div></button>
+<button class="floating-like-btn" id="floatingLikeBtn">&#x1F496; <span id="likeCount">520</span></button>
+
+<main class="invitation-card">
+<section class="cover-section">
+  <img class="cover-img" src="${imgHero}" alt="Ảnh cưới"/>
+  <div class="cover-gradient"></div>
+  <div class="cover-text">
+    <span class="cover-sub">INVITATION</span>
+    <h1 class="cover-title">${esc(c.groomName)}<span class="cover-amp">&amp;</span>${esc(c.brideName)}</h1>
+    <div class="cover-date-pill">${dateDisplay}</div>
+  </div>
+</section>
+
+<section class="family-section">
+  <div class="sec-header">
+    <span class="sec-sub">LỜI NGỎ</span>
+    <h2 class="sec-title">Gia Đình &amp; Đôi Uyên Ương</h2>
+  </div>
+  <p class="family-intro">${esc(c.introText)}</p>
+  <div class="family-grid">
+    <div class="family-col">
+      <span class="family-badge">Nhà Trai</span>
+      <div class="parent-name">Ông: <strong>${esc(c.groomFather)}</strong></div>
+      <div class="parent-name">Bà: <strong>${esc(c.groomMother)}</strong></div>
+      <div class="couple-label">Chú Rể</div>
+      <div class="couple-name">${esc(c.groomName)}</div>
+    </div>
+    <div class="family-divider">❦</div>
+    <div class="family-col">
+      <span class="family-badge">Nhà Gái</span>
+      <div class="parent-name">Ông: <strong>${esc(c.brideFather)}</strong></div>
+      <div class="parent-name">Bà: <strong>${esc(c.brideMother)}</strong></div>
+      <div class="couple-label">Cô Dâu</div>
+      <div class="couple-name">${esc(c.brideName)}</div>
+    </div>
+  </div>
+</section>
+
+<section class="events-section">
+  <div class="event-card">
+    <div class="event-badge">TIỆC CƯỚI NHÀ GÁI</div>
+    <div class="event-time">VÀO LÚC ${esc(c.brideTime)} • ${esc(c.weddingDayOfWeek).toUpperCase()}</div>
+    <div class="event-date-large">${dateFull}</div>
+    <div class="event-venue">TẠI ${esc(c.brideVenue).toUpperCase()}</div>
+    <div class="event-address">${esc(c.brideAddress)}</div>
+    <div><a href="${esc(c.brideMapUrl)}" target="_blank" class="event-btn">Xem Bản Đồ</a></div>
+  </div>
+  <div class="event-card">
+    <div class="event-badge">TIỆC CƯỚI NHÀ TRAI</div>
+    <div class="event-time">VÀO LÚC ${esc(c.groomTime)} • ${esc(c.weddingDayOfWeek).toUpperCase()}</div>
+    <div class="event-date-large">${dateFull}</div>
+    <div class="event-venue">TẠI ${esc(c.groomVenue).toUpperCase()}</div>
+    <div class="event-address">${esc(c.groomAddress)}</div>
+    <div><a href="${esc(c.groomMapUrl)}" target="_blank" class="event-btn">Xem Bản Đồ</a></div>
+  </div>
+</section>
+
+<section class="schedule-section">
+  <div class="sec-header">
+    <span class="sec-sub">LỊCH TRÌNH</span>
+    <h2 class="sec-title-serif">Chương Trình Lễ Cưới</h2>
+  </div>
+  <div class="schedule-timeline">
+    ${c.schedule.map(s => `<div class="schedule-item"><div class="schedule-dot"></div><div class="schedule-time">${esc(s.time)}</div><div class="schedule-title">${esc(s.title)}</div><div class="schedule-desc">${esc(s.desc)}</div></div>`).join('\n')}
+  </div>
+</section>
+
+<section class="photo-quote-section">
+  <img class="photo-quote-img" src="${imgQuote}" alt="Quote"/>
+  <div class="photo-quote-overlay">
+    <div class="quote-badge">Love &amp; Forever</div>
+    <p class="quote-content">${esc(c.quoteText)}</p>
+  </div>
+</section>
+
+<section class="gift-section">
+  <div style="font-size:32px;margin-bottom:6px;">🎁</div>
+  <h2 class="sec-title-serif" style="margin-bottom:12px;">Hộp Mừng Cưới</h2>
+  <div class="bank-card">
+    <div class="bank-card-header"><span class="bank-owner-badge">Chú Rể</span><span class="bank-name">${esc(c.groomBank)}</span></div>
+    <div><div class="bank-account-num">${esc(c.groomAccountNum)}</div><div class="bank-account-holder">${esc(c.groomAccountName)}</div></div>
+    <div>${qrGroomHTML}</div>
+  </div>
+</section>
+
+<section class="album-section">
+  <div class="album-thumbs-row" id="thumbs">
+    <img class="album-thumb active" src="${imgA0}"/>
+    <img class="album-thumb" src="${imgA1}"/>
+    <img class="album-thumb" src="${imgA2}"/>
+    <img class="album-thumb" src="${imgA3}"/>
+  </div>
+  <img id="mainAlb" class="album-main-display" src="${imgA0}"/>
+</section>
+
+<footer class="footer-bar">
+  <div class="footer-names">${esc(c.groomName)} &amp; ${esc(c.brideName)}</div>
+  <p>Cảm ơn quý khách đã đến chung vui!</p>
+</footer>
+</main>
+
+<script>
+const heartsBg = document.getElementById('heartsContainer');
+const heartIcons = ['♡','♥','❤','💕','💖'];
+function spawnHeart() {
+  const el = document.createElement('div'); el.className='heart-float';
+  el.textContent = heartIcons[Math.floor(Math.random()*heartIcons.length)];
+  el.style.left=(Math.random()*95)+'vw'; el.style.fontSize=(12+Math.random()*16)+'px';
+  el.style.animationDuration=(7+Math.random()*8)+'s';
+  heartsBg.appendChild(el); setTimeout(()=>el.remove(),15000);
+}
+setInterval(spawnHeart,1200);
+<\/script>
+</body>
+</html>`;
+    }
+
+    // ============================================================
+    // GENERATE & DOWNLOAD STATIC HTML (OFFLINE BACKUP)
+    // ============================================================
+    function generateWedding() {
+      const c = getConfig();
+      if (!c.groomName || !c.brideName) {
+        showToast('⚠️ Vui lòng nhập tên cô dâu và chú rể!');
+        return;
+      }
+      showToast('⏳ Đang tạo thiệp tĩnh...');
+      setTimeout(() => {
+        try {
+          const html = buildWeddingHTML(c);
+          const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          const gn = c.groomName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+          const bn = c.brideName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+          a.download = 'thiep-cuoi-' + gn + '-' + bn + '.html';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showToast('✅ Đã xuất và tải file HTML!');
+        } catch (e) {
+          showToast('❌ Lỗi: ' + e.message);
+        }
+      }, 100);
+    }
+
+    // ============================================================
+    // TOAST NOTIFICATIONS
+    // ============================================================
+    let toastTimer = null;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+    }
+  </script>
+</body>
+
+</html>
