@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bảng Quản Trị – Quản Lý Thiệp Cưới Đa Trang</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
+    rel="stylesheet" />
+  <!-- PocketBase JavaScript SDK -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pocketbase/0.21.5/pocketbase.umd.js"></script>
+
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0c0e14;
+      --surface: #141722;
+      --surface2: #1c2130;
+      --surface3: #252b3d;
+      --border: #2c3247;
+      --accent: #8b5cf6;
+      --accent2: #ec4899;
+      --gold: #f59e0b;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --success: #10b981;
+      --danger: #ef4444;
+      --radius: 14px;
+    }
+
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* NAV HEADER */
+    .dashboard-header {
+      background: rgba(20, 23, 34, 0.9);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
+    }
+
+    .brand-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-subtitle {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    .user-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 6px 14px 6px 10px;
+      font-size: 13px;
+    }
+
+    .user-avatar {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .user-role-badge {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 20px;
+      background: rgba(139, 92, 246, 0.2);
+      color: #c4b5fd;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .btn {
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      border: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
+    }
+
+    .btn-primary:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface3);
+    }
+
+    .btn-danger-outline {
+      background: transparent;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+
+    .btn-danger-outline:hover {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: var(--danger);
+    }
+
+    /* MAIN CONTAINER */
+    .main-wrap {
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 24px 60px;
+      flex: 1;
+    }
+
+    /* TOP BAR (Filter, Search, Stats) */
+    .dashboard-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-title h2 {
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .toolbar-title p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .toolbar-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 14px;
+      color: var(--text);
+      font-size: 13.5px;
+      font-family: inherit;
+      outline: none;
+      min-width: 240px;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+    }
+
+    .filter-select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 12px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* CARDS GRID */
+    .wedding-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 24px;
+    }
+
+    .wedding-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      position: relative;
+    }
+
+    .wedding-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+      border-color: rgba(139, 92, 246, 0.4);
+    }
+
+    .card-banner {
+      height: 180px;
+      background: linear-gradient(135deg, #2b1736, #141c38);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-banner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .wedding-card:hover .card-banner img {
+      transform: scale(1.04);
+    }
+
+    .card-template-tag {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .tag-classic-red { background: rgba(122, 12, 22, 0.85); color: #fed7aa; }
+    .tag-pastel-pink { background: rgba(219, 39, 119, 0.85); color: #fdf2f8; }
+    .tag-sage-green  { background: rgba(22, 101, 52, 0.85); color: #dcfce7; }
+    .tag-luxury-gold { background: rgba(161, 98, 7, 0.85); color: #fef08a; }
+
+    .card-date-badge {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      background: rgba(15, 17, 23, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+
+    .card-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .card-names {
+      font-family: 'Playfair Display', serif;
+      font-size: 19px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+
+    .card-slug-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 10px;
+      margin-bottom: 16px;
+      gap: 8px;
+    }
+
+    .slug-text {
+      font-family: monospace;
+      font-size: 12px;
+      color: #a78bfa;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .btn-copy-slug {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .btn-copy-slug:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .card-meta-info {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .card-footer-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: auto;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .card-footer-actions .btn {
+      flex: 1;
+      justify-content: center;
+      padding: 8px 10px;
+      font-size: 12.5px;
+    }
+
+    /* EMPTY STATE */
+    .empty-state {
+      background: var(--surface);
+      border: 2px dashed var(--border);
+      border-radius: 20px;
+      padding: 60px 24px;
+      text-align: center;
+      max-width: 540px;
+      margin: 40px auto;
+    }
+
+    .empty-icon {
+      font-size: 52px;
+      margin-bottom: 16px;
+    }
+
+    .empty-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .empty-desc {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      z-index: 999;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* SKELETON LOADER */
+    .loading-spinner {
+      text-align: center;
+      padding: 60px 0;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- HEADER -->
+  <header class="dashboard-header">
+    <div class="brand-group">
+      <div class="brand-icon">💍</div>
+      <div>
+        <h1 class="brand-title">Quản Lý Thiệp Cưới</h1>
+        <p class="brand-subtitle">Quản trị nhiều trang (slug riêng) & đa giao diện</p>
+      </div>
+    </div>
+
+    <div class="user-actions">
+      <div class="user-pill" id="userPill">
+        <div class="user-avatar" id="userAvatar">U</div>
+        <span id="userNameDisplay">Đang tải...</span>
+        <span class="user-role-badge" id="userRoleBadge">Thành viên</span>
+      </div>
+
+      <a href="admin_pocketbase.html?new=1" class="btn btn-primary">
+        <span>+ Tạo Thiệp Mới</span>
+      </a>
+
+      <button onclick="handleLogout()" class="btn btn-secondary">
+        <span>Đăng Xuất</span> ↪
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN BODY -->
+  <main class="main-wrap">
+    <div class="dashboard-toolbar">
+      <div class="toolbar-title">
+        <h2>Danh Sách Thiệp Cưới</h2>
+        <p>Quản lý các trang thiệp, xem trước trực tiếp hoặc chỉnh sửa nội dung</p>
+      </div>
+
+      <div class="toolbar-controls">
+        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Tìm theo tên hoặc slug..." oninput="handleFilter()" />
+        <select id="templateFilter" class="filter-select" onchange="handleFilter()">
+          <option value="">Tất cả mẫu giao diện</option>
+          <option value="classic-red">Đỏ Truyền Thống</option>
+          <option value="pastel-pink">Hồng Pastel</option>
+          <option value="sage-green">Xanh Sage</option>
+          <option value="luxury-gold">Hoàng Gia Gold</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="loaderArea" class="loading-spinner">
+      ⏳ Đang tải danh sách thiệp cưới từ PocketBase...
+    </div>
+
+    <!-- Wedding Cards Grid -->
+    <div class="wedding-grid" id="weddingGrid" style="display: none;"></div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState" style="display: none;">
+      <div class="empty-icon">💌</div>
+      <h3 class="empty-title">Bạn chưa có thiệp cưới nào</h3>
+      <p class="empty-desc">Tạo thiệp cưới đầu tiên của bạn với tên cô dâu, chú rể, đường dẫn slug riêng và mẫu template tuỳ chọn!</p>
+      <a href="admin_pocketbase.html?new=1" class="btn btn-primary" style="padding: 12px 24px;">
+        + Tạo Thiệp Đầu Tiên Ngay
+      </a>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const DEFAULT_PB = window.location.port === '8090' ? window.location.origin : 'http://127.0.0.1:8090';
+    const pbUrl = localStorage.getItem('pb_url') || DEFAULT_PB;
+    const pb = new PocketBase(pbUrl);
+
+    // Authentication Guard
+    if (!pb.authStore.isValid || !pb.authStore.model) {
+      window.location.href = 'login.html';
+    }
+
+    const currentUser = pb.authStore.model;
+    const isSuperUser = pb.authStore.isSuperuser || currentUser?.collectionName === '_superusers' || currentUser?.role === 'admin';
+
+    // Update Header Profile
+    const displayName = currentUser.name || currentUser.email || 'Người dùng';
+    document.getElementById('userNameDisplay').textContent = displayName;
+    document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
+    if (isSuperUser) {
+      const badge = document.getElementById('userRoleBadge');
+      badge.textContent = 'Admin Quản Trị';
+      badge.style.background = 'rgba(236, 72, 153, 0.2)';
+      badge.style.color = '#f472b6';
+      badge.style.borderColor = 'rgba(236, 72, 153, 0.3)';
+    }
+
+    let allRecords = [];
+
+    // Template Mapping Helper
+    const TEMPLATE_NAMES = {
+      'classic-red': { label: '🌹 Đỏ Truyền Thống', tagClass: 'tag-classic-red' },
+      'pastel-pink': { label: '🌸 Hồng Pastel', tagClass: 'tag-pastel-pink' },
+      'sage-green':  { label: '🌿 Xanh Sage', tagClass: 'tag-sage-green' },
+      'luxury-gold': { label: '✨ Hoàng Gia Gold', tagClass: 'tag-luxury-gold' },
+    };
+
+    function getTemplateInfo(key) {
+      return TEMPLATE_NAMES[key] || { label: '🌹 Đỏ Truyền Thống', tagClass: 'tag-classic-red' };
+    }
+
+    async function loadWeddings() {
+      const loader = document.getElementById('loaderArea');
+      const grid = document.getElementById('weddingGrid');
+      const empty = document.getElementById('emptyState');
+
+      loader.style.display = 'block';
+      grid.style.display = 'none';
+      empty.style.display = 'none';
+
+      try {
+        let filterQuery = '';
+        // If not superuser/admin, only show weddings owned by this user (or unowned demo records)
+        if (!isSuperUser) {
+          filterQuery = `owner = "${currentUser.id}" || owner = ""`;
+        }
+
+        const res = await pb.collection('wedding_content').getList(1, 100, {
+          sort: '-created',
+          filter: filterQuery
+        });
+
+        allRecords = res.items || [];
+        renderWeddings(allRecords);
+      } catch (err) {
+        console.error('Lỗi tải danh sách thiệp:', err);
+        loader.innerHTML = `⚠️ Lỗi tải dữ liệu: ${err.message}. <br/><a href="login.html" style="color:var(--accent);">Thử đăng nhập lại</a>`;
+      }
+    }
+
+    function renderWeddings(records) {
+      const loader = document.getElementById('loaderArea');
+      const grid = document.getElementById('weddingGrid');
+      const empty = document.getElementById('emptyState');
+
+      loader.style.display = 'none';
+
+      if (!records || records.length === 0) {
+        grid.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+      }
+
+      empty.style.display = 'none';
+      grid.style.display = 'grid';
+
+      const origin = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
+
+      grid.innerHTML = records.map(rec => {
+        const groom = rec.groomName || 'Chú Rể';
+        const bride = rec.brideName || 'Cô Dâu';
+        const slug = rec.slug || rec.id;
+        const tmpl = getTemplateInfo(rec.template);
+        const dateStr = (rec.weddingDay && rec.weddingMonth && rec.weddingYear) 
+          ? `${rec.weddingDay}/${rec.weddingMonth}/${rec.weddingYear}` 
+          : 'Chưa đặt ngày';
+
+        // Hero image or fallback
+        let heroUrl = 'images/wedding_couple_hero.jpg';
+        if (rec.hero) {
+          heroUrl = pb.files.getUrl(rec, rec.hero, { thumb: '400x300' });
+        }
+
+        const publicLink = `${origin}index.html?slug=${encodeURIComponent(slug)}`;
+        const shortLink = `index.html?slug=${slug}`;
+
+        return `
+          <div class="wedding-card">
+            <div class="card-banner">
+              <img src="${heroUrl}" alt="${groom} & ${bride}" onerror="this.src='images/wedding_couple_hero.jpg'"/>
+              <div class="card-template-tag ${tmpl.tagClass}">${tmpl.label}</div>
+              <div class="card-date-badge">🗓️ ${dateStr}</div>
+            </div>
+
+            <div class="card-body">
+              <h3 class="card-names">${groom} &amp; ${bride}</h3>
+
+              <div class="card-slug-row">
+                <span class="slug-text" title="${publicLink}">🔗 ${shortLink}</span>
+                <button type="button" class="btn-copy-slug" onclick="copyLink('${publicLink}')" title="Sao chép link">
+                  📋 Sao chép
+                </button>
+              </div>
+
+              <div class="card-meta-info">
+                <div><strong>Địa điểm Nhà Gái:</strong> ${rec.brideVenue || 'Chưa cập nhật'}</div>
+                <div><strong>Địa điểm Nhà Trai:</strong> ${rec.groomVenue || 'Chưa cập nhật'}</div>
+              </div>
+
+              <div class="card-footer-actions">
+                <a href="${publicLink}" target="_blank" class="btn btn-secondary" title="Mở trang thiệp khách xem">
+                  👁️ Xem thiệp
+                </a>
+                <a href="admin_pocketbase.html?id=${rec.id}" class="btn btn-primary" title="Chỉnh sửa nội dung thiệp">
+                  ✏️ Sửa thiệp
+                </a>
+                <button type="button" class="btn btn-danger-outline" onclick="deleteWedding('${rec.id}', '${groom}', '${bride}')" title="Xóa thiệp này">
+                  🗑️
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function handleFilter() {
+      const q = document.getElementById('searchInput').value.trim().toLowerCase();
+      const tmpl = document.getElementById('templateFilter').value;
+
+      const filtered = allRecords.filter(r => {
+        const groom = (r.groomName || '').toLowerCase();
+        const bride = (r.brideName || '').toLowerCase();
+        const slug = (r.slug || '').toLowerCase();
+        const matchQ = !q || groom.includes(q) || bride.includes(q) || slug.includes(q);
+        const matchTmpl = !tmpl || (r.template || 'classic-red') === tmpl;
+        return matchQ && matchTmpl;
+      });
+
+      renderWeddings(filtered);
+    }
+
+    function copyLink(url) {
+      navigator.clipboard.writeText(url).then(() => {
+        showToast('✅ Đã sao chép liên kết thiệp cưới!');
+      }).catch(() => {
+        prompt('Sao chép đường dẫn thiệp cưới:', url);
+      });
+    }
+
+    async function deleteWedding(id, groom, bride) {
+      if (!confirm(`Bạn có chắc muốn xóa vĩnh viễn thiệp cưới của "${groom} & ${bride}"?`)) {
+        return;
+      }
+
+      showToast('⏳ Đang xóa thiệp cưới...');
+      try {
+        await pb.collection('wedding_content').delete(id);
+        showToast('✅ Đã xóa thành công!');
+        allRecords = allRecords.filter(r => r.id !== id);
+        renderWeddings(allRecords);
+      } catch (err) {
+        console.error(err);
+        showToast('❌ Không thể xóa: ' + (err.message || 'Lỗi phân quyền'));
+      }
+    }
+
+    function handleLogout() {
+      pb.authStore.clear();
+      showToast('Đã đăng xuất.');
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 500);
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // Initialize
+    loadWeddings();
+  </script>
+</body>
+
+</html>

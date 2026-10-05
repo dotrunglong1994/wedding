@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đăng Nhập Quản Trị – Nền Tảng Thiệp Cưới</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
+    rel="stylesheet" />
+  <!-- PocketBase JavaScript SDK -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pocketbase/0.21.5/pocketbase.umd.js"></script>
+
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0c0e14;
+      --surface: #151822;
+      --surface2: #1e2230;
+      --border: #2c3247;
+      --accent: #8b5cf6;
+      --accent2: #ec4899;
+      --gold: #f59e0b;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --success: #10b981;
+      --danger: #ef4444;
+      --radius: 14px;
+    }
+
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: radial-gradient(circle at 50% 20%, #1e1338 0%, var(--bg) 80%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background glow */
+    .glow-blob {
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.18;
+      pointer-events: none;
+    }
+    .glow-1 { top: -80px; left: -80px; background: var(--accent); }
+    .glow-2 { bottom: -80px; right: -80px; background: var(--accent2); }
+
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      background: rgba(21, 24, 34, 0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 32px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      position: relative;
+      z-index: 10;
+    }
+
+    .brand-logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .brand-icon {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      box-shadow: 0 8px 20px rgba(139, 92, 246, 0.35);
+      margin-bottom: 12px;
+    }
+
+    .brand-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Tab switcher */
+    .tab-nav {
+      display: flex;
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 13.5px;
+      font-weight: 600;
+      font-family: inherit;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--accent), #7033ff);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(124, 77, 255, 0.3);
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      background: rgba(15, 17, 23, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 14.5px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 6px 18px rgba(139, 92, 246, 0.35);
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn-submit:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Server config collapsible */
+    .server-config-toggle {
+      margin-top: 24px;
+      text-align: center;
+    }
+
+    .server-toggle-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: inherit;
+    }
+
+    .server-toggle-btn:hover {
+      color: var(--text);
+    }
+
+    .server-config-box {
+      margin-top: 12px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      display: none;
+    }
+
+    .server-config-box.open {
+      display: block;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      z-index: 999;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="glow-blob glow-1"></div>
+  <div class="glow-blob glow-2"></div>
+
+  <div class="auth-card">
+    <div class="brand-logo">
+      <div class="brand-icon">💍</div>
+      <h1 class="brand-title">Quản Trị Thiệp Cưới</h1>
+      <p class="brand-sub">Quản lý nhiều mẫu thiệp & URL slug riêng</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-nav">
+      <button class="tab-btn active" id="tabBtnLogin" onclick="switchTab('login')">Đăng Nhập</button>
+      <button class="tab-btn" id="tabBtnRegister" onclick="switchTab('register')">Đăng Ký Mới</button>
+    </div>
+
+    <!-- Login Form -->
+    <form id="formLogin" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label class="form-label">Email tài khoản</label>
+        <input type="email" id="loginEmail" class="form-input" placeholder="tenban@email.com" required autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mật khẩu</label>
+        <input type="password" id="loginPass" class="form-input" placeholder="••••••••" required autocomplete="current-password" />
+      </div>
+      <button type="submit" id="btnLoginSubmit" class="btn-submit">
+        <span>Đăng Nhập Vào Hệ Thống</span> →
+      </button>
+    </form>
+
+    <!-- Register Form -->
+    <form id="formRegister" onsubmit="handleRegister(event)" style="display: none;">
+      <div class="form-group">
+        <label class="form-label">Họ và tên</label>
+        <input type="text" id="regName" class="form-input" placeholder="Nguyễn Văn A" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email đăng ký</label>
+        <input type="email" id="regEmail" class="form-input" placeholder="tenban@email.com" required autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mật khẩu (tối thiểu 8 ký tự)</label>
+        <input type="password" id="regPass" class="form-input" placeholder="••••••••" required minlength="8" autocomplete="new-password" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Xác nhận mật khẩu</label>
+        <input type="password" id="regPassConfirm" class="form-input" placeholder="••••••••" required minlength="8" autocomplete="new-password" />
+      </div>
+      <button type="submit" id="btnRegSubmit" class="btn-submit">
+        <span>Tạo Tài Khoản & Bắt Đầu</span> ✦
+      </button>
+    </form>
+
+    <!-- PocketBase Server Config -->
+    <div class="server-config-toggle">
+      <button type="button" class="server-toggle-btn" onclick="toggleServerConfig()">
+        ⚙️ Cài đặt máy chủ PocketBase (<span id="serverUrlDisplay">127.0.0.1:8090</span>)
+      </button>
+      <div class="server-config-box" id="serverConfigBox">
+        <div class="form-group" style="margin-bottom: 8px;">
+          <label class="form-label">Địa chỉ máy chủ PocketBase (API URL)</label>
+          <input type="text" id="customPbUrl" class="form-input" placeholder="http://127.0.0.1:8090" />
+        </div>
+        <button type="button" class="btn-submit" style="padding: 8px; font-size: 12.5px; background: var(--surface2); border: 1px solid var(--border);" onclick="saveServerUrl()">
+          Lưu địa chỉ máy chủ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const DEFAULT_PB = window.location.port === '8090' ? window.location.origin : 'http://127.0.0.1:8090';
+    let currentPbUrl = localStorage.getItem('pb_url') || DEFAULT_PB;
+    let pb = new PocketBase(currentPbUrl);
+
+    document.getElementById('serverUrlDisplay').textContent = currentPbUrl.replace(/^https?:\/\//, '');
+    document.getElementById('customPbUrl').value = currentPbUrl;
+
+    // Check if already authenticated -> go to dashboard
+    if (pb.authStore.isValid && pb.authStore.model) {
+      window.location.href = 'dashboard.html';
+    }
+
+    function switchTab(tab) {
+      const isLogin = tab === 'login';
+      document.getElementById('tabBtnLogin').classList.toggle('active', isLogin);
+      document.getElementById('tabBtnRegister').classList.toggle('active', !isLogin);
+      document.getElementById('formLogin').style.display = isLogin ? 'block' : 'none';
+      document.getElementById('formRegister').style.display = isLogin ? 'none' : 'block';
+    }
+
+    function toggleServerConfig() {
+      const box = document.getElementById('serverConfigBox');
+      box.classList.toggle('open');
+    }
+
+    function saveServerUrl() {
+      const url = document.getElementById('customPbUrl').value.trim();
+      if (!url) return;
+      currentPbUrl = url.replace(/\/+$/, '');
+      localStorage.setItem('pb_url', currentPbUrl);
+      pb = new PocketBase(currentPbUrl);
+      document.getElementById('serverUrlDisplay').textContent = currentPbUrl.replace(/^https?:\/\//, '');
+      toggleServerConfig();
+      showToast('✅ Đã cập nhật máy chủ PocketBase: ' + currentPbUrl);
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const pass = document.getElementById('loginPass').value;
+      const btn = document.getElementById('btnLoginSubmit');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>Đang đăng nhập...</span>';
+      showToast('⏳ Đang kết nối tới máy chủ...');
+
+      try {
+        let authSuccess = false;
+
+        // 1. Try normal users collection
+        try {
+          await pb.collection('users').authWithPassword(email, pass);
+          authSuccess = true;
+        } catch (_) {}
+
+        // 2. Try PocketBase v0.21+ superusers collection if admin
+        if (!authSuccess) {
+          try {
+            await pb.collection('_superusers').authWithPassword(email, pass);
+            authSuccess = true;
+          } catch (_) {}
+        }
+
+        // 3. Try legacy admin
+        if (!authSuccess) {
+          try {
+            await pb.admins.authWithPassword(email, pass);
+            authSuccess = true;
+          } catch (_) {}
+        }
+
+        if (authSuccess) {
+          showToast('✅ Đăng nhập thành công! Đang chuyển hướng...');
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 800);
+        } else {
+          showToast('❌ Sai email hoặc mật khẩu!');
+          btn.disabled = false;
+          btn.innerHTML = '<span>Đăng Nhập Vào Hệ Thống</span> →';
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('❌ Lỗi kết nối: ' + (err.message || 'Không thể kết nối tới máy chủ PocketBase'));
+        btn.disabled = false;
+        btn.innerHTML = '<span>Đăng Nhập Vào Hệ Thống</span> →';
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const pass = document.getElementById('regPass').value;
+      const confirm = document.getElementById('regPassConfirm').value;
+      const btn = document.getElementById('btnRegSubmit');
+
+      if (pass !== confirm) {
+        showToast('⚠️ Mật khẩu xác nhận không khớp!');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>Đang đăng ký tài khoản...</span>';
+
+      try {
+        // Create user in PocketBase
+        await pb.collection('users').create({
+          email: email,
+          password: pass,
+          passwordConfirm: confirm,
+          name: name
+        });
+
+        // Auto login after registration
+        await pb.collection('users').authWithPassword(email, pass);
+
+        showToast('🎉 Đăng ký thành công! Đang vào trang quản trị...');
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 900);
+      } catch (err) {
+        console.error(err);
+        const errDetail = err.data?.data ? JSON.stringify(err.data.data) : (err.message || '');
+        showToast('❌ Đăng ký thất bại: ' + errDetail);
+        btn.disabled = false;
+        btn.innerHTML = '<span>Tạo Tài Khoản & Bắt Đầu</span> ✦';
+      }
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+    }
+  </script>
+</body>
+
+</html>

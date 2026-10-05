@@ -650,6 +650,11 @@
 
     <!-- POCKETBASE CONTROLS -->
     <div class="pb-control-bar">
+      <!-- Back to Dashboard -->
+      <a href="dashboard.html" class="btn-action" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;" title="Về bảng quản lý danh sách thiệp">
+        📋 <span>Danh Sách Thiệp</span>
+      </a>
+
       <!-- Status Pill -->
       <div class="pb-status-pill" id="pbStatusPill" title="PocketBase Status">
         <span class="status-dot connecting" id="statusDot"></span>
@@ -664,6 +669,11 @@
       <!-- Refresh from PB -->
       <button class="btn-action" onclick="loadFromPocketBase()" title="Tải dữ liệu mới nhất từ server">
         🔄 Đồng bộ
+      </button>
+
+      <!-- View Public Link -->
+      <button class="btn-action" onclick="openPublicPage()" title="Xem trực tiếp trang thiệp của khách">
+        🔗 Xem Thiệp
       </button>
 
       <!-- Save to PocketBase -->
@@ -682,6 +692,36 @@
   <!-- MAIN LAYOUT -->
   <div class="admin-layout">
     <div class="form-area" id="formArea">
+
+      <!-- 0. CẤU HÌNH TRANG: SLUG & TEMPLATE -->
+      <div class="section-group">
+        <div class="section-group-header" onclick="toggleSection(this)">
+          <div class="badge" style="background:rgba(139,92,246,0.15);">&#x1F310;</div>
+          Cấu Hình Trang: Đường Dẫn (Slug) &amp; Mẫu Giao Diện
+          <span class="chevron">&#x25BE;</span>
+        </div>
+        <div class="section-group-body">
+          <div class="field-row">
+            <div class="field-group" style="flex: 2;">
+              <label class="field-label">Đường Dẫn Riêng (Slug URL) <span class="required">*</span></label>
+              <div style="display: flex; gap: 8px;">
+                <input class="field-input" id="weddingSlug" type="text" placeholder="vi-du: quang-va-an" oninput="updateSlugPreview()" style="font-family: monospace;" />
+                <button type="button" class="btn-action" onclick="autoGenerateSlug()" title="Tạo slug từ tên dâu rể" style="white-space: nowrap; padding: 0 12px;">⚡ Tự tạo</button>
+              </div>
+              <div class="help-text" id="slugPreviewText" style="color: #a78bfa; margin-top: 6px; font-family: monospace;">🔗 Link: index.html?slug=...</div>
+            </div>
+            <div class="field-group" style="flex: 1.5;">
+              <label class="field-label">Mẫu Giao Diện (Template)</label>
+              <select class="field-input" id="weddingTemplate" onchange="liveUpdate()">
+                <option value="classic-red">🌹 Đỏ Truyền Thống (Classic Red)</option>
+                <option value="pastel-pink">🌸 Hồng Pastel (Pastel Pink)</option>
+                <option value="sage-green">🌿 Xanh Sage (Sage Green)</option>
+                <option value="luxury-gold">✨ Hoàng Gia Gold (Royal Gold)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- 1. CÔ DÂU & CHÚ RỂ -->
       <div class="section-group">
@@ -1309,37 +1349,110 @@
     }
 
     // ============================================================
+    // SLUG & PUBLIC LINK HELPERS
+    // ============================================================
+    function removeVietnameseTones(str) {
+      str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+      str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+      str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+      str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+      str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+      str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+      str = str.replace(/đ/g, "d");
+      str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+      str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+      str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+      str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+      str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+      str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+      str = str.replace(/Đ/g, "D");
+      return str;
+    }
+
+    function autoGenerateSlug() {
+      const groom = document.getElementById('groomName') ? document.getElementById('groomName').value.trim() : '';
+      const bride = document.getElementById('brideName') ? document.getElementById('brideName').value.trim() : '';
+      const combined = `${groom} ${bride}`.trim() || 'thiep-cuoi';
+      const clean = removeVietnameseTones(combined)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      const slugInput = document.getElementById('weddingSlug');
+      if (slugInput) {
+        slugInput.value = clean || 'thiep-cuoi';
+        updateSlugPreview();
+      }
+    }
+
+    function updateSlugPreview() {
+      const slug = (document.getElementById('weddingSlug')?.value || '').trim() || 'thiep-cuoi';
+      const el = document.getElementById('slugPreviewText');
+      if (el) {
+        el.textContent = `🔗 Link xem: index.html?slug=${slug}`;
+      }
+    }
+
+    function openPublicPage() {
+      const slug = (document.getElementById('weddingSlug')?.value || '').trim();
+      const target = slug ? `index.html?slug=${encodeURIComponent(slug)}` : (currentRecordId ? `index.html?id=${currentRecordId}` : 'index.html');
+      window.open(target, '_blank');
+    }
+
+    // ============================================================
     // LOAD FROM POCKETBASE
     // ============================================================
     async function loadFromPocketBase() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetId = urlParams.get('id');
+      const isNew = urlParams.get('new');
+
+      if (isNew) {
+        currentRecordId = null;
+        autoGenerateSlug();
+        showToast('✨ Chế độ tạo thiệp mới. Nhập thông tin và bấm Lưu!');
+        return;
+      }
+
       try {
         showToast('⏳ Đang tải dữ liệu từ PocketBase...');
-        // Try getting the first record in the collection
-        const records = await pb.collection(COLLECTION_NAME).getList(1, 1);
+        let rec = null;
 
-        if (records.items && records.items.length > 0) {
-          const rec = records.items[0];
+        if (targetId) {
+          rec = await pb.collection(COLLECTION_NAME).getOne(targetId);
+        } else {
+          // If logged in, prioritize user's own record
+          let filter = '';
+          if (pb.authStore.model?.id && !pb.authStore.isSuperuser) {
+            filter = `owner = "${pb.authStore.model.id}" || owner = ""`;
+          }
+          const records = await pb.collection(COLLECTION_NAME).getList(1, 1, { filter, sort: '-created' });
+          if (records.items && records.items.length > 0) {
+            rec = records.items[0];
+          }
+        }
+
+        if (rec) {
           currentRecordId = rec.id;
           populateFormWithRecord(rec);
           showToast('✅ Đã tải dữ liệu từ PocketBase!');
           liveUpdate();
         } else {
-          showToast('ℹ️ Chưa có dữ liệu trên PocketBase. Sử dụng form mẫu!');
+          autoGenerateSlug();
+          showToast('ℹ️ Bắt đầu với form mẫu. Bấm "Lưu Thay Đổi" để tạo bản ghi.');
         }
       } catch (err) {
         console.warn('Load record error:', err);
         let msg = err.message || 'Lỗi không xác định';
-        // Network / CORS error (no status code means fetch failed entirely)
         if (!err.status && (err.name === 'TypeError' || msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('CORS'))) {
-          msg = 'Không thể kết nối tới PocketBase server! Kiểm tra: (1) URL đúng chưa? (2) PocketBase đang chạy? (3) Đã bật CORS cho domain này trong PocketBase chưa?';
+          msg = 'Không thể kết nối tới PocketBase server! Kiểm tra: (1) URL đúng chưa? (2) PocketBase đang chạy? (3) Đã bật CORS cho domain này chưa?';
         } else if (err.status === 0) {
-          msg = 'Lỗi mạng / CORS: PocketBase server từ chối kết nối từ domain này. Vào PocketBase Admin → Settings → CORS và thêm domain của bạn.';
+          msg = 'Lỗi mạng / CORS: PocketBase server từ chối kết nối từ domain này.';
         } else if (err.status === 404) {
           msg = 'Chưa có Collection "wedding_content" trên PocketBase! Hãy import file pb_schema.json.';
         } else if (err.status === 401 || err.status === 403) {
-          msg = 'Collection đang bị khóa API Rules! Hãy: (1) Vào PocketBase Admin → Collections → wedding_content → API Rules → đặt List/View Rule = "" (để trống). Hoặc (2) Bấm nút ⚙️ và đăng nhập Admin.';
+          msg = 'Bạn không có quyền truy cập bản ghi này!';
         } else if (err.status === 400) {
-          msg = 'Lỗi kết nối PocketBase (400). Hãy bấm ⚙️ để kiểm tra lại URL server và đăng nhập Admin.';
+          msg = 'Lỗi kết nối PocketBase (400). Hãy bấm ⚙️ để kiểm tra lại URL server.';
         }
         showToast('⚠️ ' + msg);
       }
@@ -1350,6 +1463,11 @@
         const el = document.getElementById(id);
         if (el && val !== undefined && val !== null) el.value = val;
       };
+
+      // Populate slug & template
+      setVal('weddingSlug', rec.slug);
+      setVal('weddingTemplate', rec.template || 'classic-red');
+      updateSlugPreview();
 
       // Populate text fields
       setVal('groomName', rec.groomName);
@@ -1439,7 +1557,17 @@
 
       try {
         const c = getConfig();
+        if (!c.slug) {
+          autoGenerateSlug();
+          c.slug = document.getElementById('weddingSlug').value.trim();
+        }
+
         const formData = new FormData();
+
+        // Append owner if creating new and user logged in
+        if (!currentRecordId && pb.authStore.model?.id) {
+          formData.append('owner', pb.authStore.model.id);
+        }
 
         // Append text fields
         Object.keys(c).forEach(k => {
@@ -1461,15 +1589,9 @@
         if (currentRecordId) {
           savedRecord = await pb.collection(COLLECTION_NAME).update(currentRecordId, formData);
         } else {
-          // Check again if any record exists, otherwise create
-          const exist = await pb.collection(COLLECTION_NAME).getList(1, 1);
-          if (exist.items.length > 0) {
-            currentRecordId = exist.items[0].id;
-            savedRecord = await pb.collection(COLLECTION_NAME).update(currentRecordId, formData);
-          } else {
-            savedRecord = await pb.collection(COLLECTION_NAME).create(formData);
-            currentRecordId = savedRecord.id;
-          }
+          savedRecord = await pb.collection(COLLECTION_NAME).create(formData);
+          currentRecordId = savedRecord.id;
+          history.replaceState(null, '', '?id=' + savedRecord.id);
         }
 
         // Clear pending files
@@ -1483,15 +1605,15 @@
         console.error('Save to PocketBase failed:', err);
         let msg = err.message || 'Lỗi không xác định';
         if (err.status === 401) {
-          msg = 'Chưa đăng nhập! Bấm ⚙️ → nhập email/mật khẩu Admin → Lưu & Kết Nối.';
+          msg = 'Chưa đăng nhập! Bấm ⚙️ hoặc đăng nhập tài khoản trước khi lưu.';
         } else if (err.status === 403) {
-          msg = 'Không có quyền ghi dữ liệu! Vào PocketBase Admin → Collections → wedding_content → API Rules → đặt Create & Update Rule = "" (để trống). Hoặc bấm ⚙️ để đăng nhập Admin.';
+          msg = 'Không có quyền cập nhật bản ghi này!';
         } else if (err.status === 400) {
-          msg = 'Lỗi dữ liệu (400)! Có thể API Rules chưa mở, hoặc dữ liệu không hợp lệ. Bấm ⚙️ và đăng nhập Admin để thử lại.';
+          msg = 'Lỗi dữ liệu (400)! Kiểm tra lại thông tin hoặc API Rules của collection.';
         } else if (err.status === 404) {
           msg = 'Chưa tìm thấy Collection "wedding_content". Hãy import file pb_schema.json!';
         } else if (!err.status && err.name === 'TypeError') {
-          msg = 'Lỗi mạng / CORS khi ghi dữ liệu. Kiểm tra CORS setting trong PocketBase Admin → Settings → CORS.';
+          msg = 'Lỗi mạng / CORS khi ghi dữ liệu. Kiểm tra CORS setting trong PocketBase.';
         }
         showToast('❌ ' + msg);
       } finally {
@@ -1629,6 +1751,8 @@
         return el ? el.value.trim() : '';
       };
       return {
+        slug: v('weddingSlug'),
+        template: v('weddingTemplate') || 'classic-red',
         groomName: v('groomName'), brideName: v('brideName'),
         groomFather: v('groomFather'), groomMother: v('groomMother'),
         brideFather: v('brideFather'), brideMother: v('brideMother'),

@@ -1370,6 +1370,8 @@
       }
     }
   </style>
+  <!-- PocketBase SDK -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pocketbase/0.21.5/pocketbase.umd.js"></script>
 </head>
 
 <body>
@@ -2148,6 +2150,216 @@
       msgInput.value = '';
       nameInput.value = '';
     }
+
+    // ====== POCKETBASE DYNAMIC DATA SYNC ======
+    const PB_HOST = localStorage.getItem('pb_url') || (window.location.port === '8090' ? window.location.origin : 'http://127.0.0.1:8090');
+    const pb = new PocketBase(PB_HOST);
+
+    function getPbFileUrl(record, filename, thumb) {
+      if (!filename) return "";
+      if (filename.startsWith("http://") || filename.startsWith("https://") || filename.startsWith("data:")) return filename;
+      return `${PB_HOST}/api/files/${record.collectionId || record.collectionName || "wedding_content"}/${record.id}/${filename}${thumb ? "?thumb=" + thumb : ""}`;
+    }
+
+    function setElText(id, text) {
+      const el = document.getElementById(id);
+      if (el && text !== undefined && text !== null && text !== "") el.textContent = text;
+    }
+
+    // ====== TEMPLATE THEMES ======
+    const TEMPLATE_THEMES = {
+      'classic-red': {
+        '--primary': '#7a0c16',
+        '--primary-light': '#9c1c28',
+        '--primary-dark': '#58060e',
+        '--accent': '#d4a373',
+        '--pink-soft': '#fceceb',
+        '--bg-page': '#e8eaee'
+      },
+      'pastel-pink': {
+        '--primary': '#be185d',
+        '--primary-light': '#db2777',
+        '--primary-dark': '#9d174d',
+        '--accent': '#f472b6',
+        '--pink-soft': '#fdf2f8',
+        '--bg-page': '#fce7f3'
+      },
+      'sage-green': {
+        '--primary': '#15803d',
+        '--primary-light': '#16a34a',
+        '--primary-dark': '#14532d',
+        '--accent': '#4ade80',
+        '--pink-soft': '#f0fdf4',
+        '--bg-page': '#dcfce7'
+      },
+      'luxury-gold': {
+        '--primary': '#854d0e',
+        '--primary-light': '#a16207',
+        '--primary-dark': '#713f12',
+        '--accent': '#eab308',
+        '--pink-soft': '#fefce8',
+        '--bg-page': '#fef08a'
+      }
+    };
+
+    function applyTemplateTheme(templateKey) {
+      const theme = TEMPLATE_THEMES[templateKey] || TEMPLATE_THEMES['classic-red'];
+      const root = document.documentElement;
+      Object.keys(theme).forEach(key => {
+        root.style.setProperty(key, theme[key]);
+      });
+    }
+
+    async function syncPocketBaseData() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const slug = urlParams.get('slug');
+        const id = urlParams.get('id');
+
+        let d = null;
+        if (slug) {
+          try {
+            d = await pb.collection("wedding_content").getFirstListItem(`slug = "${slug}"`);
+          } catch (_) {
+            console.warn("Không tìm thấy thiệp cưới với slug:", slug);
+          }
+        }
+        if (!d && id) {
+          try {
+            d = await pb.collection("wedding_content").getOne(id);
+          } catch (_) {}
+        }
+        if (!d && !slug && !id) {
+          const records = await pb.collection("wedding_content").getList(1, 1, { sort: '-created' });
+          if (records.items && records.items.length > 0) d = records.items[0];
+        }
+
+        if (!d) return;
+
+        // Apply template theme
+        if (d.template) {
+          applyTemplateTheme(d.template);
+        }
+
+        // Names & Quotes
+        const groom = d.groomName || "Vĩnh Quang";
+        const bride = d.brideName || "Thúy An";
+        document.title = `Thiệp Cưới - ${groom} & ${bride}`;
+        setElText("groomNameHero", groom);
+        setElText("brideNameHero", bride);
+        setElText("groomNameFamily", groom);
+        setElText("brideNameFamily", bride);
+        setElText("footerNames", `${groom} & ${bride}`);
+
+        // Parents
+        setElText("groomFather", d.groomFather);
+        setElText("groomMother", d.groomMother);
+        setElText("brideFather", d.brideFather);
+        setElText("brideMother", d.brideMother);
+
+        // Quotes
+        setElText("introText", d.introText);
+        setElText("quoteText", d.quoteText);
+
+        // Dates & Events
+        if (d.weddingDay && d.weddingMonth && d.weddingYear) {
+          const day = d.weddingDay;
+          const month = d.weddingMonth;
+          const year = d.weddingYear;
+          const dow = d.weddingDayOfWeek || "Chủ Nhật";
+          const lunar = d.lunarDate || "16/10 Bính Ngọ";
+
+          setElText("datePillHero", `${day} · ${month} · ${year}`);
+          setElText("brideEventTime", `VÀO LÚC ${d.brideTime || "11:00"} • ${dow.toUpperCase()}`);
+          setElText("groomEventTime", `VÀO LÚC ${d.groomTime || "17:30"} • ${dow.toUpperCase()}`);
+          setElText("calHeaderBar", `THÁNG ${month} / ${year}`);
+          setElText("calFooterText", `❤ ${dow}, ${day} Tháng ${month}, ${year} (Tức ngày ${lunar}) ❤`);
+        }
+
+        // Addresses & Venues
+        setElText("brideEventVenue", d.brideVenue ? `TẠI ${d.brideVenue.toUpperCase()}` : null);
+        setElText("brideEventAddress", d.brideAddress);
+        setElText("groomEventVenue", d.groomVenue ? `TẠI ${d.groomVenue.toUpperCase()}` : null);
+        setElText("groomEventAddress", d.groomAddress);
+
+        // Banks
+        setElText("groomBankName", d.groomBank);
+        setElText("accGroom", d.groomAccountNum);
+        setElText("groomAccHolder", d.groomAccountName);
+
+        setElText("brideBankName", d.brideBank);
+        setElText("accBride", d.brideAccountNum);
+        setElText("brideAccHolder", d.brideAccountName);
+
+        // Images: Only override if user uploaded custom images to PocketBase!
+        if (d.hero) {
+          const heroUrl = getPbFileUrl(d, d.hero, "800x1200");
+          const cover = document.getElementById("coverImg");
+          if (cover) cover.src = heroUrl;
+          if (typeof albumList !== 'undefined') albumList[0] = heroUrl;
+        }
+        if (d.quote) {
+          const quoteUrl = getPbFileUrl(d, d.quote, "800x600");
+          const qImg = document.getElementById("quoteImg");
+          if (qImg) qImg.src = quoteUrl;
+          if (typeof albumList !== 'undefined') albumList[1] = quoteUrl;
+        }
+        if (typeof albumList !== 'undefined') {
+          if (d.album0) albumList[0] = getPbFileUrl(d, d.album0, "900x700");
+          if (d.album1) albumList[1] = getPbFileUrl(d, d.album1, "900x700");
+          if (d.album2) albumList[2] = getPbFileUrl(d, d.album2, "900x700");
+          if (d.album3) albumList[3] = getPbFileUrl(d, d.album3, "900x700");
+
+          if (d.hero || d.album0 || d.album1 || d.album2 || d.album3) {
+            const mainAlb = document.getElementById("albumMainImg");
+            if (mainAlb) mainAlb.src = albumList[0];
+            const thumbs = document.querySelectorAll(".album-thumb");
+            thumbs.forEach((t, i) => { if (albumList[i]) t.src = albumList[i]; });
+          }
+        }
+
+        // QR Images
+        if (d.qrGroom) {
+          const qrG = document.querySelector("#tabGroomContent .qr-preview-box");
+          if (qrG) qrG.innerHTML = `<img src="${getPbFileUrl(d, d.qrGroom, "300x300")}" class="qr-img" alt="QR Chú Rể" /><div class="qr-note">Quét mã QR để mừng <strong>Chú Rể ${groom}</strong></div>`;
+        }
+        if (d.qrBride) {
+          const qrB = document.querySelector("#tabBrideContent .qr-preview-box");
+          if (qrB) qrB.innerHTML = `<img src="${getPbFileUrl(d, d.qrBride, "300x300")}" class="qr-img" alt="QR Cô Dâu" /><div class="qr-note">Quét mã QR để mừng <strong>Cô Dâu ${bride}</strong></div>`;
+        }
+
+        // Music
+        if (d.musicUrl) {
+          const audioEl = typeof audio !== 'undefined' ? audio : document.getElementById("bgAudio");
+          if (audioEl) {
+            audioEl.src = d.musicUrl;
+            if (d.musicVolume) audioEl.volume = parseFloat(d.musicVolume) || 0.45;
+          }
+        }
+
+        // Schedule
+        if (d.schedule && Array.isArray(d.schedule) && d.schedule.length > 0) {
+          const schContainer = document.getElementById("scheduleTimeline");
+          if (schContainer) {
+            schContainer.innerHTML = d.schedule.map(s => `
+              <div class="schedule-item">
+                <div class="schedule-dot"></div>
+                <div class="schedule-time">${s.time || ""}</div>
+                <div class="schedule-title">${s.title || ""}</div>
+                <div class="schedule-desc">${s.desc || ""}</div>
+              </div>
+            `).join("");
+          }
+        }
+      } catch (err) {
+        console.warn("PocketBase sync info: using default template values.", err);
+      }
+    }
+
+    // Call sync on page load
+    window.addEventListener("DOMContentLoaded", () => {
+      syncPocketBaseData();
+    });
   </script>
 </body>
 

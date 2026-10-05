@@ -2166,11 +2166,80 @@
       if (el && text !== undefined && text !== null && text !== "") el.textContent = text;
     }
 
+    // ====== TEMPLATE THEMES ======
+    const TEMPLATE_THEMES = {
+      'classic-red': {
+        '--primary': '#7a0c16',
+        '--primary-light': '#9c1c28',
+        '--primary-dark': '#58060e',
+        '--accent': '#d4a373',
+        '--pink-soft': '#fceceb',
+        '--bg-page': '#e8eaee'
+      },
+      'pastel-pink': {
+        '--primary': '#be185d',
+        '--primary-light': '#db2777',
+        '--primary-dark': '#9d174d',
+        '--accent': '#f472b6',
+        '--pink-soft': '#fdf2f8',
+        '--bg-page': '#fce7f3'
+      },
+      'sage-green': {
+        '--primary': '#15803d',
+        '--primary-light': '#16a34a',
+        '--primary-dark': '#14532d',
+        '--accent': '#4ade80',
+        '--pink-soft': '#f0fdf4',
+        '--bg-page': '#dcfce7'
+      },
+      'luxury-gold': {
+        '--primary': '#854d0e',
+        '--primary-light': '#a16207',
+        '--primary-dark': '#713f12',
+        '--accent': '#eab308',
+        '--pink-soft': '#fefce8',
+        '--bg-page': '#fef08a'
+      }
+    };
+
+    function applyTemplateTheme(templateKey) {
+      const theme = TEMPLATE_THEMES[templateKey] || TEMPLATE_THEMES['classic-red'];
+      const root = document.documentElement;
+      Object.keys(theme).forEach(key => {
+        root.style.setProperty(key, theme[key]);
+      });
+    }
+
     async function syncPocketBaseData() {
       try {
-        const records = await pb.collection("wedding_content").getList(1, 1);
-        if (!records.items || records.items.length === 0) return;
-        const d = records.items[0];
+        const urlParams = new URLSearchParams(window.location.search);
+        const slug = urlParams.get('slug');
+        const id = urlParams.get('id');
+
+        let d = null;
+        if (slug) {
+          try {
+            d = await pb.collection("wedding_content").getFirstListItem(`slug = "${slug}"`);
+          } catch (_) {
+            console.warn("Không tìm thấy thiệp cưới với slug:", slug);
+          }
+        }
+        if (!d && id) {
+          try {
+            d = await pb.collection("wedding_content").getOne(id);
+          } catch (_) {}
+        }
+        if (!d && !slug && !id) {
+          const records = await pb.collection("wedding_content").getList(1, 1, { sort: '-created' });
+          if (records.items && records.items.length > 0) d = records.items[0];
+        }
+
+        if (!d) return;
+
+        // Apply template theme
+        if (d.template) {
+          applyTemplateTheme(d.template);
+        }
 
         // Names & Quotes
         const groom = d.groomName || "Vĩnh Quang";
