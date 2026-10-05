@@ -4,269 +4,46 @@
     "name": "wedding_content",
     "type": "base",
     "system": false,
-    "schema": [
-      {
-        "name": "groomName",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "brideName",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "groomFather",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "groomMother",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "brideFather",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "brideMother",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "weddingDay",
-        "type": "number",
-        "required": false,
-        "options": { "min": null, "max": null }
-      },
-      {
-        "name": "weddingMonth",
-        "type": "number",
-        "required": false,
-        "options": { "min": null, "max": null }
-      },
-      {
-        "name": "weddingYear",
-        "type": "number",
-        "required": false,
-        "options": { "min": null, "max": null }
-      },
-      {
-        "name": "weddingDayOfWeek",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "lunarDate",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "brideTime",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "brideVenue",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "brideAddress",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "brideMapUrl",
-        "type": "url",
-        "required": false,
-        "options": { "exceptDomains": null, "onlyDomains": null }
-      },
-      {
-        "name": "groomTime",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "groomVenue",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "groomAddress",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "groomMapUrl",
-        "type": "url",
-        "required": false,
-        "options": { "exceptDomains": null, "onlyDomains": null }
-      },
-      {
-        "name": "groomBank",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "groomAccountNum",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "groomAccountName",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "brideBank",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "brideAccountNum",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "brideAccountName",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "musicUrl",
-        "type": "url",
-        "required": false,
-        "options": { "exceptDomains": null, "onlyDomains": null }
-      },
-      {
-        "name": "musicVolume",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "quoteText",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "introText",
-        "type": "text",
-        "required": false,
-        "options": { "min": null, "max": null, "pattern": "" }
-      },
-      {
-        "name": "schedule",
-        "type": "json",
-        "required": false,
-        "options": { "maxSize": 2000000 }
-      },
-      {
-        "name": "hero",
-        "type": "file",
-        "required": false,
-        "options": {
-          "maxSelect": 1,
-          "maxSize": 10485760,
-          "mimeTypes": ["image/jpeg", "image/png", "image/webp", "image/gif"]
-        }
-      },
-      {
-        "name": "quote",
-        "type": "file",
-        "required": false,
-        "options": {
-          "maxSelect": 1,
-          "maxSize": 10485760,
-          "mimeTypes": ["image/jpeg", "image/png", "image/webp", "image/gif"]
-        }
-      },
-      {
-        "name": "album0",
-        "type": "file",
-        "required": false,
-        "options": {
-          "maxSelect": 1,
-          "maxSize": 10485760,
-          "mimeTypes": ["image/jpeg", "image/png", "image/webp", "image/gif"]
-        }
-      },
-      {
-        "name": "album1",
-        "type": "file",
-        "required": false,
-        "options": {
-          "maxSelect": 1,
-          "maxSize": 10485760,
-          "mimeTypes": ["image/jpeg", "image/png", "image/webp", "image/gif"]
-        }
-      },
-      {
-        "name": "album2",
-        "type": "file",
-        "required": false,
-        "options": {
-          "maxSelect": 1,
-          "maxSize": 10485760,
-          "mimeTypes": ["image/jpeg", "image/png", "image/webp", "image/gif"]
-        }
-      },
-      {
-        "name": "album3",
-        "type": "file",
-        "required": false,
-        "options": {
-          "maxSelect": 1,
-          "maxSize": 10485760,
-          "mimeTypes": ["image/jpeg", "image/png", "image/webp", "image/gif"]
-        }
-      },
-      {
-        "name": "qrGroom",
-        "type": "file",
-        "required": false,
-        "options": {
-          "maxSelect": 1,
-          "maxSize": 10485760,
-          "mimeTypes": ["image/jpeg", "image/png", "image/webp", "image/gif"]
-        }
-      },
-      {
-        "name": "qrBride",
-        "type": "file",
-        "required": false,
-        "options": {
-          "maxSelect": 1,
-          "maxSize": 10485760,
-          "mimeTypes": ["image/jpeg", "image/png", "image/webp", "image/gif"]
-        }
-      }
+    "fields": [
+      { "id": "field_groomName",       "name": "groomName",       "type": "text",   "required": false, "options": {} },
+      { "id": "field_brideName",       "name": "brideName",       "type": "text",   "required": false, "options": {} },
+      { "id": "field_groomFather",     "name": "groomFather",     "type": "text",   "required": false, "options": {} },
+      { "id": "field_groomMother",     "name": "groomMother",     "type": "text",   "required": false, "options": {} },
+      { "id": "field_brideFather",     "name": "brideFather",     "type": "text",   "required": false, "options": {} },
+      { "id": "field_brideMother",     "name": "brideMother",     "type": "text",   "required": false, "options": {} },
+      { "id": "field_weddingDay",      "name": "weddingDay",      "type": "text",   "required": false, "options": {} },
+      { "id": "field_weddingMonth",    "name": "weddingMonth",    "type": "text",   "required": false, "options": {} },
+      { "id": "field_weddingYear",     "name": "weddingYear",     "type": "text",   "required": false, "options": {} },
+      { "id": "field_weddingDayOfWeek","name": "weddingDayOfWeek","type": "text",   "required": false, "options": {} },
+      { "id": "field_lunarDate",       "name": "lunarDate",       "type": "text",   "required": false, "options": {} },
+      { "id": "field_brideTime",       "name": "brideTime",       "type": "text",   "required": false, "options": {} },
+      { "id": "field_brideVenue",      "name": "brideVenue",      "type": "text",   "required": false, "options": {} },
+      { "id": "field_brideAddress",    "name": "brideAddress",    "type": "text",   "required": false, "options": {} },
+      { "id": "field_brideMapUrl",     "name": "brideMapUrl",     "type": "url",    "required": false, "options": {} },
+      { "id": "field_groomTime",       "name": "groomTime",       "type": "text",   "required": false, "options": {} },
+      { "id": "field_groomVenue",      "name": "groomVenue",      "type": "text",   "required": false, "options": {} },
+      { "id": "field_groomAddress",    "name": "groomAddress",    "type": "text",   "required": false, "options": {} },
+      { "id": "field_groomMapUrl",     "name": "groomMapUrl",     "type": "url",    "required": false, "options": {} },
+      { "id": "field_groomBank",       "name": "groomBank",       "type": "text",   "required": false, "options": {} },
+      { "id": "field_groomAccountNum", "name": "groomAccountNum", "type": "text",   "required": false, "options": {} },
+      { "id": "field_groomAccountName","name": "groomAccountName","type": "text",   "required": false, "options": {} },
+      { "id": "field_brideBank",       "name": "brideBank",       "type": "text",   "required": false, "options": {} },
+      { "id": "field_brideAccountNum", "name": "brideAccountNum", "type": "text",   "required": false, "options": {} },
+      { "id": "field_brideAccountName","name": "brideAccountName","type": "text",   "required": false, "options": {} },
+      { "id": "field_musicUrl",        "name": "musicUrl",        "type": "text",   "required": false, "options": {} },
+      { "id": "field_musicVolume",     "name": "musicVolume",     "type": "text",   "required": false, "options": {} },
+      { "id": "field_quoteText",       "name": "quoteText",       "type": "text",   "required": false, "options": {} },
+      { "id": "field_introText",       "name": "introText",       "type": "text",   "required": false, "options": {} },
+      { "id": "field_schedule",        "name": "schedule",        "type": "json",   "required": false, "options": {} },
+      { "id": "field_hero",            "name": "hero",            "type": "file",   "required": false, "options": { "maxSelect": 1, "maxSize": 5242880 } },
+      { "id": "field_quote",           "name": "quote",           "type": "file",   "required": false, "options": { "maxSelect": 1, "maxSize": 5242880 } },
+      { "id": "field_album0",          "name": "album0",          "type": "file",   "required": false, "options": { "maxSelect": 1, "maxSize": 5242880 } },
+      { "id": "field_album1",          "name": "album1",          "type": "file",   "required": false, "options": { "maxSelect": 1, "maxSize": 5242880 } },
+      { "id": "field_album2",          "name": "album2",          "type": "file",   "required": false, "options": { "maxSelect": 1, "maxSize": 5242880 } },
+      { "id": "field_album3",          "name": "album3",          "type": "file",   "required": false, "options": { "maxSelect": 1, "maxSize": 5242880 } },
+      { "id": "field_qrGroom",         "name": "qrGroom",         "type": "file",   "required": false, "options": { "maxSelect": 1, "maxSize": 5242880 } },
+      { "id": "field_qrBride",         "name": "qrBride",         "type": "file",   "required": false, "options": { "maxSelect": 1, "maxSize": 5242880 } }
     ],
-    "indexes": [],
     "listRule": "",
     "viewRule": "",
     "createRule": "",

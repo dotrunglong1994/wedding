@@ -1164,6 +1164,11 @@
         <input class="field-input" id="pbUrlInput" type="url" value="http://127.0.0.1:8090"
           placeholder="http://127.0.0.1:8090" />
         <p class="help-text">Chạy lệnh: <code>./pocketbase serve</code> trên máy hoặc VPS.</p>
+        <p class="help-text" style="margin-top:6px;color:var(--warning);">
+          ⚠️ <strong>Dùng domain thật?</strong> Cần bật CORS: vào PocketBase Admin UI (<code>/_/</code>)
+          → <strong>Settings → CORS</strong> → thêm domain của bạn (vd: <code>https://love.baprangbo.site</code>).
+          Và mở API Rules: <strong>Collections → wedding_content → API Rules</strong> → đặt List/View/Create/Update = <code>""</code> (để trống = public), hoặc đăng nhập Admin bên dưới.
+        </p>
       </div>
 
       <div class="field-divider"></div>
@@ -1268,7 +1273,14 @@
         }
       } catch (err) {
         console.warn('PocketBase connect warning:', err);
-        updateStatusBadge('offline', 'Chưa bật PocketBase');
+        const msg = err.message || '';
+        // Distinguish CORS/network error from server not running
+        if (!err.status && (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('CORS') || err.name === 'TypeError')) {
+          updateStatusBadge('offline', 'Lỗi CORS hoặc URL sai – bấm ⚙️');
+          showToast('⚠️ Không kết nối được! Kiểm tra URL PocketBase và CORS setting. Bấm ⚙️ để cấu hình lại.');
+        } else {
+          updateStatusBadge('offline', 'Chưa bật PocketBase');
+        }
       }
     }
 
@@ -1317,10 +1329,17 @@
       } catch (err) {
         console.warn('Load record error:', err);
         let msg = err.message || 'Lỗi không xác định';
-        if (err.status === 404) {
+        // Network / CORS error (no status code means fetch failed entirely)
+        if (!err.status && (err.name === 'TypeError' || msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('CORS'))) {
+          msg = 'Không thể kết nối tới PocketBase server! Kiểm tra: (1) URL đúng chưa? (2) PocketBase đang chạy? (3) Đã bật CORS cho domain này trong PocketBase chưa?';
+        } else if (err.status === 0) {
+          msg = 'Lỗi mạng / CORS: PocketBase server từ chối kết nối từ domain này. Vào PocketBase Admin → Settings → CORS và thêm domain của bạn.';
+        } else if (err.status === 404) {
           msg = 'Chưa có Collection "wedding_content" trên PocketBase! Hãy import file pb_schema.json.';
-        } else if (err.status === 400 || err.status === 403) {
-          msg = 'Collection đang bị khóa API Rules! Hãy vào PocketBase mở khóa (Unlock) hoặc bấm nút ⚙️ để Đăng nhập Admin.';
+        } else if (err.status === 401 || err.status === 403) {
+          msg = 'Collection đang bị khóa API Rules! Hãy: (1) Vào PocketBase Admin → Collections → wedding_content → API Rules → đặt List/View Rule = "" (để trống). Hoặc (2) Bấm nút ⚙️ và đăng nhập Admin.';
+        } else if (err.status === 400) {
+          msg = 'Lỗi kết nối PocketBase (400). Hãy bấm ⚙️ để kiểm tra lại URL server và đăng nhập Admin.';
         }
         showToast('⚠️ ' + msg);
       }
@@ -1463,10 +1482,16 @@
       } catch (err) {
         console.error('Save to PocketBase failed:', err);
         let msg = err.message || 'Lỗi không xác định';
-        if (err.status === 400 || err.status === 403) {
-          msg = 'Không có quyền ghi dữ liệu! Hãy mở khóa Create/Update Rule trong PocketBase hoặc bấm ⚙️ để Đăng nhập Admin.';
+        if (err.status === 401) {
+          msg = 'Chưa đăng nhập! Bấm ⚙️ → nhập email/mật khẩu Admin → Lưu & Kết Nối.';
+        } else if (err.status === 403) {
+          msg = 'Không có quyền ghi dữ liệu! Vào PocketBase Admin → Collections → wedding_content → API Rules → đặt Create & Update Rule = "" (để trống). Hoặc bấm ⚙️ để đăng nhập Admin.';
+        } else if (err.status === 400) {
+          msg = 'Lỗi dữ liệu (400)! Có thể API Rules chưa mở, hoặc dữ liệu không hợp lệ. Bấm ⚙️ và đăng nhập Admin để thử lại.';
         } else if (err.status === 404) {
           msg = 'Chưa tìm thấy Collection "wedding_content". Hãy import file pb_schema.json!';
+        } else if (!err.status && err.name === 'TypeError') {
+          msg = 'Lỗi mạng / CORS khi ghi dữ liệu. Kiểm tra CORS setting trong PocketBase Admin → Settings → CORS.';
         }
         showToast('❌ ' + msg);
       } finally {
@@ -1539,17 +1564,39 @@
       }
 
       if (email && password) {
-        try {
-          showToast('⏳ Đang xác thực...');
-          // Try user auth first, if fails try admin auth
+        showToast('⏳ Đang xác thực...');
+        let loginOk = false;
+
+        // 1) PocketBase v0.21+ superuser (new API)
+        if (!loginOk) {
+          try {
+            await pb.collection('_superusers').authWithPassword(email, password);
+            loginOk = true;
+          } catch (_) { /* try next */ }
+        }
+
+        // 2) Regular user collection
+        if (!loginOk) {
           try {
             await pb.collection('users').authWithPassword(email, password);
-          } catch {
+            loginOk = true;
+          } catch (_) { /* try next */ }
+        }
+
+        // 3) Legacy admin API (PocketBase < 0.21)
+        if (!loginOk) {
+          try {
             await pb.admins.authWithPassword(email, password);
-          }
+            loginOk = true;
+          } catch (_) { /* all failed */ }
+        }
+
+        if (loginOk) {
           showToast('✅ Đăng nhập thành công!');
-        } catch (err) {
-          showToast('❌ Đăng nhập thất bại: ' + err.message);
+        } else {
+          showToast('❌ Đăng nhập thất bại! Kiểm tra lại email/mật khẩu và URL PocketBase.');
+          checkAuthStatus();
+          return; // don't close modal so user can fix
         }
       }
 
