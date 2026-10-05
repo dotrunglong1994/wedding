@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <base href="/" />
   <title>Bảng Quản Trị – Quản Lý Thiệp Cưới Đa Trang</title>
   <link
     href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
@@ -338,6 +339,50 @@
       color: #fff;
     }
 
+    /* Author info for Admin */
+    .card-author-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      padding: 4px 10px;
+      background: rgba(139, 92, 246, 0.12);
+      border: 1px solid rgba(139, 92, 246, 0.25);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      width: fit-content;
+      max-width: 100%;
+    }
+
+    .author-icon {
+      font-size: 12px;
+    }
+
+    .author-label {
+      color: #94a3b8;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .author-name {
+      color: #c4b5fd;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .author-badge-admin {
+      font-size: 9.5px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: rgba(236, 72, 153, 0.2);
+      color: #f472b6;
+      border: 1px solid rgba(236, 72, 153, 0.35);
+    }
+
     .card-slug-row {
       display: flex;
       align-items: center;
@@ -482,7 +527,11 @@
         <span class="user-role-badge" id="userRoleBadge">Thành viên</span>
       </div>
 
-      <a href="admin_pocketbase.html?new=1" class="btn btn-primary">
+      <a href="/users" class="btn btn-secondary" id="btnManageUsers" style="display: none; border-color: rgba(139, 92, 246, 0.4); color: #c4b5fd;">
+        <span>👥 Quản Lý User</span>
+      </a>
+
+      <a href="/admin?new=1" class="btn btn-primary">
         <span>+ Tạo Thiệp Mới</span>
       </a>
 
@@ -502,6 +551,9 @@
 
       <div class="toolbar-controls">
         <input type="text" id="searchInput" class="search-input" placeholder="🔍 Tìm theo tên hoặc slug..." oninput="handleFilter()" />
+        <select id="ownerFilter" class="filter-select" onchange="handleFilter()" style="display: none;">
+          <option value="">Tất cả người tạo</option>
+        </select>
         <select id="templateFilter" class="filter-select" onchange="handleFilter()">
           <option value="">Tất cả mẫu giao diện</option>
           <option value="classic-red">Đỏ Truyền Thống</option>
@@ -524,7 +576,7 @@
       <div class="empty-icon">💌</div>
       <h3 class="empty-title">Bạn chưa có thiệp cưới nào</h3>
       <p class="empty-desc">Tạo thiệp cưới đầu tiên của bạn với tên cô dâu, chú rể, đường dẫn slug riêng và mẫu template tuỳ chọn!</p>
-      <a href="admin_pocketbase.html?new=1" class="btn btn-primary" style="padding: 12px 24px;">
+      <a href="/admin?new=1" class="btn btn-primary" style="padding: 12px 24px;">
         + Tạo Thiệp Đầu Tiên Ngay
       </a>
     </div>
@@ -539,11 +591,17 @@
 
     // Authentication Guard
     if (!pb.authStore.isValid || !pb.authStore.model) {
-      window.location.href = 'login.html';
+      window.location.href = '/login';
     }
 
     const currentUser = pb.authStore.model;
     const isSuperUser = pb.authStore.isSuperuser || currentUser?.collectionName === '_superusers' || currentUser?.role === 'admin';
+
+    // Nếu là thành viên thông thường chưa được duyệt -> đá ra login
+    if (!isSuperUser && !currentUser?.verified) {
+      pb.authStore.clear();
+      window.location.href = '/login';
+    }
 
     // Update Header Profile
     const displayName = currentUser.name || currentUser.email || 'Người dùng';
@@ -555,9 +613,98 @@
       badge.style.background = 'rgba(236, 72, 153, 0.2)';
       badge.style.color = '#f472b6';
       badge.style.borderColor = 'rgba(236, 72, 153, 0.3)';
+      
+      const btnUsers = document.getElementById('btnManageUsers');
+      if (btnUsers) btnUsers.style.display = 'inline-flex';
+
+      const sInput = document.getElementById('searchInput');
+      if (sInput) sInput.placeholder = "🔍 Tìm theo tên, slug, hoặc người tạo...";
     }
 
     let allRecords = [];
+    let userMap = {};
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[m]);
+    }
+
+    // Helper nạp thông tin người dùng cho Admin
+    async function loadUsersMap() {
+      if (!isSuperUser) return;
+      try {
+        const users = await pb.collection('users').getFullList();
+        users.forEach(u => {
+          userMap[u.id] = {
+            name: u.name || '',
+            email: u.email || '',
+            role: u.role || 'member'
+          };
+        });
+      } catch (e) {
+        console.warn('Chưa thể nạp danh sách users:', e);
+      }
+
+      try {
+        const supers = await pb.collection('_superusers').getFullList();
+        supers.forEach(s => {
+          userMap[s.id] = {
+            name: s.name || s.email.split('@')[0],
+            email: s.email || '',
+            role: 'admin'
+          };
+        });
+      } catch (_) {}
+    }
+
+    function getAuthorInfo(ownerId) {
+      if (!ownerId) {
+        return { display: 'Mẫu mặc định (Hệ thống)', email: '', role: 'system' };
+      }
+      if (userMap[ownerId]) {
+        const u = userMap[ownerId];
+        const display = u.name ? `${u.name} (${u.email})` : u.email;
+        return { display, email: u.email, role: u.role };
+      }
+      if (currentUser && currentUser.id === ownerId) {
+        const display = currentUser.name ? `${currentUser.name} (${currentUser.email})` : currentUser.email;
+        return { display, email: currentUser.email, role: currentUser.role || 'me' };
+      }
+      return { display: `ID: ${ownerId}`, email: '', role: 'unknown' };
+    }
+
+    function populateOwnerFilter(records) {
+      const select = document.getElementById('ownerFilter');
+      if (!isSuperUser || !select) return;
+
+      const currentVal = select.value;
+      const ownersSet = new Set();
+      let hasSystem = false;
+
+      records.forEach(r => {
+        if (r.owner) {
+          ownersSet.add(r.owner);
+        } else {
+          hasSystem = true;
+        }
+      });
+
+      let html = '<option value="">👥 Tất cả người tạo</option>';
+      if (hasSystem) {
+        html += '<option value="__system__">⚙️ Mẫu mặc định / Hệ thống</option>';
+      }
+
+      Array.from(ownersSet).forEach(ownerId => {
+        const info = getAuthorInfo(ownerId);
+        html += `<option value="${escapeHtml(ownerId)}">👤 ${escapeHtml(info.display)}</option>`;
+      });
+
+      select.innerHTML = html;
+      select.value = currentVal;
+      select.style.display = 'inline-block';
+    }
 
     // Template Mapping Helper
     const TEMPLATE_NAMES = {
@@ -581,6 +728,11 @@
       empty.style.display = 'none';
 
       try {
+        // Nạp danh sách người dùng song song nếu là Admin
+        if (isSuperUser) {
+          await loadUsersMap();
+        }
+
         let filterQuery = '';
         // If not superuser/admin, only show weddings owned by this user (or unowned demo records)
         if (!isSuperUser) {
@@ -593,10 +745,13 @@
         });
 
         allRecords = res.items || [];
+        if (isSuperUser) {
+          populateOwnerFilter(allRecords);
+        }
         renderWeddings(allRecords);
       } catch (err) {
         console.error('Lỗi tải danh sách thiệp:', err);
-        loader.innerHTML = `⚠️ Lỗi tải dữ liệu: ${err.message}. <br/><a href="login.html" style="color:var(--accent);">Thử đăng nhập lại</a>`;
+        loader.innerHTML = `⚠️ Lỗi tải dữ liệu: ${err.message}. <br/><a href="/login" style="color:var(--accent);">Thử đăng nhập lại</a>`;
       }
     }
 
@@ -616,7 +771,7 @@
       empty.style.display = 'none';
       grid.style.display = 'grid';
 
-      const origin = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
+      const origin = window.location.origin;
 
       grid.innerHTML = records.map(rec => {
         const groom = rec.groomName || 'Chú Rể';
@@ -628,24 +783,34 @@
           : 'Chưa đặt ngày';
 
         // Hero image or fallback
-        let heroUrl = 'images/wedding_couple_hero.jpg';
+        let heroUrl = '/images/wedding_couple_hero.jpg';
         if (rec.hero) {
           heroUrl = pb.files.getUrl(rec, rec.hero, { thumb: '400x300' });
         }
 
-        const publicLink = `${origin}index.html?slug=${encodeURIComponent(slug)}`;
-        const shortLink = `index.html?slug=${slug}`;
+        const publicLink = `${origin}/thiep/${encodeURIComponent(slug)}`;
+        const shortLink = `/thiep/${slug}`;
+        const author = isSuperUser ? getAuthorInfo(rec.owner) : null;
 
         return `
           <div class="wedding-card">
             <div class="card-banner">
-              <img src="${heroUrl}" alt="${groom} & ${bride}" onerror="this.src='images/wedding_couple_hero.jpg'"/>
+              <img src="${heroUrl}" alt="${groom} & ${bride}" onerror="this.src='/images/wedding_couple_hero.jpg'"/>
               <div class="card-template-tag ${tmpl.tagClass}">${tmpl.label}</div>
               <div class="card-date-badge">🗓️ ${dateStr}</div>
             </div>
 
             <div class="card-body">
               <h3 class="card-names">${groom} &amp; ${bride}</h3>
+
+              ${isSuperUser && author ? `
+                <div class="card-author-row" title="Tài khoản tạo: ${escapeHtml(author.email || author.display)}">
+                  <span class="author-icon">👤</span>
+                  <span class="author-label">Người tạo:</span>
+                  <span class="author-name">${escapeHtml(author.display)}</span>
+                  ${author.role === 'admin' ? '<span class="author-badge-admin">Admin</span>' : ''}
+                </div>
+              ` : ''}
 
               <div class="card-slug-row">
                 <span class="slug-text" title="${publicLink}">🔗 ${shortLink}</span>
@@ -663,7 +828,7 @@
                 <a href="${publicLink}" target="_blank" class="btn btn-secondary" title="Mở trang thiệp khách xem">
                   👁️ Xem thiệp
                 </a>
-                <a href="admin_pocketbase.html?id=${rec.id}" class="btn btn-primary" title="Chỉnh sửa nội dung thiệp">
+                <a href="/admin?id=${rec.id}" class="btn btn-primary" title="Chỉnh sửa nội dung thiệp">
                   ✏️ Sửa thiệp
                 </a>
                 <button type="button" class="btn btn-danger-outline" onclick="deleteWedding('${rec.id}', '${groom}', '${bride}')" title="Xóa thiệp này">
@@ -679,14 +844,32 @@
     function handleFilter() {
       const q = document.getElementById('searchInput').value.trim().toLowerCase();
       const tmpl = document.getElementById('templateFilter').value;
+      const ownerVal = document.getElementById('ownerFilter')?.value || '';
 
       const filtered = allRecords.filter(r => {
         const groom = (r.groomName || '').toLowerCase();
         const bride = (r.brideName || '').toLowerCase();
         const slug = (r.slug || '').toLowerCase();
-        const matchQ = !q || groom.includes(q) || bride.includes(q) || slug.includes(q);
+        
+        let authorText = '';
+        if (isSuperUser && r.owner) {
+          const auth = getAuthorInfo(r.owner);
+          authorText = `${auth.display} ${auth.email}`.toLowerCase();
+        }
+
+        const matchQ = !q || groom.includes(q) || bride.includes(q) || slug.includes(q) || authorText.includes(q);
         const matchTmpl = !tmpl || (r.template || 'classic-red') === tmpl;
-        return matchQ && matchTmpl;
+        
+        let matchOwner = true;
+        if (isSuperUser && ownerVal) {
+          if (ownerVal === '__system__') {
+            matchOwner = !r.owner;
+          } else {
+            matchOwner = r.owner === ownerVal;
+          }
+        }
+
+        return matchQ && matchTmpl && matchOwner;
       });
 
       renderWeddings(filtered);
@@ -721,7 +904,7 @@
       pb.authStore.clear();
       showToast('Đã đăng xuất.');
       setTimeout(() => {
-        window.location.href = 'login.html';
+        window.location.href = '/login';
       }, 500);
     }
 

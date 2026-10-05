@@ -4,7 +4,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <base href="/" />
   <title>Admin PocketBase – Quản Trị Thiệp Cưới</title>
+  <script>
+    // Kiểm tra đăng nhập tức thì trước khi hiển thị bất kỳ giao diện nào
+    (function () {
+      try {
+        const raw = localStorage.getItem('pocketbase_auth');
+        if (!raw) {
+          window.location.replace('/login');
+          return;
+        }
+        const auth = JSON.parse(raw);
+        if (!auth || !auth.token || !auth.model) {
+          window.location.replace('/login');
+        }
+      } catch (_) {
+        window.location.replace('/login');
+      }
+    })();
+  </script>
+  <style>
+    /* Ẩn giao diện ban đầu cho đến khi xác thực thành công */
+    body {
+      display: none;
+    }
+  </style>
   <link
     href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@600&display=swap"
     rel="stylesheet" />
@@ -651,25 +676,9 @@
     <!-- POCKETBASE CONTROLS -->
     <div class="pb-control-bar">
       <!-- Back to Dashboard -->
-      <a href="dashboard.html" class="btn-action" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;" title="Về bảng quản lý danh sách thiệp">
+      <a href="/dashboard" class="btn-action" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;" title="Về bảng quản lý danh sách thiệp">
         📋 <span>Danh Sách Thiệp</span>
       </a>
-
-      <!-- Status Pill -->
-      <div class="pb-status-pill" id="pbStatusPill" title="PocketBase Status">
-        <span class="status-dot connecting" id="statusDot"></span>
-        <span id="statusText">Đang kết nối...</span>
-      </div>
-
-      <!-- Config PB URL & Login -->
-      <button class="btn-action" onclick="openPbModal()" title="Cài đặt kết nối PocketBase">
-        ⚙️ <span id="authBtnLabel">Cấu hình PB</span>
-      </button>
-
-      <!-- Refresh from PB -->
-      <button class="btn-action" onclick="loadFromPocketBase()" title="Tải dữ liệu mới nhất từ server">
-        🔄 Đồng bộ
-      </button>
 
       <!-- View Public Link -->
       <button class="btn-action" onclick="openPublicPage()" title="Xem trực tiếp trang thiệp của khách">
@@ -685,6 +694,11 @@
       <!-- Export Static HTML (Fallback) -->
       <button class="btn-generate" onclick="generateWedding()" title="Tải file HTML thiệp cưới offline">
         ⬇️ Xuất HTML
+      </button>
+
+      <!-- Logout -->
+      <button class="btn-action" onclick="logoutPocketBase()" title="Đăng xuất khỏi hệ thống">
+        🚪 Đăng Xuất
       </button>
     </div>
   </header>
@@ -705,10 +719,10 @@
             <div class="field-group" style="flex: 2;">
               <label class="field-label">Đường Dẫn Riêng (Slug URL) <span class="required">*</span></label>
               <div style="display: flex; gap: 8px;">
-                <input class="field-input" id="weddingSlug" type="text" placeholder="vi-du: quang-va-an" oninput="updateSlugPreview()" style="font-family: monospace;" />
+                <input class="field-input" id="weddingSlug" type="text" placeholder="vi-du: quang-va-an" oninput="handleSlugInput()" style="font-family: monospace;" />
                 <button type="button" class="btn-action" onclick="autoGenerateSlug()" title="Tạo slug từ tên dâu rể" style="white-space: nowrap; padding: 0 12px;">⚡ Tự tạo</button>
               </div>
-              <div class="help-text" id="slugPreviewText" style="color: #a78bfa; margin-top: 6px; font-family: monospace;">🔗 Link: index.html?slug=...</div>
+              <div class="help-text" id="slugPreviewText" style="color: #a78bfa; margin-top: 6px; font-family: monospace;">🔗 Link: /thiep/...</div>
             </div>
             <div class="field-group" style="flex: 1.5;">
               <label class="field-label">Mẫu Giao Diện (Template)</label>
@@ -719,6 +733,9 @@
                 <option value="luxury-gold">✨ Hoàng Gia Gold (Royal Gold)</option>
               </select>
             </div>
+          </div>
+          <div id="adminOwnerRow" style="display: none; margin-top: 12px; padding: 10px 14px; background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.25); border-radius: 8px; font-size: 12.5px;">
+            👤 <span style="color: #94a3b8;">Người tạo thiệp:</span> <span id="adminOwnerText" style="color: #c4b5fd; font-weight: 600;">---</span>
           </div>
         </div>
       </div>
@@ -1248,12 +1265,12 @@
     let currentRecordId = null;
 
     const DEFAULT_IMAGES = {
-      hero: 'images/wedding_couple_hero.jpg',
-      quote: 'images/wedding_couple_2.jpg',
-      album0: 'images/wedding_couple_hero.jpg',
-      album1: 'images/wedding_couple_2.jpg',
-      album2: 'images/wedding_couple_3.jpg',
-      album3: 'images/wedding_couple_4.jpg',
+      hero: '/images/wedding_couple_hero.jpg',
+      quote: '/images/wedding_couple_2.jpg',
+      album0: '/images/wedding_couple_hero.jpg',
+      album1: '/images/wedding_couple_2.jpg',
+      album2: '/images/wedding_couple_3.jpg',
+      album3: '/images/wedding_couple_4.jpg',
       qrGroom: null,
       qrBride: null
     };
@@ -1272,9 +1289,24 @@
     // INITIALIZATION & CONNECTION TEST
     // ============================================================
     window.addEventListener('DOMContentLoaded', async () => {
-      document.getElementById('pbUrlInput').value = DEFAULT_PB_URL;
+      // 1. Kiểm tra xác thực - bắt buộc đăng nhập và đã được duyệt trước khi hiển thị
+      if (!pb.authStore.isValid || !pb.authStore.model) {
+        window.location.replace('/login');
+        return;
+      }
+      const u = pb.authStore.model;
+      const isPrivileged = pb.authStore.isSuperuser || u?.collectionName === '_superusers' || u?.role === 'admin';
+      if (!isPrivileged && !u?.verified) {
+        pb.authStore.clear();
+        window.location.replace('/login');
+        return;
+      }
+      document.body.style.display = 'block';
+
+      if (document.getElementById('pbUrlInput')) {
+        document.getElementById('pbUrlInput').value = DEFAULT_PB_URL;
+      }
       initDefaultImageZones();
-      checkAuthStatus();
       await initPocketBase();
       setTimeout(liveUpdate, 300);
     });
@@ -1302,33 +1334,18 @@
     }
 
     async function initPocketBase() {
-      updateStatusBadge('connecting', 'Đang kết nối...');
       try {
-        const health = await pb.health.check();
-        if (health && health.code === 200) {
-          updateStatusBadge('online', 'Đã kết nối PocketBase');
-          await loadFromPocketBase();
-        } else {
-          updateStatusBadge('offline', 'Không thể kết nối');
-        }
+        await loadFromPocketBase();
       } catch (err) {
-        console.warn('PocketBase connect warning:', err);
-        const msg = err.message || '';
-        // Distinguish CORS/network error from server not running
-        if (!err.status && (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('CORS') || err.name === 'TypeError')) {
-          updateStatusBadge('offline', 'Lỗi CORS hoặc URL sai – bấm ⚙️');
-          showToast('⚠️ Không kết nối được! Kiểm tra URL PocketBase và CORS setting. Bấm ⚙️ để cấu hình lại.');
-        } else {
-          updateStatusBadge('offline', 'Chưa bật PocketBase');
-        }
+        console.warn('PocketBase load warning:', err);
       }
     }
 
     function updateStatusBadge(status, text) {
       const dot = document.getElementById('statusDot');
       const label = document.getElementById('statusText');
-      dot.className = 'status-dot ' + status;
-      label.textContent = text;
+      if (dot) dot.className = 'status-dot ' + status;
+      if (label) label.textContent = text;
     }
 
     function checkAuthStatus() {
@@ -1338,13 +1355,13 @@
 
       if (pb.authStore.isValid) {
         const email = pb.authStore.model ? pb.authStore.model.email : 'Admin';
-        authLabel.textContent = '👤 ' + email;
-        authStatus.textContent = '✅ Đã đăng nhập: ' + email;
-        btnLogout.style.display = 'block';
+        if (authLabel) authLabel.textContent = '👤 ' + email;
+        if (authStatus) authStatus.textContent = '✅ Đã đăng nhập: ' + email;
+        if (btnLogout) btnLogout.style.display = 'block';
       } else {
-        authLabel.textContent = 'Cấu hình PB';
-        authStatus.textContent = 'Chưa đăng nhập. Nếu collection đặt public thì vẫn lưu bình thường.';
-        btnLogout.style.display = 'none';
+        if (authLabel) authLabel.textContent = 'Cấu hình PB';
+        if (authStatus) authStatus.textContent = 'Chưa đăng nhập.';
+        if (btnLogout) btnLogout.style.display = 'none';
       }
     }
 
@@ -1369,32 +1386,125 @@
       return str;
     }
 
-    function autoGenerateSlug() {
-      const groom = document.getElementById('groomName') ? document.getElementById('groomName').value.trim() : '';
-      const bride = document.getElementById('brideName') ? document.getElementById('brideName').value.trim() : '';
-      const combined = `${groom} ${bride}`.trim() || 'thiep-cuoi';
-      const clean = removeVietnameseTones(combined)
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-      const slugInput = document.getElementById('weddingSlug');
-      if (slugInput) {
-        slugInput.value = clean || 'thiep-cuoi';
-        updateSlugPreview();
+    const RESERVED_SLUGS = ['login', 'dashboard', 'admin', 'index', 'images', 'api', 'nhac.mp3', 'thiep', 't', 'favicon.ico'];
+
+    async function isSlugTaken(slug, excludeId) {
+      if (!slug) return false;
+      if (RESERVED_SLUGS.includes(slug.toLowerCase())) return true;
+      try {
+        let filter = `slug = "${slug}"`;
+        if (excludeId) {
+          filter += ` && id != "${excludeId}"`;
+        }
+        const records = await pb.collection(COLLECTION_NAME).getList(1, 1, { filter: filter });
+        return records.items && records.items.length > 0;
+      } catch (err) {
+        console.warn('Lỗi kiểm tra trùng slug:', err);
+        return false;
       }
+    }
+
+    // Xử lý khi gõ slug: HOÀN TOÀN XỬ LÝ NỘI BỘ TRÌNH DUYỆT, KHÔNG GỬI REQUEST
+    function handleSlugInput() {
+      const input = document.getElementById('weddingSlug');
+      if (!input) return;
+
+      let val = removeVietnameseTones(input.value)
+        .toLowerCase()
+        .replace(/[^a-z0-9-]+/g, '-')
+        .replace(/--+/g, '-');
+      input.value = val;
+      input.style.borderColor = ''; // xoá viền cảnh báo khi đang gõ
+
+      updateSlugPreview();
     }
 
     function updateSlugPreview() {
       const slug = (document.getElementById('weddingSlug')?.value || '').trim() || 'thiep-cuoi';
       const el = document.getElementById('slugPreviewText');
       if (el) {
-        el.textContent = `🔗 Link xem: index.html?slug=${slug}`;
+        el.style.color = '#a78bfa';
+        el.textContent = `🔗 Link xem: /thiep/${slug}`;
+      }
+    }
+
+    // Nút "Tự tạo": sinh slug từ tên dâu rể nội bộ (không gửi request)
+    function autoGenerateSlug() {
+      const groom = document.getElementById('groomName') ? document.getElementById('groomName').value.trim() : '';
+      const bride = document.getElementById('brideName') ? document.getElementById('brideName').value.trim() : '';
+      const combined = `${groom} ${bride}`.trim() || 'thiep-cuoi';
+      let clean = removeVietnameseTones(combined)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || 'thiep-cuoi';
+
+      const slugInput = document.getElementById('weddingSlug');
+      if (slugInput) {
+        slugInput.value = clean;
+        slugInput.style.borderColor = '';
+        updateSlugPreview();
+      }
+    }
+
+    // CHỈ KIỂM TRA TRÙNG LẶP KHI BẤM NÚT "LƯU THAY ĐỔI" (1 request duy nhất)
+    async function checkSlugUniquenessBeforeSave() {
+      const input = document.getElementById('weddingSlug');
+      const preview = document.getElementById('slugPreviewText');
+      if (!input) return false;
+
+      const slug = input.value.trim().replace(/^-+|-+$/g, '');
+      input.value = slug;
+
+      if (!slug) {
+        input.style.borderColor = '#ef4444';
+        if (preview) {
+          preview.style.color = '#ef4444';
+          preview.textContent = '⚠️ Đường dẫn (Slug) không được để trống!';
+        }
+        showToast('⚠️ Vui lòng nhập đường dẫn (Slug)!');
+        input.focus();
+        return false;
+      }
+
+      if (RESERVED_SLUGS.includes(slug.toLowerCase())) {
+        input.style.borderColor = '#ef4444';
+        if (preview) {
+          preview.style.color = '#ef4444';
+          preview.textContent = `❌ Đường dẫn "${slug}" trùng với trang hệ thống!`;
+        }
+        showToast(`❌ Đường dẫn "${slug}" trùng với trang hệ thống! Vui lòng chọn slug khác.`);
+        input.focus();
+        return false;
+      }
+
+      // Gửi 1 request duy nhất tới PocketBase để kiểm tra
+      const taken = await isSlugTaken(slug, currentRecordId);
+      if (taken) {
+        input.style.borderColor = '#ef4444';
+        if (preview) {
+          preview.style.color = '#ef4444';
+          preview.textContent = `❌ Đường dẫn "/thiep/${slug}" ĐÃ TỒN TẠI! Vui lòng đổi slug khác.`;
+        }
+        showToast(`❌ Đường dẫn "/thiep/${slug}" đã có người sử dụng! Vui lòng đổi slug khác.`);
+        input.focus();
+        return false;
+      }
+
+      input.style.borderColor = '#10b981';
+      return true;
+    }
+
+    function updateSlugPreview() {
+      const slug = (document.getElementById('weddingSlug')?.value || '').trim() || 'thiep-cuoi';
+      const el = document.getElementById('slugPreviewText');
+      if (el) {
+        el.textContent = `🔗 Link xem: /thiep/${slug}`;
       }
     }
 
     function openPublicPage() {
       const slug = (document.getElementById('weddingSlug')?.value || '').trim();
-      const target = slug ? `index.html?slug=${encodeURIComponent(slug)}` : (currentRecordId ? `index.html?id=${currentRecordId}` : 'index.html');
+      const target = slug ? `/thiep/${encodeURIComponent(slug)}` : (currentRecordId ? `/thiep/${currentRecordId}` : '/');
       window.open(target, '_blank');
     }
 
@@ -1468,6 +1578,38 @@
       setVal('weddingSlug', rec.slug);
       setVal('weddingTemplate', rec.template || 'classic-red');
       updateSlugPreview();
+
+      // Hiển thị người tạo thiệp nếu là Admin
+      const isSuper = pb.authStore.isSuperuser || pb.authStore.model?.collectionName === '_superusers' || pb.authStore.model?.role === 'admin';
+      const ownerRow = document.getElementById('adminOwnerRow');
+      const ownerText = document.getElementById('adminOwnerText');
+      if (ownerRow && ownerText) {
+        if (isSuper && rec.owner) {
+          ownerRow.style.display = 'block';
+          ownerText.textContent = `Đang tra cứu ID: ${rec.owner}...`;
+          (async () => {
+            try {
+              let u = await pb.collection('users').getOne(rec.owner).catch(() => null);
+              if (!u) {
+                u = await pb.collection('_superusers').getOne(rec.owner).catch(() => null);
+              }
+              if (u) {
+                const nameDisplay = u.name ? `${u.name} (${u.email})` : u.email;
+                ownerText.textContent = `${nameDisplay} [${u.role || 'Admin'}]`;
+              } else {
+                ownerText.textContent = `ID: ${rec.owner}`;
+              }
+            } catch (_) {
+              ownerText.textContent = `ID: ${rec.owner}`;
+            }
+          })();
+        } else if (isSuper && !rec.owner) {
+          ownerRow.style.display = 'block';
+          ownerText.textContent = 'Mẫu mặc định hệ thống (Chưa gán chủ sở hữu)';
+        } else {
+          ownerRow.style.display = 'none';
+        }
+      }
 
       // Populate text fields
       setVal('groomName', rec.groomName);
@@ -1553,14 +1695,22 @@
       const btn = document.getElementById('btnSavePb');
       btn.disabled = true;
       btn.classList.add('loading');
-      showToast('⏳ Đang lưu dữ liệu & upload ảnh...');
-
       try {
         const c = getConfig();
         if (!c.slug) {
           autoGenerateSlug();
           c.slug = document.getElementById('weddingSlug').value.trim();
         }
+
+        // CHỈ KIỂM TRA TRÙNG LẶP KHI BẤM LƯU (1 request duy nhất)
+        const isUnique = await checkSlugUniquenessBeforeSave();
+        if (!isUnique) {
+          btn.disabled = false;
+          btn.classList.remove('loading');
+          return;
+        }
+
+        showToast('⏳ Đang lưu dữ liệu & upload ảnh...');
 
         const formData = new FormData();
 
@@ -1600,20 +1750,20 @@
         // Update image URLs from newly saved record
         populateFormWithRecord(savedRecord);
         showToast('✅ Đã lưu lên PocketBase thành công!');
-        updateStatusBadge('online', 'Đã đồng bộ');
       } catch (err) {
         console.error('Save to PocketBase failed:', err);
         let msg = err.message || 'Lỗi không xác định';
-        if (err.status === 401) {
-          msg = 'Chưa đăng nhập! Bấm ⚙️ hoặc đăng nhập tài khoản trước khi lưu.';
+        if (err.data?.data?.slug || (err.message && err.message.toLowerCase().includes('unique'))) {
+          msg = 'Đường dẫn (Slug) này đã tồn tại trong hệ thống! Vui lòng chọn tên khác.';
+          validateSlugAsync();
+        } else if (err.status === 401) {
+          msg = 'Chưa đăng nhập! Hãy đăng nhập tài khoản trước khi lưu.';
         } else if (err.status === 403) {
           msg = 'Không có quyền cập nhật bản ghi này!';
         } else if (err.status === 400) {
-          msg = 'Lỗi dữ liệu (400)! Kiểm tra lại thông tin hoặc API Rules của collection.';
+          msg = 'Lỗi dữ liệu (400)! ' + (err.data?.message || err.message);
         } else if (err.status === 404) {
           msg = 'Chưa tìm thấy Collection "wedding_content". Hãy import file pb_schema.json!';
-        } else if (!err.status && err.name === 'TypeError') {
-          msg = 'Lỗi mạng / CORS khi ghi dữ liệu. Kiểm tra CORS setting trong PocketBase.';
         }
         showToast('❌ ' + msg);
       } finally {
@@ -1729,8 +1879,10 @@
 
     function logoutPocketBase() {
       pb.authStore.clear();
-      checkAuthStatus();
-      showToast('Đã đăng xuất khỏi PocketBase.');
+      showToast('Đã đăng xuất.');
+      setTimeout(() => {
+        window.location.replace('/login');
+      }, 300);
     }
 
     // ============================================================

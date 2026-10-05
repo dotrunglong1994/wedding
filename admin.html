@@ -4,10 +4,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin – Tạo Thiệp Cưới</title>
+  <base href="/" />
+  <title>Admin PocketBase – Quản Trị Thiệp Cưới</title>
+  <script>
+    // Kiểm tra đăng nhập tức thì trước khi hiển thị bất kỳ giao diện nào
+    (function () {
+      try {
+        const raw = localStorage.getItem('pocketbase_auth');
+        if (!raw) {
+          window.location.replace('/login');
+          return;
+        }
+        const auth = JSON.parse(raw);
+        if (!auth || !auth.token || !auth.model) {
+          window.location.replace('/login');
+        }
+      } catch (_) {
+        window.location.replace('/login');
+      }
+    })();
+  </script>
+  <style>
+    /* Ẩn giao diện ban đầu cho đến khi xác thực thành công */
+    body {
+      display: none;
+    }
+  </style>
   <link
     href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@600&display=swap"
     rel="stylesheet" />
+  <!-- PocketBase JavaScript SDK -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pocketbase/0.21.5/pocketbase.umd.js"></script>
+
   <style>
     *,
     *::before,
@@ -29,6 +57,7 @@
       --text-muted: #8891b4;
       --success: #00e5a0;
       --danger: #ff5252;
+      --warning: #ffb703;
       --radius: 12px;
     }
 
@@ -47,7 +76,7 @@
     .admin-header {
       background: linear-gradient(135deg, #1a0533 0%, #0d1b4b 50%, #0f1117 100%);
       border-bottom: 1px solid var(--border);
-      padding: 20px 32px;
+      padding: 14px 28px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -55,6 +84,8 @@
       top: 0;
       z-index: 100;
       backdrop-filter: blur(10px);
+      gap: 16px;
+      flex-wrap: wrap;
     }
 
     .header-brand {
@@ -64,61 +95,156 @@
     }
 
     .header-brand .logo-icon {
-      width: 38px;
-      height: 38px;
+      width: 40px;
+      height: 40px;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
       border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 20px;
     }
 
     .header-brand h1 {
       font-family: 'Playfair Display', serif;
-      font-size: 20px;
+      font-size: 19px;
       color: var(--text);
     }
 
     .header-brand p {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-muted);
       margin-top: 2px;
     }
 
-    .btn-generate {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
+    /* PB BAR */
+    .pb-control-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pb-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 6px 12px;
+      color: var(--text-muted);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #777;
+    }
+
+    .status-dot.online {
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    .status-dot.offline {
+      background: var(--danger);
+      box-shadow: 0 0 8px var(--danger);
+    }
+
+    .status-dot.connecting {
+      background: var(--warning);
+      animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { opacity: 0.4; }
+      to { opacity: 1; }
+    }
+
+    .btn-action {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 9px 16px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.25s;
+      font-family: 'Be Vietnam Pro', sans-serif;
+    }
+
+    .btn-action:hover {
+      background: #2a304b;
+      border-color: var(--accent);
+    }
+
+    .btn-save-pb {
+      background: linear-gradient(135deg, #00b09b, #96c93d);
       color: #fff;
       border: none;
-      padding: 12px 28px;
+      padding: 9px 20px;
       border-radius: 50px;
-      font-size: 14px;
-      font-weight: 600;
+      font-size: 13.5px;
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 8px;
       transition: all 0.3s;
       font-family: 'Be Vietnam Pro', sans-serif;
-      box-shadow: 0 4px 20px rgba(124, 77, 255, 0.4);
+      box-shadow: 0 4px 15px rgba(0, 176, 155, 0.35);
+    }
+
+    .btn-save-pb:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 176, 155, 0.5);
+    }
+
+    .btn-save-pb:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-generate {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s;
+      font-family: 'Be Vietnam Pro', sans-serif;
     }
 
     .btn-generate:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(124, 77, 255, 0.5);
+      transform: translateY(-1px);
     }
 
     /* LAYOUT */
     .admin-layout {
       display: grid;
-      grid-template-columns: 1fr 380px;
+      grid-template-columns: 1fr 390px;
       gap: 0;
-      height: calc(100vh - 80px);
+      height: calc(100vh - 72px);
       overflow: hidden;
     }
 
     .form-area {
-      padding: 32px;
+      padding: 28px 32px 60px;
       overflow-y: auto;
       height: 100%;
     }
@@ -128,12 +254,12 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      margin-bottom: 24px;
+      margin-bottom: 22px;
       overflow: hidden;
     }
 
     .section-group-header {
-      padding: 16px 20px;
+      padding: 15px 20px;
       background: var(--surface2);
       border-bottom: 1px solid var(--border);
       display: flex;
@@ -243,11 +369,16 @@
     .img-upload-zone {
       border: 2px dashed var(--border);
       border-radius: var(--radius);
-      padding: 20px;
+      padding: 16px;
       text-align: center;
       cursor: pointer;
       transition: all 0.25s;
       position: relative;
+      background: rgba(255, 255, 255, 0.02);
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       overflow: hidden;
     }
 
@@ -257,7 +388,8 @@
     }
 
     .img-upload-zone.has-image {
-      border-color: var(--success);
+      border-style: solid;
+      border-color: var(--border);
       padding: 0;
     }
 
@@ -266,80 +398,70 @@
       inset: 0;
       opacity: 0;
       cursor: pointer;
-    }
-
-    .img-upload-zone img {
-      width: 100%;
-      height: 150px;
-      object-fit: cover;
-      border-radius: 10px;
-      display: block;
+      z-index: 2;
     }
 
     .img-upload-placeholder {
       pointer-events: none;
     }
 
-    .img-upload-placeholder .upload-icon {
-      font-size: 28px;
-      margin-bottom: 8px;
+    .img-upload-zone.has-image .img-upload-placeholder {
+      display: none;
     }
 
-    .img-upload-placeholder p {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 4px;
+    .img-upload-zone img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+      border-radius: calc(var(--radius) - 2px);
+      max-height: 220px;
     }
 
-    .img-upload-placeholder strong {
-      color: var(--accent);
+    .img-upload-zone.has-image img {
+      display: block;
     }
 
     .img-remove-btn {
       position: absolute;
-      top: 6px;
-      right: 6px;
-      background: rgba(255, 82, 82, 0.9);
-      color: white;
+      top: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
       border: none;
+      width: 26px;
+      height: 26px;
       border-radius: 50%;
-      width: 24px;
-      height: 24px;
       cursor: pointer;
-      font-size: 12px;
       display: none;
       align-items: center;
       justify-content: center;
+      font-size: 13px;
       z-index: 5;
     }
 
-    .has-image .img-remove-btn {
+    .img-upload-zone.has-image .img-remove-btn {
       display: flex;
-    }
-
-    .has-image .img-upload-placeholder {
-      display: none;
     }
 
     .album-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
+      gap: 12px;
     }
 
     .album-item .img-upload-zone {
       aspect-ratio: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      min-height: unset;
+      padding: 8px;
     }
 
-    .album-item .img-upload-zone img {
+    .album-item img {
       height: 100%;
-      width: 100%;
+      max-height: unset;
     }
 
-    /* PREVIEW */
+    /* PREVIEW PANEL */
     .preview-panel {
       background: var(--surface);
       border-left: 1px solid var(--border);
@@ -359,11 +481,6 @@
       flex-shrink: 0;
     }
 
-    .preview-header span {
-      font-size: 13px;
-      font-weight: 600;
-    }
-
     .preview-badge {
       font-size: 10px;
       background: rgba(0, 229, 160, 0.15);
@@ -371,28 +488,28 @@
       padding: 3px 8px;
       border-radius: 20px;
       border: 1px solid rgba(0, 229, 160, 0.3);
+      font-weight: 700;
     }
 
     .preview-frame-wrap {
       flex: 1;
       overflow: hidden;
-      position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 16px;
       background: #0a0c12;
       min-height: 0;
     }
 
     .phone-mockup {
-      width: 260px;
-      height: 540px;
+      width: 270px;
+      height: 560px;
       border: 8px solid #2a2d3e;
       border-radius: 36px;
       overflow: hidden;
       position: relative;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
       flex-shrink: 0;
     }
 
@@ -411,45 +528,32 @@
 
     #previewFrame {
       width: 430px;
-      height: 860px;
+      height: 890px;
       border: none;
-      transform: scale(0.604);
+      transform: scale(0.627);
       transform-origin: top left;
       background: white;
-    }
-
-    /* PROGRESS */
-    .progress-bar {
-      height: 3px;
-      background: var(--border);
-      border-radius: 2px;
-      margin-bottom: 20px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      transition: width 0.5s ease;
-      border-radius: 2px;
     }
 
     /* TOAST */
     .toast {
       position: fixed;
-      bottom: 30px;
+      bottom: 24px;
       left: 50%;
       transform: translateX(-50%) translateY(80px);
       background: var(--surface2);
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 14px 24px;
+      padding: 12px 24px;
       border-radius: 50px;
-      font-size: 14px;
+      font-size: 13.5px;
       z-index: 9999;
       transition: transform 0.4s cubic-bezier(.34, 1.56, .64, 1), opacity 0.4s;
       opacity: 0;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .toast.show {
@@ -457,7 +561,49 @@
       opacity: 1;
     }
 
-    /* MISC */
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 18px;
+    }
+
     .field-divider {
       height: 1px;
       background: var(--border);
@@ -480,44 +626,36 @@
       margin-top: 4px;
     }
 
-    ::-webkit-scrollbar {
-      width: 6px;
+    /* SPINNER */
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: none;
     }
 
-    ::-webkit-scrollbar-track {
-      background: var(--bg);
+    .btn-save-pb.loading .spinner {
+      display: inline-block;
     }
 
-    ::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 3px;
+    .btn-save-pb.loading .btn-text {
+      display: none;
     }
 
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--accent);
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
-    @media (max-width: 900px) {
+    @media (max-width: 960px) {
       .admin-layout {
         grid-template-columns: 1fr;
+        height: auto;
       }
-
       .preview-panel {
         display: none;
-      }
-    }
-
-    @media (max-width: 600px) {
-      .field-row {
-        grid-template-columns: 1fr;
-      }
-
-      .admin-header {
-        padding: 14px 16px;
-      }
-
-      .form-area {
-        padding: 16px;
       }
     }
   </style>
@@ -525,25 +663,81 @@
 
 <body>
 
+  <!-- HEADER -->
   <header class="admin-header">
     <div class="header-brand">
       <div class="logo-icon">&#x1F492;</div>
       <div>
-        <h1>Wedding Builder</h1>
-        <p>Tạo thiệp cưới đẹp, không cần code</p>
+        <h1>Wedding Admin</h1>
+        <p>Quản trị Backend PocketBase &amp; Real-time Preview</p>
       </div>
     </div>
-    <div style="display: flex; gap: 10px; align-items: center;">
-      <a href="dashboard.html" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border); color: #fff; padding: 9px 16px; border-radius: 50px; text-decoration: none; font-size: 13px; font-weight: 600;">📋 Quản Trị Đa Trang (PocketBase)</a>
-      <button class="btn-generate" onclick="generateWedding()">&#x2B07;&#xFE0F; Tạo &amp; Tải Thiệp</button>
+
+    <!-- POCKETBASE CONTROLS -->
+    <div class="pb-control-bar">
+      <!-- Back to Dashboard -->
+      <a href="/dashboard" class="btn-action" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;" title="Về bảng quản lý danh sách thiệp">
+        📋 <span>Danh Sách Thiệp</span>
+      </a>
+
+      <!-- View Public Link -->
+      <button class="btn-action" onclick="openPublicPage()" title="Xem trực tiếp trang thiệp của khách">
+        🔗 Xem Thiệp
+      </button>
+
+      <!-- Save to PocketBase -->
+      <button class="btn-save-pb" id="btnSavePb" onclick="saveToPocketBase()">
+        <span class="spinner"></span>
+        <span class="btn-text">💾 Lưu Thay Đổi</span>
+      </button>
+
+      <!-- Export Static HTML (Fallback) -->
+      <button class="btn-generate" onclick="generateWedding()" title="Tải file HTML thiệp cưới offline">
+        ⬇️ Xuất HTML
+      </button>
+
+      <!-- Logout -->
+      <button class="btn-action" onclick="logoutPocketBase()" title="Đăng xuất khỏi hệ thống">
+        🚪 Đăng Xuất
+      </button>
     </div>
   </header>
 
+  <!-- MAIN LAYOUT -->
   <div class="admin-layout">
     <div class="form-area" id="formArea">
 
-      <div class="progress-bar">
-        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      <!-- 0. CẤU HÌNH TRANG: SLUG & TEMPLATE -->
+      <div class="section-group">
+        <div class="section-group-header" onclick="toggleSection(this)">
+          <div class="badge" style="background:rgba(139,92,246,0.15);">&#x1F310;</div>
+          Cấu Hình Trang: Đường Dẫn (Slug) &amp; Mẫu Giao Diện
+          <span class="chevron">&#x25BE;</span>
+        </div>
+        <div class="section-group-body">
+          <div class="field-row">
+            <div class="field-group" style="flex: 2;">
+              <label class="field-label">Đường Dẫn Riêng (Slug URL) <span class="required">*</span></label>
+              <div style="display: flex; gap: 8px;">
+                <input class="field-input" id="weddingSlug" type="text" placeholder="vi-du: quang-va-an" oninput="handleSlugInput()" style="font-family: monospace;" />
+                <button type="button" class="btn-action" onclick="autoGenerateSlug()" title="Tạo slug từ tên dâu rể" style="white-space: nowrap; padding: 0 12px;">⚡ Tự tạo</button>
+              </div>
+              <div class="help-text" id="slugPreviewText" style="color: #a78bfa; margin-top: 6px; font-family: monospace;">🔗 Link: /thiep/...</div>
+            </div>
+            <div class="field-group" style="flex: 1.5;">
+              <label class="field-label">Mẫu Giao Diện (Template)</label>
+              <select class="field-input" id="weddingTemplate" onchange="liveUpdate()">
+                <option value="classic-red">🌹 Đỏ Truyền Thống (Classic Red)</option>
+                <option value="pastel-pink">🌸 Hồng Pastel (Pastel Pink)</option>
+                <option value="sage-green">🌿 Xanh Sage (Sage Green)</option>
+                <option value="luxury-gold">✨ Hoàng Gia Gold (Royal Gold)</option>
+              </select>
+            </div>
+          </div>
+          <div id="adminOwnerRow" style="display: none; margin-top: 12px; padding: 10px 14px; background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.25); border-radius: 8px; font-size: 12.5px;">
+            👤 <span style="color: #94a3b8;">Người tạo thiệp:</span> <span id="adminOwnerText" style="color: #c4b5fd; font-weight: 600;">---</span>
+          </div>
+        </div>
       </div>
 
       <!-- 1. CÔ DÂU & CHÚ RỂ -->
@@ -691,49 +885,51 @@
         </div>
       </div>
 
-      <!-- 3. HÌNH ẢNH -->
+      <!-- 3. HÌNH ẢNH (PocketBase Storage) -->
       <div class="section-group">
         <div class="section-group-header" onclick="toggleSection(this)">
           <div class="badge" style="background:rgba(124,77,255,0.15);">&#x1F5BC;&#xFE0F;</div>
-          Hình Ảnh
+          Hình Ảnh (Lưu Trực Tiếp Trên PocketBase)
           <span class="chevron">&#x25BE;</span>
         </div>
         <div class="section-group-body">
           <div class="sub-label">Ảnh bìa (Hero)</div>
           <div class="img-upload-zone" id="zoneHero">
-            <input type="file" accept="image/*" onchange="handleImageUpload(this,'hero','zoneHero','imgHero')" />
+            <input type="file" accept="image/*" onchange="handleImageFileSelect(this,'hero','zoneHero','imgHero')" />
             <div class="img-upload-placeholder">
-              <div class="upload-icon">&#x1F5BC;&#xFE0F;</div>
-              <strong>Chọn ảnh bìa</strong>
-              <p>JPG, PNG, WEBP — Khuyến nghị tỷ lệ 9:16</p>
+              <div style="font-size:24px;margin-bottom:6px;">&#x1F5BC;&#xFE0F;</div>
+              <strong>Chọn hoặc thả ảnh bìa</strong>
+              <p class="help-text">JPG, PNG, WEBP — Khuyến nghị tỉ lệ 9:16</p>
             </div>
-            <img id="imgHero" src="" alt="" style="display:none;" />
+            <img id="imgHero" src="" alt="Hero" />
             <button class="img-remove-btn" onclick="removeImage(event,'hero','zoneHero','imgHero')">&#x2715;</button>
           </div>
+
           <div class="field-divider"></div>
           <div class="sub-label">Ảnh đôi (Quote section)</div>
           <div class="img-upload-zone" id="zoneQuote">
-            <input type="file" accept="image/*" onchange="handleImageUpload(this,'quote','zoneQuote','imgQuote')" />
+            <input type="file" accept="image/*" onchange="handleImageFileSelect(this,'quote','zoneQuote','imgQuote')" />
             <div class="img-upload-placeholder">
-              <div class="upload-icon">&#x1F491;</div>
+              <div style="font-size:24px;margin-bottom:6px;">&#x1F491;</div>
               <strong>Chọn ảnh đôi</strong>
-              <p>Xuất hiện trong phần câu quote cảm xúc</p>
+              <p class="help-text">Xuất hiện trong phần câu quote cảm xúc</p>
             </div>
-            <img id="imgQuote" src="" alt="" style="display:none;" />
+            <img id="imgQuote" src="" alt="Quote" />
             <button class="img-remove-btn" onclick="removeImage(event,'quote','zoneQuote','imgQuote')">&#x2715;</button>
           </div>
+
           <div class="field-divider"></div>
-          <div class="sub-label">Album ảnh (tối đa 4 ảnh)</div>
+          <div class="sub-label">Album ảnh cưới (4 ảnh)</div>
           <div class="album-grid">
             <div class="album-item">
               <div class="img-upload-zone" id="zoneAlbum0">
                 <input type="file" accept="image/*"
-                  onchange="handleImageUpload(this,'album0','zoneAlbum0','imgAlbum0')" />
+                  onchange="handleImageFileSelect(this,'album0','zoneAlbum0','imgAlbum0')" />
                 <div class="img-upload-placeholder">
-                  <div class="upload-icon" style="font-size:20px">&#x1F4F7;</div>
-                  <p>Ảnh 1</p>
+                  <div style="font-size:20px;">📷</div>
+                  <p class="help-text">Ảnh 1</p>
                 </div>
-                <img id="imgAlbum0" src="" alt="" style="display:none;" />
+                <img id="imgAlbum0" src="" alt="Album 1" />
                 <button class="img-remove-btn"
                   onclick="removeImage(event,'album0','zoneAlbum0','imgAlbum0')">&#x2715;</button>
               </div>
@@ -741,12 +937,12 @@
             <div class="album-item">
               <div class="img-upload-zone" id="zoneAlbum1">
                 <input type="file" accept="image/*"
-                  onchange="handleImageUpload(this,'album1','zoneAlbum1','imgAlbum1')" />
+                  onchange="handleImageFileSelect(this,'album1','zoneAlbum1','imgAlbum1')" />
                 <div class="img-upload-placeholder">
-                  <div class="upload-icon" style="font-size:20px">&#x1F4F7;</div>
-                  <p>Ảnh 2</p>
+                  <div style="font-size:20px;">📷</div>
+                  <p class="help-text">Ảnh 2</p>
                 </div>
-                <img id="imgAlbum1" src="" alt="" style="display:none;" />
+                <img id="imgAlbum1" src="" alt="Album 2" />
                 <button class="img-remove-btn"
                   onclick="removeImage(event,'album1','zoneAlbum1','imgAlbum1')">&#x2715;</button>
               </div>
@@ -754,12 +950,12 @@
             <div class="album-item">
               <div class="img-upload-zone" id="zoneAlbum2">
                 <input type="file" accept="image/*"
-                  onchange="handleImageUpload(this,'album2','zoneAlbum2','imgAlbum2')" />
+                  onchange="handleImageFileSelect(this,'album2','zoneAlbum2','imgAlbum2')" />
                 <div class="img-upload-placeholder">
-                  <div class="upload-icon" style="font-size:20px">&#x1F4F7;</div>
-                  <p>Ảnh 3</p>
+                  <div style="font-size:20px;">📷</div>
+                  <p class="help-text">Ảnh 3</p>
                 </div>
-                <img id="imgAlbum2" src="" alt="" style="display:none;" />
+                <img id="imgAlbum2" src="" alt="Album 3" />
                 <button class="img-remove-btn"
                   onclick="removeImage(event,'album2','zoneAlbum2','imgAlbum2')">&#x2715;</button>
               </div>
@@ -767,12 +963,12 @@
             <div class="album-item">
               <div class="img-upload-zone" id="zoneAlbum3">
                 <input type="file" accept="image/*"
-                  onchange="handleImageUpload(this,'album3','zoneAlbum3','imgAlbum3')" />
+                  onchange="handleImageFileSelect(this,'album3','zoneAlbum3','imgAlbum3')" />
                 <div class="img-upload-placeholder">
-                  <div class="upload-icon" style="font-size:20px">&#x1F4F7;</div>
-                  <p>Ảnh 4</p>
+                  <div style="font-size:20px;">📷</div>
+                  <p class="help-text">Ảnh 4</p>
                 </div>
-                <img id="imgAlbum3" src="" alt="" style="display:none;" />
+                <img id="imgAlbum3" src="" alt="Album 4" />
                 <button class="img-remove-btn"
                   onclick="removeImage(event,'album3','zoneAlbum3','imgAlbum3')">&#x2715;</button>
               </div>
@@ -781,7 +977,7 @@
         </div>
       </div>
 
-      <!-- 4. NGÂN HÀNG -->
+      <!-- 4. NGÂN HÀNG & QR -->
       <div class="section-group">
         <div class="section-group-header" onclick="toggleSection(this)">
           <div class="badge" style="background:rgba(0,229,160,0.15);">&#x1F3E6;</div>
@@ -808,19 +1004,20 @@
             </div>
           </div>
           <div class="field-group">
-            <label class="field-label">Ảnh QR chú rể (tuỳ chọn)</label>
+            <label class="field-label">Ảnh QR chú rể</label>
             <div class="img-upload-zone" id="zoneQrGroom" style="max-width:160px;">
               <input type="file" accept="image/*"
-                onchange="handleImageUpload(this,'qrGroom','zoneQrGroom','imgQrGroom')" />
+                onchange="handleImageFileSelect(this,'qrGroom','zoneQrGroom','imgQrGroom')" />
               <div class="img-upload-placeholder">
-                <div class="upload-icon" style="font-size:20px">&#x1F4F1;</div>
-                <p>Ảnh QR</p>
+                <div style="font-size:20px;">📱</div>
+                <p class="help-text">Ảnh QR</p>
               </div>
-              <img id="imgQrGroom" src="" alt="" style="display:none;" />
+              <img id="imgQrGroom" src="" alt="QR Chú Rể" />
               <button class="img-remove-btn"
                 onclick="removeImage(event,'qrGroom','zoneQrGroom','imgQrGroom')">&#x2715;</button>
             </div>
           </div>
+
           <div class="field-divider"></div>
           <div class="sub-label">Tài khoản Cô Dâu</div>
           <div class="field-row">
@@ -840,15 +1037,15 @@
             </div>
           </div>
           <div class="field-group">
-            <label class="field-label">Ảnh QR cô dâu (tuỳ chọn)</label>
+            <label class="field-label">Ảnh QR cô dâu</label>
             <div class="img-upload-zone" id="zoneQrBride" style="max-width:160px;">
               <input type="file" accept="image/*"
-                onchange="handleImageUpload(this,'qrBride','zoneQrBride','imgQrBride')" />
+                onchange="handleImageFileSelect(this,'qrBride','zoneQrBride','imgQrBride')" />
               <div class="img-upload-placeholder">
-                <div class="upload-icon" style="font-size:20px">&#x1F4F1;</div>
-                <p>Ảnh QR</p>
+                <div style="font-size:20px;">📱</div>
+                <p class="help-text">Ảnh QR</p>
               </div>
-              <img id="imgQrBride" src="" alt="" style="display:none;" />
+              <img id="imgQrBride" src="" alt="QR Cô Dâu" />
               <button class="img-remove-btn"
                 onclick="removeImage(event,'qrBride','zoneQrBride','imgQrBride')">&#x2715;</button>
             </div>
@@ -856,11 +1053,11 @@
         </div>
       </div>
 
-      <!-- 5. NHẠC -->
+      <!-- 5. NHẠC & CÂU CHUYỆN -->
       <div class="section-group">
         <div class="section-group-header" onclick="toggleSection(this)">
           <div class="badge" style="background:rgba(96,165,250,0.15);">&#x1F3B5;</div>
-          Nhạc Nền
+          Nhạc Nền &amp; Nội Dung
           <span class="chevron">&#x25BE;</span>
         </div>
         <div class="section-group-body">
@@ -868,8 +1065,9 @@
             <div class="field-group">
               <label class="field-label">URL file nhạc MP3</label>
               <input class="field-input" id="musicUrl" type="url"
-                value="https://www.dropbox.com/scl/fi/t7v88qalu94lpnydv2ynr/nhac.mp3?rlkey=iqlmgddkoxytbism6wyh2o497&st=wboutcjj&raw=1" oninput="liveUpdate()" />
-              <p class="help-text">Dán link direct MP3 hoặc đường dẫn file nhạc.</p>
+                value="https://www.dropbox.com/scl/fi/t7v88qalu94lpnydv2ynr/nhac.mp3?rlkey=iqlmgddkoxytbism6wyh2o497&st=wboutcjj&raw=1"
+                oninput="liveUpdate()" />
+              <p class="help-text">Link trực tiếp MP3 hoặc Dropbox raw file.</p>
             </div>
           </div>
           <div class="field-row single">
@@ -879,17 +1077,7 @@
                 oninput="liveUpdate()" />
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- 6. NỘI DUNG -->
-      <div class="section-group">
-        <div class="section-group-header" onclick="toggleSection(this)">
-          <div class="badge" style="background:rgba(251,146,60,0.15);">&#x270D;&#xFE0F;</div>
-          Nội Dung &amp; Câu Chuyện
-          <span class="chevron">&#x25BE;</span>
-        </div>
-        <div class="section-group-body">
+          <div class="field-divider"></div>
           <div class="field-row single">
             <div class="field-group">
               <label class="field-label">Câu quote trên ảnh đôi</label>
@@ -907,18 +1095,18 @@
         </div>
       </div>
 
-      <!-- 7. LỊCH TRÌNH -->
+      <!-- 6. LỊCH TRÌNH LỄ CƯỚI -->
       <div class="section-group">
         <div class="section-group-header" onclick="toggleSection(this)">
-          <div class="badge" style="background:rgba(96,165,250,0.15);">&#x1F4CB;</div>
+          <div class="badge" style="background:rgba(251,146,60,0.15);">&#x1F4CB;</div>
           Lịch Trình Lễ Cưới
           <span class="chevron">&#x25BE;</span>
         </div>
         <div class="section-group-body">
-          <p class="help-text" style="margin-bottom:16px;">Chỉnh sửa 4 mục lịch trình xuất hiện trong thiệp cưới.</p>
+          <p class="help-text" style="margin-bottom:16px;">Chỉnh sửa 4 mốc thời gian hiển thị trong thiệp cưới.</p>
 
           <!-- Item 1 -->
-          <div class="sub-label">Mục 1</div>
+          <div class="sub-label">Mốc 1</div>
           <div class="field-row">
             <div class="field-group">
               <label class="field-label">Giờ</label>
@@ -940,7 +1128,7 @@
 
           <div class="field-divider"></div>
           <!-- Item 2 -->
-          <div class="sub-label">Mục 2</div>
+          <div class="sub-label">Mốc 2</div>
           <div class="field-row">
             <div class="field-group">
               <label class="field-label">Giờ</label>
@@ -961,7 +1149,7 @@
 
           <div class="field-divider"></div>
           <!-- Item 3 -->
-          <div class="sub-label">Mục 3</div>
+          <div class="sub-label">Mốc 3</div>
           <div class="field-row">
             <div class="field-group">
               <label class="field-label">Giờ</label>
@@ -982,7 +1170,7 @@
 
           <div class="field-divider"></div>
           <!-- Item 4 -->
-          <div class="sub-label">Mục 4</div>
+          <div class="sub-label">Mốc 4</div>
           <div class="field-row">
             <div class="field-group">
               <label class="field-label">Giờ</label>
@@ -1003,43 +1191,597 @@
         </div>
       </div>
 
-
-      <div style="text-align:center;padding:20px 0 40px;">
-        <button class="btn-generate" onclick="generateWedding()"
-          style="margin:0 auto;font-size:16px;padding:16px 40px;">
-          &#x1F492; Tạo &amp; Tải Thiệp Cưới
-        </button>
-        <p style="font-size:12px;color:var(--text-muted);margin-top:12px;">File HTML sẽ được tải về máy — đẩy lên server
-          là dùng được ngay!</p>
-      </div>
     </div><!-- end form-area -->
 
-    <!-- PREVIEW -->
+    <!-- PREVIEW PANEL -->
     <div class="preview-panel">
       <div class="preview-header">
-        <span>&#x1F4F1; Preview</span>
-        <span class="preview-badge">LIVE</span>
+        <span>📱 Xem Trước Trực Tiếp</span>
+        <span class="preview-badge">LIVE PREVIEW</span>
       </div>
       <div class="preview-frame-wrap">
         <div class="phone-mockup">
           <iframe id="previewFrame" title="Preview"
-            srcdoc="<div style='display:flex;align-items:center;justify-content:center;height:100%;background:#0f1117;color:#8891b4;font-family:sans-serif;font-size:13px;'>Nhập thông tin để xem preview</div>"></iframe>
+            srcdoc="<div style='display:flex;align-items:center;justify-content:center;height:100%;background:#0f1117;color:#8891b4;font-family:sans-serif;font-size:13px;'>Đang tải preview...</div>"></iframe>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- MODAL CẤU HÌNH POCKETBASE & ĐĂNG NHẬP -->
+  <div class="modal-overlay" id="pbModal">
+    <div class="modal-box">
+      <div class="modal-title">
+        <span>⚙️ Cấu Hình PocketBase</span>
+        <button class="modal-close" onclick="closePbModal()">✕</button>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">URL Server PocketBase</label>
+        <input class="field-input" id="pbUrlInput" type="url" value="http://127.0.0.1:8090"
+          placeholder="http://127.0.0.1:8090" />
+        <p class="help-text">Chạy lệnh: <code>./pocketbase serve</code> trên máy hoặc VPS.</p>
+        <p class="help-text" style="margin-top:6px;color:var(--warning);">
+          ⚠️ <strong>Dùng domain thật?</strong> Cần bật CORS: vào PocketBase Admin UI (<code>/_/</code>)
+          → <strong>Settings → CORS</strong> → thêm domain của bạn (vd: <code>https://love.baprangbo.site</code>).
+          Và mở API Rules: <strong>Collections → wedding_content → API Rules</strong> → đặt List/View/Create/Update = <code>""</code> (để trống = public), hoặc đăng nhập Admin bên dưới.
+        </p>
+      </div>
+
+      <div class="field-divider"></div>
+      <div class="sub-label">Xác Thực Quản Trị (Tuỳ chọn)</div>
+
+      <div id="authStatusText" style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px;">
+        Chưa đăng nhập. (Nếu Collection đặt API Rule public thì không cần đăng nhập).
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Email Quản Trị / Tài Khoản</label>
+        <input class="field-input" id="authEmail" type="email" placeholder="admin@example.com" />
+      </div>
+      <div class="field-group">
+        <label class="field-label">Mật Khẩu</label>
+        <input class="field-input" id="authPassword" type="password" placeholder="••••••••" />
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+        <button class="btn-action" onclick="logoutPocketBase()" id="btnLogout" style="display:none;">Đăng Xuất</button>
+        <button class="btn-save-pb" onclick="applyPbConfig()">Lưu &amp; Kết Nối</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
   <script>
     // ============================================================
-    // IMAGE STORE
+    // POCKETBASE CLIENT STATE
     // ============================================================
-    const images = { hero: null, quote: null, album0: null, album1: null, album2: null, album3: null, qrGroom: null, qrBride: null };
+    const DEFAULT_PB_URL = localStorage.getItem('pb_url') || 'http://127.0.0.1:8090';
+    const COLLECTION_NAME = 'wedding_content';
 
-    function handleImageUpload(input, key, zoneId, imgId) {
+    let pb = new PocketBase(DEFAULT_PB_URL);
+    let currentRecordId = null;
+
+    const DEFAULT_IMAGES = {
+      hero: '/images/wedding_couple_hero.jpg',
+      quote: '/images/wedding_couple_2.jpg',
+      album0: '/images/wedding_couple_hero.jpg',
+      album1: '/images/wedding_couple_2.jpg',
+      album2: '/images/wedding_couple_3.jpg',
+      album3: '/images/wedding_couple_4.jpg',
+      qrGroom: null,
+      qrBride: null
+    };
+
+    // Image state: holds display URLs (base64, remote url, or blob)
+    const images = { ...DEFAULT_IMAGES };
+
+    // Pending File objects to be uploaded to PocketBase via FormData
+    const pendingFiles = {
+      hero: null, quote: null,
+      album0: null, album1: null, album2: null, album3: null,
+      qrGroom: null, qrBride: null
+    };
+
+    // ============================================================
+    // INITIALIZATION & CONNECTION TEST
+    // ============================================================
+    window.addEventListener('DOMContentLoaded', async () => {
+      // 1. Kiểm tra xác thực - bắt buộc đăng nhập và đã được duyệt trước khi hiển thị
+      if (!pb.authStore.isValid || !pb.authStore.model) {
+        window.location.replace('/login');
+        return;
+      }
+      const u = pb.authStore.model;
+      const isPrivileged = pb.authStore.isSuperuser || u?.collectionName === '_superusers' || u?.role === 'admin';
+      if (!isPrivileged && !u?.verified) {
+        pb.authStore.clear();
+        window.location.replace('/login');
+        return;
+      }
+      document.body.style.display = 'block';
+
+      if (document.getElementById('pbUrlInput')) {
+        document.getElementById('pbUrlInput').value = DEFAULT_PB_URL;
+      }
+      initDefaultImageZones();
+      await initPocketBase();
+      setTimeout(liveUpdate, 300);
+    });
+
+    function initDefaultImageZones() {
+      const keys = [
+        { key: 'hero', zone: 'zoneHero', img: 'imgHero' },
+        { key: 'quote', zone: 'zoneQuote', img: 'imgQuote' },
+        { key: 'album0', zone: 'zoneAlbum0', img: 'imgAlbum0' },
+        { key: 'album1', zone: 'zoneAlbum1', img: 'imgAlbum1' },
+        { key: 'album2', zone: 'zoneAlbum2', img: 'imgAlbum2' },
+        { key: 'album3', zone: 'zoneAlbum3', img: 'imgAlbum3' },
+      ];
+      keys.forEach(({ key, zone, img }) => {
+        if (images[key]) {
+          const zoneEl = document.getElementById(zone);
+          const imgEl = document.getElementById(img);
+          if (zoneEl && imgEl) {
+            zoneEl.classList.add('has-image');
+            imgEl.src = images[key];
+            imgEl.style.display = 'block';
+          }
+        }
+      });
+    }
+
+    async function initPocketBase() {
+      try {
+        await loadFromPocketBase();
+      } catch (err) {
+        console.warn('PocketBase load warning:', err);
+      }
+    }
+
+    function updateStatusBadge(status, text) {
+      const dot = document.getElementById('statusDot');
+      const label = document.getElementById('statusText');
+      if (dot) dot.className = 'status-dot ' + status;
+      if (label) label.textContent = text;
+    }
+
+    function checkAuthStatus() {
+      const authLabel = document.getElementById('authBtnLabel');
+      const authStatus = document.getElementById('authStatusText');
+      const btnLogout = document.getElementById('btnLogout');
+
+      if (pb.authStore.isValid) {
+        const email = pb.authStore.model ? pb.authStore.model.email : 'Admin';
+        if (authLabel) authLabel.textContent = '👤 ' + email;
+        if (authStatus) authStatus.textContent = '✅ Đã đăng nhập: ' + email;
+        if (btnLogout) btnLogout.style.display = 'block';
+      } else {
+        if (authLabel) authLabel.textContent = 'Cấu hình PB';
+        if (authStatus) authStatus.textContent = 'Chưa đăng nhập.';
+        if (btnLogout) btnLogout.style.display = 'none';
+      }
+    }
+
+    // ============================================================
+    // SLUG & PUBLIC LINK HELPERS
+    // ============================================================
+    function removeVietnameseTones(str) {
+      str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+      str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+      str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+      str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+      str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+      str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+      str = str.replace(/đ/g, "d");
+      str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+      str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+      str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+      str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+      str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+      str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+      str = str.replace(/Đ/g, "D");
+      return str;
+    }
+
+    const RESERVED_SLUGS = ['login', 'dashboard', 'admin', 'index', 'images', 'api', 'nhac.mp3', 'thiep', 't', 'favicon.ico'];
+
+    async function isSlugTaken(slug, excludeId) {
+      if (!slug) return false;
+      if (RESERVED_SLUGS.includes(slug.toLowerCase())) return true;
+      try {
+        let filter = `slug = "${slug}"`;
+        if (excludeId) {
+          filter += ` && id != "${excludeId}"`;
+        }
+        const records = await pb.collection(COLLECTION_NAME).getList(1, 1, { filter: filter });
+        return records.items && records.items.length > 0;
+      } catch (err) {
+        console.warn('Lỗi kiểm tra trùng slug:', err);
+        return false;
+      }
+    }
+
+    // Xử lý khi gõ slug: HOÀN TOÀN XỬ LÝ NỘI BỘ TRÌNH DUYỆT, KHÔNG GỬI REQUEST
+    function handleSlugInput() {
+      const input = document.getElementById('weddingSlug');
+      if (!input) return;
+
+      let val = removeVietnameseTones(input.value)
+        .toLowerCase()
+        .replace(/[^a-z0-9-]+/g, '-')
+        .replace(/--+/g, '-');
+      input.value = val;
+      input.style.borderColor = ''; // xoá viền cảnh báo khi đang gõ
+
+      updateSlugPreview();
+    }
+
+    function updateSlugPreview() {
+      const slug = (document.getElementById('weddingSlug')?.value || '').trim() || 'thiep-cuoi';
+      const el = document.getElementById('slugPreviewText');
+      if (el) {
+        el.style.color = '#a78bfa';
+        el.textContent = `🔗 Link xem: /thiep/${slug}`;
+      }
+    }
+
+    // Nút "Tự tạo": sinh slug từ tên dâu rể nội bộ (không gửi request)
+    function autoGenerateSlug() {
+      const groom = document.getElementById('groomName') ? document.getElementById('groomName').value.trim() : '';
+      const bride = document.getElementById('brideName') ? document.getElementById('brideName').value.trim() : '';
+      const combined = `${groom} ${bride}`.trim() || 'thiep-cuoi';
+      let clean = removeVietnameseTones(combined)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || 'thiep-cuoi';
+
+      const slugInput = document.getElementById('weddingSlug');
+      if (slugInput) {
+        slugInput.value = clean;
+        slugInput.style.borderColor = '';
+        updateSlugPreview();
+      }
+    }
+
+    // CHỈ KIỂM TRA TRÙNG LẶP KHI BẤM NÚT "LƯU THAY ĐỔI" (1 request duy nhất)
+    async function checkSlugUniquenessBeforeSave() {
+      const input = document.getElementById('weddingSlug');
+      const preview = document.getElementById('slugPreviewText');
+      if (!input) return false;
+
+      const slug = input.value.trim().replace(/^-+|-+$/g, '');
+      input.value = slug;
+
+      if (!slug) {
+        input.style.borderColor = '#ef4444';
+        if (preview) {
+          preview.style.color = '#ef4444';
+          preview.textContent = '⚠️ Đường dẫn (Slug) không được để trống!';
+        }
+        showToast('⚠️ Vui lòng nhập đường dẫn (Slug)!');
+        input.focus();
+        return false;
+      }
+
+      if (RESERVED_SLUGS.includes(slug.toLowerCase())) {
+        input.style.borderColor = '#ef4444';
+        if (preview) {
+          preview.style.color = '#ef4444';
+          preview.textContent = `❌ Đường dẫn "${slug}" trùng với trang hệ thống!`;
+        }
+        showToast(`❌ Đường dẫn "${slug}" trùng với trang hệ thống! Vui lòng chọn slug khác.`);
+        input.focus();
+        return false;
+      }
+
+      // Gửi 1 request duy nhất tới PocketBase để kiểm tra
+      const taken = await isSlugTaken(slug, currentRecordId);
+      if (taken) {
+        input.style.borderColor = '#ef4444';
+        if (preview) {
+          preview.style.color = '#ef4444';
+          preview.textContent = `❌ Đường dẫn "/thiep/${slug}" ĐÃ TỒN TẠI! Vui lòng đổi slug khác.`;
+        }
+        showToast(`❌ Đường dẫn "/thiep/${slug}" đã có người sử dụng! Vui lòng đổi slug khác.`);
+        input.focus();
+        return false;
+      }
+
+      input.style.borderColor = '#10b981';
+      return true;
+    }
+
+    function updateSlugPreview() {
+      const slug = (document.getElementById('weddingSlug')?.value || '').trim() || 'thiep-cuoi';
+      const el = document.getElementById('slugPreviewText');
+      if (el) {
+        el.textContent = `🔗 Link xem: /thiep/${slug}`;
+      }
+    }
+
+    function openPublicPage() {
+      const slug = (document.getElementById('weddingSlug')?.value || '').trim();
+      const target = slug ? `/thiep/${encodeURIComponent(slug)}` : (currentRecordId ? `/thiep/${currentRecordId}` : '/');
+      window.open(target, '_blank');
+    }
+
+    // ============================================================
+    // LOAD FROM POCKETBASE
+    // ============================================================
+    async function loadFromPocketBase() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetId = urlParams.get('id');
+      const isNew = urlParams.get('new');
+
+      if (isNew) {
+        currentRecordId = null;
+        autoGenerateSlug();
+        showToast('✨ Chế độ tạo thiệp mới. Nhập thông tin và bấm Lưu!');
+        return;
+      }
+
+      try {
+        showToast('⏳ Đang tải dữ liệu từ PocketBase...');
+        let rec = null;
+
+        if (targetId) {
+          rec = await pb.collection(COLLECTION_NAME).getOne(targetId);
+        } else {
+          // If logged in, prioritize user's own record
+          let filter = '';
+          if (pb.authStore.model?.id && !pb.authStore.isSuperuser) {
+            filter = `owner = "${pb.authStore.model.id}" || owner = ""`;
+          }
+          const records = await pb.collection(COLLECTION_NAME).getList(1, 1, { filter, sort: '-created' });
+          if (records.items && records.items.length > 0) {
+            rec = records.items[0];
+          }
+        }
+
+        if (rec) {
+          currentRecordId = rec.id;
+          populateFormWithRecord(rec);
+          showToast('✅ Đã tải dữ liệu từ PocketBase!');
+          liveUpdate();
+        } else {
+          autoGenerateSlug();
+          showToast('ℹ️ Bắt đầu với form mẫu. Bấm "Lưu Thay Đổi" để tạo bản ghi.');
+        }
+      } catch (err) {
+        console.warn('Load record error:', err);
+        let msg = err.message || 'Lỗi không xác định';
+        if (!err.status && (err.name === 'TypeError' || msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('CORS'))) {
+          msg = 'Không thể kết nối tới PocketBase server! Kiểm tra: (1) URL đúng chưa? (2) PocketBase đang chạy? (3) Đã bật CORS cho domain này chưa?';
+        } else if (err.status === 0) {
+          msg = 'Lỗi mạng / CORS: PocketBase server từ chối kết nối từ domain này.';
+        } else if (err.status === 404) {
+          msg = 'Chưa có Collection "wedding_content" trên PocketBase! Hãy import file pb_schema.json.';
+        } else if (err.status === 401 || err.status === 403) {
+          msg = 'Bạn không có quyền truy cập bản ghi này!';
+        } else if (err.status === 400) {
+          msg = 'Lỗi kết nối PocketBase (400). Hãy bấm ⚙️ để kiểm tra lại URL server.';
+        }
+        showToast('⚠️ ' + msg);
+      }
+    }
+
+    function populateFormWithRecord(rec) {
+      const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el && val !== undefined && val !== null) el.value = val;
+      };
+
+      // Populate slug & template
+      setVal('weddingSlug', rec.slug);
+      setVal('weddingTemplate', rec.template || 'classic-red');
+      updateSlugPreview();
+
+      // Hiển thị người tạo thiệp nếu là Admin
+      const isSuper = pb.authStore.isSuperuser || pb.authStore.model?.collectionName === '_superusers' || pb.authStore.model?.role === 'admin';
+      const ownerRow = document.getElementById('adminOwnerRow');
+      const ownerText = document.getElementById('adminOwnerText');
+      if (ownerRow && ownerText) {
+        if (isSuper && rec.owner) {
+          ownerRow.style.display = 'block';
+          ownerText.textContent = `Đang tra cứu ID: ${rec.owner}...`;
+          (async () => {
+            try {
+              let u = await pb.collection('users').getOne(rec.owner).catch(() => null);
+              if (!u) {
+                u = await pb.collection('_superusers').getOne(rec.owner).catch(() => null);
+              }
+              if (u) {
+                const nameDisplay = u.name ? `${u.name} (${u.email})` : u.email;
+                ownerText.textContent = `${nameDisplay} [${u.role || 'Admin'}]`;
+              } else {
+                ownerText.textContent = `ID: ${rec.owner}`;
+              }
+            } catch (_) {
+              ownerText.textContent = `ID: ${rec.owner}`;
+            }
+          })();
+        } else if (isSuper && !rec.owner) {
+          ownerRow.style.display = 'block';
+          ownerText.textContent = 'Mẫu mặc định hệ thống (Chưa gán chủ sở hữu)';
+        } else {
+          ownerRow.style.display = 'none';
+        }
+      }
+
+      // Populate text fields
+      setVal('groomName', rec.groomName);
+      setVal('brideName', rec.brideName);
+      setVal('groomFather', rec.groomFather);
+      setVal('groomMother', rec.groomMother);
+      setVal('brideFather', rec.brideFather);
+      setVal('brideMother', rec.brideMother);
+
+      setVal('weddingDay', rec.weddingDay);
+      setVal('weddingMonth', rec.weddingMonth);
+      setVal('weddingYear', rec.weddingYear);
+      setVal('weddingDayOfWeek', rec.weddingDayOfWeek);
+      setVal('lunarDate', rec.lunarDate);
+
+      setVal('brideTime', rec.brideTime);
+      setVal('brideVenue', rec.brideVenue);
+      setVal('brideAddress', rec.brideAddress);
+      setVal('brideMapUrl', rec.brideMapUrl);
+
+      setVal('groomTime', rec.groomTime);
+      setVal('groomVenue', rec.groomVenue);
+      setVal('groomAddress', rec.groomAddress);
+      setVal('groomMapUrl', rec.groomMapUrl);
+
+      setVal('groomBank', rec.groomBank);
+      setVal('groomAccountNum', rec.groomAccountNum);
+      setVal('groomAccountName', rec.groomAccountName);
+
+      setVal('brideBank', rec.brideBank);
+      setVal('brideAccountNum', rec.brideAccountNum);
+      setVal('brideAccountName', rec.brideAccountName);
+
+      setVal('musicUrl', rec.musicUrl);
+      setVal('musicVolume', rec.musicVolume);
+      setVal('quoteText', rec.quoteText);
+      setVal('introText', rec.introText);
+
+      // Schedule items
+      if (Array.isArray(rec.schedule)) {
+        rec.schedule.forEach((item, idx) => {
+          if (idx < 4) {
+            setVal('sch' + idx + 'Time', item.time);
+            setVal('sch' + idx + 'Title', item.title);
+            setVal('sch' + idx + 'Desc', item.desc);
+          }
+        });
+      }
+
+      // Populate image fields from PocketBase files
+      const imgKeys = [
+        { key: 'hero', zone: 'zoneHero', img: 'imgHero' },
+        { key: 'quote', zone: 'zoneQuote', img: 'imgQuote' },
+        { key: 'album0', zone: 'zoneAlbum0', img: 'imgAlbum0' },
+        { key: 'album1', zone: 'zoneAlbum1', img: 'imgAlbum1' },
+        { key: 'album2', zone: 'zoneAlbum2', img: 'imgAlbum2' },
+        { key: 'album3', zone: 'zoneAlbum3', img: 'imgAlbum3' },
+        { key: 'qrGroom', zone: 'zoneQrGroom', img: 'imgQrGroom' },
+        { key: 'qrBride', zone: 'zoneQrBride', img: 'imgQrBride' },
+      ];
+
+      imgKeys.forEach(({ key, zone, img }) => {
+        if (rec[key]) {
+          const fileUrl = pb.files.getUrl(rec, rec[key]);
+          images[key] = fileUrl;
+          pendingFiles[key] = null; // already on server
+
+          const zoneEl = document.getElementById(zone);
+          const imgEl = document.getElementById(img);
+          if (zoneEl && imgEl) {
+            zoneEl.classList.add('has-image');
+            imgEl.src = fileUrl;
+            imgEl.style.display = 'block';
+          }
+        }
+      });
+    }
+
+    // ============================================================
+    // SAVE TO POCKETBASE
+    // ============================================================
+    async function saveToPocketBase() {
+      const btn = document.getElementById('btnSavePb');
+      btn.disabled = true;
+      btn.classList.add('loading');
+      try {
+        const c = getConfig();
+        if (!c.slug) {
+          autoGenerateSlug();
+          c.slug = document.getElementById('weddingSlug').value.trim();
+        }
+
+        // CHỈ KIỂM TRA TRÙNG LẶP KHI BẤM LƯU (1 request duy nhất)
+        const isUnique = await checkSlugUniquenessBeforeSave();
+        if (!isUnique) {
+          btn.disabled = false;
+          btn.classList.remove('loading');
+          return;
+        }
+
+        showToast('⏳ Đang lưu dữ liệu & upload ảnh...');
+
+        const formData = new FormData();
+
+        // Append owner if creating new and user logged in
+        if (!currentRecordId && pb.authStore.model?.id) {
+          formData.append('owner', pb.authStore.model.id);
+        }
+
+        // Append text fields
+        Object.keys(c).forEach(k => {
+          if (k === 'schedule') {
+            formData.append(k, JSON.stringify(c[k]));
+          } else {
+            formData.append(k, c[k]);
+          }
+        });
+
+        // Append pending files
+        Object.keys(pendingFiles).forEach(k => {
+          if (pendingFiles[k] instanceof File) {
+            formData.append(k, pendingFiles[k]);
+          }
+        });
+
+        let savedRecord;
+        if (currentRecordId) {
+          savedRecord = await pb.collection(COLLECTION_NAME).update(currentRecordId, formData);
+        } else {
+          savedRecord = await pb.collection(COLLECTION_NAME).create(formData);
+          currentRecordId = savedRecord.id;
+          history.replaceState(null, '', '?id=' + savedRecord.id);
+        }
+
+        // Clear pending files
+        Object.keys(pendingFiles).forEach(k => { pendingFiles[k] = null; });
+
+        // Update image URLs from newly saved record
+        populateFormWithRecord(savedRecord);
+        showToast('✅ Đã lưu lên PocketBase thành công!');
+      } catch (err) {
+        console.error('Save to PocketBase failed:', err);
+        let msg = err.message || 'Lỗi không xác định';
+        if (err.data?.data?.slug || (err.message && err.message.toLowerCase().includes('unique'))) {
+          msg = 'Đường dẫn (Slug) này đã tồn tại trong hệ thống! Vui lòng chọn tên khác.';
+          validateSlugAsync();
+        } else if (err.status === 401) {
+          msg = 'Chưa đăng nhập! Hãy đăng nhập tài khoản trước khi lưu.';
+        } else if (err.status === 403) {
+          msg = 'Không có quyền cập nhật bản ghi này!';
+        } else if (err.status === 400) {
+          msg = 'Lỗi dữ liệu (400)! ' + (err.data?.message || err.message);
+        } else if (err.status === 404) {
+          msg = 'Chưa tìm thấy Collection "wedding_content". Hãy import file pb_schema.json!';
+        }
+        showToast('❌ ' + msg);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+      }
+    }
+
+    // ============================================================
+    // IMAGE HANDLING (Local Preview + Queue for Upload)
+    // ============================================================
+    function handleImageFileSelect(input, key, zoneId, imgId) {
       const file = input.files[0];
       if (!file) return;
+
+      pendingFiles[key] = file;
+
+      // Show immediate local preview
       const reader = new FileReader();
       reader.onload = (e) => {
         images[key] = e.target.result;
@@ -1054,19 +1796,97 @@
     }
 
     function removeImage(evt, key, zoneId, imgId) {
-      evt.preventDefault(); evt.stopPropagation();
+      evt.preventDefault();
+      evt.stopPropagation();
+
       images[key] = null;
+      pendingFiles[key] = ''; // blank to clear on server
+
       const zone = document.getElementById(zoneId);
       const imgEl = document.getElementById(imgId);
       zone.classList.remove('has-image');
-      imgEl.src = ''; imgEl.style.display = 'none';
+      imgEl.src = '';
+      imgEl.style.display = 'none';
+
       const inp = zone.querySelector('input[type="file"]');
       if (inp) inp.value = '';
+
       liveUpdate();
     }
 
     // ============================================================
-    // COLLAPSIBLE
+    // MODAL & AUTH
+    // ============================================================
+    function openPbModal() {
+      document.getElementById('pbModal').classList.add('active');
+    }
+
+    function closePbModal() {
+      document.getElementById('pbModal').classList.remove('active');
+    }
+
+    async function applyPbConfig() {
+      const newUrl = document.getElementById('pbUrlInput').value.trim();
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+
+      if (newUrl) {
+        localStorage.setItem('pb_url', newUrl);
+        pb = new PocketBase(newUrl);
+      }
+
+      if (email && password) {
+        showToast('⏳ Đang xác thực...');
+        let loginOk = false;
+
+        // 1) PocketBase v0.21+ superuser (new API)
+        if (!loginOk) {
+          try {
+            await pb.collection('_superusers').authWithPassword(email, password);
+            loginOk = true;
+          } catch (_) { /* try next */ }
+        }
+
+        // 2) Regular user collection
+        if (!loginOk) {
+          try {
+            await pb.collection('users').authWithPassword(email, password);
+            loginOk = true;
+          } catch (_) { /* try next */ }
+        }
+
+        // 3) Legacy admin API (PocketBase < 0.21)
+        if (!loginOk) {
+          try {
+            await pb.admins.authWithPassword(email, password);
+            loginOk = true;
+          } catch (_) { /* all failed */ }
+        }
+
+        if (loginOk) {
+          showToast('✅ Đăng nhập thành công!');
+        } else {
+          showToast('❌ Đăng nhập thất bại! Kiểm tra lại email/mật khẩu và URL PocketBase.');
+          checkAuthStatus();
+          return; // don't close modal so user can fix
+        }
+      }
+
+      checkAuthStatus();
+      closePbModal();
+      await initPocketBase();
+    }
+
+    function logoutPocketBase() {
+      pb.authStore.clear();
+      showToast('Đã đăng xuất.');
+      setTimeout(() => {
+        window.location.replace('/login');
+      }, 300);
+    }
+
+    // ============================================================
+    // COLLAPSIBLE ACCORDION
     // ============================================================
     function toggleSection(header) {
       const body = header.nextElementSibling;
@@ -1075,10 +1895,16 @@
     }
 
     // ============================================================
-    // CONFIG FROM FORM
+    // GET CONFIG FROM FORM
+    // ============================================================
     function getConfig() {
-      const v = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+      const v = id => {
+        const el = document.getElementById(id);
+        return el ? el.value.trim() : '';
+      };
       return {
+        slug: v('weddingSlug'),
+        template: v('weddingTemplate') || 'classic-red',
         groomName: v('groomName'), brideName: v('brideName'),
         groomFather: v('groomFather'), groomMother: v('groomMother'),
         brideFather: v('brideFather'), brideMother: v('brideMother'),
@@ -1100,31 +1926,22 @@
     }
 
     // ============================================================
-    // LIVE PREVIEW
+    // LIVE PREVIEW GENERATOR
     // ============================================================
     let previewTimer = null;
     function liveUpdate() {
-      updateProgress();
       clearTimeout(previewTimer);
       previewTimer = setTimeout(() => {
         document.getElementById('previewFrame').srcdoc = buildWeddingHTML(getConfig());
-      }, 700);
+      }, 500);
     }
 
-    function updateProgress() {
-      const fields = ['groomName', 'brideName', 'weddingDay', 'weddingMonth', 'weddingYear', 'brideAddress', 'groomAddress', 'groomAccountNum', 'brideAccountNum', 'musicUrl'];
-      const v = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
-      const filled = fields.filter(id => v(id)).length;
-      const imgFilled = ['hero', 'album0'].filter(k => images[k]).length;
-      const pct = Math.round(((filled + imgFilled) / (fields.length + 2)) * 100);
-      document.getElementById('progressFill').style.width = pct + '%';
-    }
-
-    // ============================================================
-    // HTML ESCAPE
-    // ============================================================
     function esc(str) {
-      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
     }
 
     function defaultQR(color) {
@@ -1139,7 +1956,7 @@
     }
 
     // ============================================================
-    // BUILD WEDDING HTML
+    // BUILD WEDDING HTML (Preview & Export)
     // ============================================================
     function buildWeddingHTML(c) {
       const dateDisplay = c.weddingDay + ' · ' + c.weddingMonth + ' · ' + c.weddingYear;
@@ -1148,19 +1965,16 @@
       const d2 = String(c.weddingDay).padStart(2, '0');
       const wISO = c.weddingYear + '-' + mo2 + '-' + d2;
 
-      const PH_SVG_HERO = 'data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 width%3D%22430%22 height%3D%22700%22%3E%3Crect width%3D%22430%22 height%3D%22700%22 fill%3D%22%23f5e6e8%22/%3E%3Ctext x%3D%22215%22 y%3D%22350%22 font-family%3D%22sans-serif%22 font-size%3D%2218%22 fill%3D%22%23c9a8b2%22 text-anchor%3D%22middle%22%3E%E1%BA%A2nh B%C3%ACa%3C/text%3E%3C/svg%3E';
-      const PH_SVG_QUOTE = 'data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 width%3D%22430%22 height%3D%22400%22%3E%3Crect width%3D%22430%22 height%3D%22400%22 fill%3D%22%23f5e6e8%22/%3E%3Ctext x%3D%22215%22 y%3D%22200%22 font-family%3D%22sans-serif%22 font-size%3D%2218%22 fill%3D%22%23c9a8b2%22 text-anchor%3D%22middle%22%3E%E1%BA%A2nh %C4%90%C3%B4i%3C/text%3E%3C/svg%3E';
-
-      const imgHero = images.hero || PH_SVG_HERO;
-      const imgQuote = images.quote || PH_SVG_QUOTE;
-      const imgA0 = images.album0 || imgHero;
-      const imgA1 = images.album1 || imgQuote;
-      const imgA2 = images.album2 || imgHero;
-      const imgA3 = images.album3 || imgQuote;
+      const PH_HERO = 'data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 width%3D%22430%22 height%3D%22700%22%3E%3Crect width%3D%22430%22 height%3D%22700%22 fill%3D%22%23f5e6e8%22/%3E%3Ctext x%3D%22215%22 y%3D%22350%22 font-family%3D%22sans-serif%22 font-size%3D%2218%22 fill%3D%22%23c9a8b2%22 text-anchor%3D%22middle%22%3EẢnh Bìa%3C/text%3E%3C/svg%3E';
+      const imgHero = images.hero || DEFAULT_IMAGES.hero;
+      const imgQuote = images.quote || DEFAULT_IMAGES.quote;
+      const imgA0 = images.album0 || DEFAULT_IMAGES.album0;
+      const imgA1 = images.album1 || DEFAULT_IMAGES.album1;
+      const imgA2 = images.album2 || DEFAULT_IMAGES.album2;
+      const imgA3 = images.album3 || DEFAULT_IMAGES.album3;
 
       const qrGroomHTML = images.qrGroom ? '<img src="' + images.qrGroom + '" class="qr-img" alt="QR" />' : defaultQR('#7a0c16');
       const qrBrideHTML = images.qrBride ? '<img src="' + images.qrBride + '" class="qr-img" alt="QR" />' : defaultQR('#b3394b');
-
       const albumJSON = JSON.stringify([imgA0, imgA1, imgA2, imgA3]);
 
       return `<!DOCTYPE html>
@@ -1169,7 +1983,6 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Thiệp Cưới - ${esc(c.groomName)} &amp; ${esc(c.brideName)}</title>
-<meta name="description" content="Thiệp mời dự lễ cưới của ${esc(c.groomName)} &amp; ${esc(c.brideName)} - ngày ${esc(c.weddingDay)} tháng ${esc(c.weddingMonth)} năm ${esc(c.weddingYear)}"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Great+Vibes&family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -1188,8 +2001,6 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg-page);min-heigh
 @keyframes spin{to{transform:rotate(360deg)}}
 .floating-like-btn{position:fixed;bottom:24px;right:16px;z-index:999;background:rgba(122,12,22,.92);border:2px solid rgba(255,255,255,.25);color:#fff;border-radius:50px;padding:8px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;font-family:'Be Vietnam Pro',sans-serif;backdrop-filter:blur(8px);transition:all .3s;box-shadow:0 4px 16px rgba(122,12,22,.4)}
 .floating-like-btn:hover{transform:scale(1.07)}
-.like-burst-heart{position:fixed;pointer-events:none;font-size:22px;z-index:9999;animation:burstHeart 1s ease-out forwards}
-@keyframes burstHeart{0%{transform:translate(0,0) rotate(0deg) scale(1);opacity:1}100%{transform:translate(calc(var(--rand-x)*1px),-120px) rotate(calc(var(--rand-rot)*1deg)) scale(.3);opacity:0}}
 .cover-section{position:relative;height:100svh;min-height:580px;overflow:hidden}
 .cover-img{width:100%;height:100%;object-fit:cover;display:block}
 .cover-gradient{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(35,24,21,.1) 0%,rgba(35,24,21,.15) 40%,rgba(35,24,21,.75) 75%,rgba(35,24,21,.92) 100%)}
@@ -1198,8 +2009,6 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg-page);min-heigh
 .cover-title{font-family:'Great Vibes',cursive;font-size:58px;font-weight:400;line-height:1.1;text-shadow:0 2px 20px rgba(0,0,0,.5);margin-bottom:14px}
 .cover-amp{color:var(--gold);font-family:'Great Vibes',cursive;display:block;font-size:36px;margin:4px 0}
 .cover-date-pill{display:inline-block;background:rgba(201,168,76,.25);border:1px solid rgba(201,168,76,.5);color:var(--gold);padding:7px 20px;border-radius:50px;font-size:13px;letter-spacing:3px;backdrop-filter:blur(4px)}
-.scroll-down-hint{position:absolute;bottom:28px;left:0;right:0;text-align:center;color:rgba(255,255,255,.6);font-size:12px;display:flex;flex-direction:column;align-items:center;gap:4px;animation:bounce 2s infinite}
-@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
 section{padding:28px 20px}
 .sec-header{text-align:center;margin-bottom:20px}
 .sec-sub{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--primary);font-weight:600;display:block;margin-bottom:6px}
@@ -1219,19 +2028,16 @@ section{padding:28px 20px}
 .event-badge{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--primary);margin-bottom:6px}
 .event-time{font-size:12px;color:var(--text-light);margin-bottom:2px}
 .event-date-large{font-family:'Playfair Display',serif;font-size:24px;color:var(--dark);font-weight:700;margin-bottom:2px}
-.event-lunar{font-size:11px;color:var(--text-light);font-style:italic;margin-bottom:6px}
 .event-venue{font-size:12px;font-weight:600;color:var(--primary);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
 .event-address{font-size:12.5px;color:var(--text-light);margin-bottom:12px}
-.event-actions{display:flex;gap:8px;flex-wrap:wrap}
-.event-btn{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--primary);background:rgba(122,12,22,.07);border:1px solid rgba(122,12,22,.15);padding:7px 14px;border-radius:50px;text-decoration:none;transition:all .2s;font-family:'Be Vietnam Pro',sans-serif}
-.event-btn:hover{background:var(--primary);color:#fff}
+.event-btn{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--primary);background:rgba(122,12,22,.07);border:1px solid rgba(122,12,22,.15);padding:7px 14px;border-radius:50px;text-decoration:none}
 .schedule-section{background:var(--pink-soft)}
 .schedule-timeline{display:flex;flex-direction:column;gap:0;position:relative}
 .schedule-timeline::before{content:'';position:absolute;left:56px;top:8px;bottom:8px;width:2px;background:linear-gradient(to bottom,var(--primary),rgba(122,12,22,.1))}
-.schedule-item{display:grid;grid-template-columns:48px 1fr;grid-template-rows:auto auto;gap:0 12px;position:relative;padding-bottom:20px}
+.schedule-item{display:grid;grid-template-columns:48px 1fr;gap:0 12px;position:relative;padding-bottom:20px}
 .schedule-dot{position:absolute;left:50px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--primary);border:2px solid #fff;box-shadow:0 0 0 3px rgba(122,12,22,.15)}
-.schedule-time{font-size:12px;font-weight:700;color:var(--primary);padding-top:2px;text-align:right;padding-right:4px}
-.schedule-title{font-size:14px;font-weight:700;color:var(--dark);padding-top:2px}
+.schedule-time{font-size:12px;font-weight:700;color:var(--primary);text-align:right;padding-right:4px}
+.schedule-title{font-size:14px;font-weight:700;color:var(--dark)}
 .schedule-desc{grid-column:2;font-size:12px;color:var(--text-light);line-height:1.6;margin-top:3px}
 .calendar-section{background:#fff}
 .calendar-card{background:linear-gradient(135deg,#fff9f9,#fff);border:1px solid rgba(122,12,22,.1);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
@@ -1240,104 +2046,52 @@ section{padding:28px 20px}
 .cal-day-title{text-align:center;font-size:10.5px;font-weight:700;color:var(--text-light);padding:8px 4px;background:rgba(122,12,22,.04)}
 .cal-cell{text-align:center;padding:8px 4px;font-size:12.5px;color:var(--text)}
 .cal-cell.wedding-day{background:var(--primary);color:#fff;font-weight:700;border-radius:50%;margin:2px;display:flex;align-items:center;justify-content:center}
-.calendar-footer-text{text-align:center;padding:12px;font-size:12px;color:var(--primary);font-style:italic;border-top:1px solid rgba(122,12,22,.08)}
+.calendar-footer-text{text-align:center;padding:12px;font-size:12px;color:var(--primary);font-style:italic}
 .countdown-section{background:linear-gradient(135deg,var(--primary-dark),var(--primary));color:#fff;text-align:center;padding:30px 20px}
-.countdown-section .sec-sub{color:rgba(255,255,255,.7)}
-.countdown-section .sec-title-serif{color:#fff}
 .countdown-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px}
 .cd-box{background:rgba(255,255,255,.12);border-radius:12px;padding:14px 8px;border:1px solid rgba(255,255,255,.15)}
 .cd-number{display:block;font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:#fff}
-.cd-label{display:block;font-size:11px;opacity:.7;margin-top:3px;letter-spacing:1px}
+.cd-label{display:block;font-size:11px;opacity:.7;margin-top:3px}
 .photo-quote-section{position:relative;height:320px;overflow:hidden}
 .photo-quote-img{width:100%;height:100%;object-fit:cover;display:block}
 .photo-quote-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(35,24,21,.85) 0%,rgba(35,24,21,.4) 60%,transparent 100%);display:flex;flex-direction:column;justify-content:flex-end;padding:24px 20px}
 .quote-badge{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
 .quote-content{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:#fff;line-height:1.65}
-.rsvp-section{background:var(--pink-soft)}
-.rsvp-box{background:#fff;border-radius:14px;padding:20px;box-shadow:var(--shadow)}
-.form-group{margin-bottom:14px}
-.form-label{font-size:12.5px;font-weight:600;color:var(--text);display:block;margin-bottom:6px}
-.form-input,.form-select{width:100%;border:1.5px solid #e2d6d3;border-radius:8px;padding:10px 14px;font-size:13.5px;font-family:'Be Vietnam Pro',sans-serif;color:var(--text);background:#fff;transition:border-color .2s;outline:none}
-.form-input:focus,.form-select:focus{border-color:var(--primary)}
-.radio-pill-group{display:flex;gap:8px;flex-wrap:wrap}
-.radio-pill input{display:none}
-.radio-pill label{display:block;padding:8px 16px;border-radius:50px;border:1.5px solid #e2d6d3;font-size:12.5px;cursor:pointer;transition:all .2s;font-weight:500}
-.radio-pill input:checked+label{background:var(--primary);color:#fff;border-color:var(--primary)}
-.btn-submit-rsvp{width:100%;background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;border:none;padding:14px;border-radius:10px;font-size:14px;font-weight:700;font-family:'Be Vietnam Pro',sans-serif;cursor:pointer;margin-top:4px;transition:all .2s}
-.btn-submit-rsvp:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(122,12,22,.3)}
-.rsvp-success-msg{display:none;text-align:center;padding:20px}
-.rsvp-success-msg.active{display:block}
 .gift-section{background:#fff;text-align:center}
-.gift-icon-box{font-size:36px;margin-bottom:6px}
-.gift-subtext{font-size:13px;color:var(--text-light);margin-bottom:18px}
-.gift-tabs{display:flex;gap:8px;margin-bottom:16px;justify-content:center}
-.gift-tab-btn{padding:8px 22px;border-radius:50px;border:1.5px solid rgba(122,12,22,.25);background:transparent;color:var(--primary);font-size:13px;font-weight:600;cursor:pointer;font-family:'Be Vietnam Pro',sans-serif;transition:all .2s}
-.gift-tab-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 .bank-card{background:linear-gradient(135deg,#fff9f9,#fff);border:1px solid rgba(122,12,22,.1);border-radius:14px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px}
 .bank-card-header{display:flex;align-items:center;justify-content:space-between}
-.bank-owner-badge{background:var(--primary);color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;padding:3px 10px;border-radius:20px}
+.bank-owner-badge{background:var(--primary);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px}
 .bank-name{font-size:13px;font-weight:700;color:var(--dark)}
-.bank-details{display:flex;align-items:center;justify-content:space-between}
 .bank-account-num{font-size:20px;font-weight:700;color:var(--dark);letter-spacing:1px}
 .bank-account-holder{font-size:11.5px;color:var(--text-light);margin-top:2px}
-.btn-copy-account{background:rgba(122,12,22,.07);border:1px solid rgba(122,12,22,.2);color:var(--primary);padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;font-family:'Be Vietnam Pro',sans-serif;cursor:pointer;transition:all .2s}
-.btn-copy-account.copied{background:var(--primary);color:#fff}
-.qr-preview-box{text-align:center}
 .qr-img{width:140px;height:140px;display:block;margin:0 auto 10px;object-fit:contain}
-.qr-note{font-size:11.5px;color:var(--text-light);line-height:1.5}
 .album-section{background:var(--dark);padding:28px 16px}
-.album-header-wrap{text-align:center;margin-bottom:16px}
-.album-title-top{font-size:11px;letter-spacing:4px;color:rgba(255,255,255,.5);text-transform:uppercase}
-.album-title-sub{font-family:'Great Vibes',cursive;font-size:38px;color:var(--gold)}
 .album-thumbs-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
-.album-thumb{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;opacity:.6;transition:all .2s;border:2px solid transparent}
-.album-thumb.active{opacity:1;border-color:var(--gold)}
-.album-main-display{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;cursor:zoom-in;transition:opacity .15s}
-.album-zoom-hint{text-align:center;font-size:11px;color:rgba(255,255,255,.4);margin-top:8px}
-.wishes-section{background:var(--pink-soft)}
-.wishes-box{background:#fff;border-radius:14px;padding:16px;box-shadow:var(--shadow)}
-.wish-input-group{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
-.wish-name-input,.wish-msg-input{border:1.5px solid #e2d6d3;border-radius:8px;padding:10px 14px;font-size:13px;font-family:'Be Vietnam Pro',sans-serif;color:var(--text);outline:none;transition:border-color .2s}
-.wish-name-input:focus,.wish-msg-input:focus{border-color:var(--primary)}
-.wish-msg-input{resize:none;min-height:70px}
-.btn-send-wish{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;border:none;padding:11px;border-radius:8px;font-size:13px;font-weight:600;font-family:'Be Vietnam Pro',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
-.wishes-list{list-style:none;display:flex;flex-direction:column;gap:10px}
-.wish-bubble{background:var(--pink-soft);border-radius:10px;padding:12px 14px}
-.wish-sender-title{font-size:12px;font-weight:700;color:var(--primary);margin-bottom:4px;display:flex;align-items:center;justify-content:space-between}
-.wish-sender-title span{font-size:11px;color:var(--text-light);font-weight:400}
-.wish-bubble-text{font-size:13px;color:var(--text);line-height:1.6}
+.album-thumb{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;opacity:.6}
+.album-thumb.active{opacity:1;border:2px solid var(--gold)}
+.album-main-display{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px}
 .footer-bar{background:var(--primary-dark);color:rgba(255,255,255,.85);text-align:center;padding:24px 20px}
 .footer-names{font-family:'Great Vibes',cursive;font-size:32px;color:var(--gold);margin-bottom:8px}
-.footer-bar p{font-size:12px;opacity:.7}
-.lightbox-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;align-items:center;justify-content:center}
-.lightbox-modal.active{display:flex}
-.lightbox-img{max-width:90vw;max-height:85vh;object-fit:contain;border-radius:8px}
-.lightbox-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer}
-.lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:28px;cursor:pointer}
-.lightbox-nav.prev{left:12px}
-.lightbox-nav.next{right:12px}
 </style>
 </head>
 <body>
 <div class="hearts-bg" id="heartsContainer"></div>
-<button class="music-btn" id="musicBtn" aria-label="Nhạc"><div class="vinyl"></div></button>
-<button class="floating-like-btn" id="floatingLikeBtn" aria-label="Tim">&#x1F496;<span id="likeCount">520</span></button>
+<button class="music-btn" id="musicBtn"><div class="vinyl"></div></button>
+<button class="floating-like-btn" id="floatingLikeBtn">&#x1F496; <span id="likeCount">520</span></button>
 
 <main class="invitation-card">
-
-<section class="cover-section" id="cover">
-  <img class="cover-img" src="${imgHero}" alt="Ảnh cưới ${esc(c.groomName)} &amp; ${esc(c.brideName)}"/>
+<section class="cover-section">
+  <img class="cover-img" src="${imgHero}" alt="Ảnh cưới"/>
   <div class="cover-gradient"></div>
   <div class="cover-text">
     <span class="cover-sub">INVITATION</span>
     <h1 class="cover-title">${esc(c.groomName)}<span class="cover-amp">&amp;</span>${esc(c.brideName)}</h1>
     <div class="cover-date-pill">${dateDisplay}</div>
   </div>
-  <div class="scroll-down-hint"><span>Cuộn xuống</span><span>↓</span></div>
 </section>
 
-<section class="family-section" id="family">
-  <div class="sec-header" style="padding-top:10px;">
+<section class="family-section">
+  <div class="sec-header">
     <span class="sec-sub">LỜI NGỎ</span>
     <h2 class="sec-title">Gia Đình &amp; Đôi Uyên Ương</h2>
   </div>
@@ -1361,296 +2115,95 @@ section{padding:28px 20px}
   </div>
 </section>
 
-<section class="events-section" id="events">
+<section class="events-section">
   <div class="event-card">
     <div class="event-badge">TIỆC CƯỚI NHÀ GÁI</div>
     <div class="event-time">VÀO LÚC ${esc(c.brideTime)} • ${esc(c.weddingDayOfWeek).toUpperCase()}</div>
     <div class="event-date-large">${dateFull}</div>
-    <div class="event-lunar">(Tức ngày ${esc(c.lunarDate)})</div>
     <div class="event-venue">TẠI ${esc(c.brideVenue).toUpperCase()}</div>
     <div class="event-address">${esc(c.brideAddress)}</div>
-    <div class="event-actions">
-      <a href="${esc(c.brideMapUrl)}" target="_blank" class="event-btn" rel="noopener noreferrer">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-        Xem Bản Đồ
-      </a>
-    </div>
+    <div><a href="${esc(c.brideMapUrl)}" target="_blank" class="event-btn">Xem Bản Đồ</a></div>
   </div>
   <div class="event-card">
     <div class="event-badge">TIỆC CƯỚI NHÀ TRAI</div>
     <div class="event-time">VÀO LÚC ${esc(c.groomTime)} • ${esc(c.weddingDayOfWeek).toUpperCase()}</div>
     <div class="event-date-large">${dateFull}</div>
-    <div class="event-lunar">(Tức ngày ${esc(c.lunarDate)})</div>
     <div class="event-venue">TẠI ${esc(c.groomVenue).toUpperCase()}</div>
     <div class="event-address">${esc(c.groomAddress)}</div>
-    <div class="event-actions">
-      <a href="${esc(c.groomMapUrl)}" target="_blank" class="event-btn" rel="noopener noreferrer">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-        Xem Bản Đồ
-      </a>
-    </div>
+    <div><a href="${esc(c.groomMapUrl)}" target="_blank" class="event-btn">Xem Bản Đồ</a></div>
   </div>
 </section>
 
-<section class="schedule-section" id="schedule">
-  <div class="sec-header" style="padding-top:10px;">
+<section class="schedule-section">
+  <div class="sec-header">
     <span class="sec-sub">LỊCH TRÌNH</span>
-    <h2 class="sec-title-serif" style="font-size:18px;">Chương Trình Lễ Cưới</h2>
+    <h2 class="sec-title-serif">Chương Trình Lễ Cưới</h2>
   </div>
   <div class="schedule-timeline">
-    ${c.schedule.map(s => `<div class="schedule-item"><div class="schedule-dot"></div><div class="schedule-time">${esc(s.time)}</div><div class="schedule-title">${esc(s.title)}</div><div class="schedule-desc">${esc(s.desc)}</div></div>`).join('\n    ')}
+    ${c.schedule.map(s => `<div class="schedule-item"><div class="schedule-dot"></div><div class="schedule-time">${esc(s.time)}</div><div class="schedule-title">${esc(s.title)}</div><div class="schedule-desc">${esc(s.desc)}</div></div>`).join('\n')}
   </div>
 </section>
 
-<section class="calendar-section" id="calendar">
-  <div class="sec-header" style="padding-top:10px;">
-    <span class="sec-sub">TIẾT ĐIỂM HẸN</span>
-    <h2 class="sec-title-serif">Tháng ${esc(c.weddingMonth)} Năm ${esc(c.weddingYear)}</h2>
-  </div>
-  <div class="calendar-card">
-    <div class="cal-header-bar">THÁNG ${esc(c.weddingMonth)} / ${esc(c.weddingYear)}</div>
-    <div class="cal-grid" id="calGrid"></div>
-    <div class="calendar-footer-text">❤ ${esc(c.weddingDayOfWeek)}, ${esc(c.weddingDay)} Tháng ${esc(c.weddingMonth)}, ${esc(c.weddingYear)} (Tức ngày ${esc(c.lunarDate)}) ❤</div>
-  </div>
-</section>
-
-<section class="countdown-section" id="countdown">
-  <span class="sec-sub">CÙNG CHỜ ĐÓN</span>
-  <h2 class="sec-title-serif" style="font-size:18px;">Đếm Ngược Đến Ngày Trọng Đại</h2>
-  <div class="countdown-grid">
-    <div class="cd-box"><span class="cd-number" id="cd-days">--</span><span class="cd-label">Ngày</span></div>
-    <div class="cd-box"><span class="cd-number" id="cd-hours">--</span><span class="cd-label">Giờ</span></div>
-    <div class="cd-box"><span class="cd-number" id="cd-mins">--</span><span class="cd-label">Phút</span></div>
-    <div class="cd-box"><span class="cd-number" id="cd-secs">--</span><span class="cd-label">Giây</span></div>
-  </div>
-</section>
-
-<section class="photo-quote-section" id="quote">
-  <img class="photo-quote-img" src="${imgQuote}" alt="Khoảnh khắc yêu thương"/>
+<section class="photo-quote-section">
+  <img class="photo-quote-img" src="${imgQuote}" alt="Quote"/>
   <div class="photo-quote-overlay">
     <div class="quote-badge">Love &amp; Forever</div>
     <p class="quote-content">${esc(c.quoteText)}</p>
   </div>
 </section>
 
-<section class="rsvp-section" id="rsvp">
-  <div class="sec-header" style="padding-top:0;">
-    <span class="sec-sub">PHẢN HỒI</span>
-    <h2 class="sec-title-serif">Xác Nhận Tham Dự</h2>
-  </div>
-  <div class="rsvp-box">
-    <form id="rsvpForm" onsubmit="event.preventDefault();submitRsvpForm();">
-      <div class="form-group"><label class="form-label" for="guestName">Họ và tên</label><input class="form-input" id="guestName" type="text" placeholder="Nhập tên..." required/></div>
-      <div class="form-group"><label class="form-label">Bạn sẽ đến chứ?</label>
-        <div class="radio-pill-group">
-          <div class="radio-pill"><input type="radio" id="att-yes" name="attendance" value="yes" checked/><label for="att-yes">Có, chắc chắn đến ❤</label></div>
-          <div class="radio-pill"><input type="radio" id="att-no" name="attendance" value="no"/><label for="att-no">Rất tiếc không thể đến</label></div>
-        </div>
-      </div>
-      <div class="form-group"><label class="form-label">Khách mời bên nào?</label>
-        <div class="radio-pill-group">
-          <div class="radio-pill"><input type="radio" id="side-groom" name="guestSide" value="groom" checked/><label for="side-groom">Bên Nhà Trai</label></div>
-          <div class="radio-pill"><input type="radio" id="side-bride" name="guestSide" value="bride"/><label for="side-bride">Bên Nhà Gái</label></div>
-        </div>
-      </div>
-      <div class="form-group"><label class="form-label" for="guestCount">Số người tham dự</label>
-        <select class="form-select" id="guestCount"><option>1 người</option><option>2 người</option><option>3 người</option><option>4 người</option><option>5+ người</option></select>
-      </div>
-      <button type="submit" class="btn-submit-rsvp">Gửi Xác Nhận Tham Dự</button>
-    </form>
-    <div class="rsvp-success-msg" id="rsvpSuccessMsg">
-      <div style="font-size:42px;margin-bottom:8px;">🎉</div>
-      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--primary);margin-bottom:6px;">Cảm Ơn Bạn Đã Xác Nhận!</div>
-      <div style="font-size:13.5px;color:#666;">Sự hiện diện của bạn là niềm vinh hạnh 💕</div>
-    </div>
-  </div>
-</section>
-
-<section class="gift-section" id="gift">
-  <div class="gift-icon-box">🎁</div>
-  <span class="sec-sub">CHÚC PHÚC</span>
-  <h2 class="sec-title-serif" style="margin-bottom:6px;">Hộp Mừng Cưới</h2>
-  <p class="gift-subtext">Gửi trao yêu thương tới Cô Dâu – Chú Rể</p>
-  <div class="gift-tabs">
-    <button class="gift-tab-btn active" id="tabGroomBtn" onclick="switchGiftTab('groom')">Mừng Chú Rể</button>
-    <button class="gift-tab-btn" id="tabBrideBtn" onclick="switchGiftTab('bride')">Mừng Cô Dâu</button>
-  </div>
-  <div id="tabGroomContent" class="bank-card">
+<section class="gift-section">
+  <div style="font-size:32px;margin-bottom:6px;">🎁</div>
+  <h2 class="sec-title-serif" style="margin-bottom:12px;">Hộp Mừng Cưới</h2>
+  <div class="bank-card">
     <div class="bank-card-header"><span class="bank-owner-badge">Chú Rể</span><span class="bank-name">${esc(c.groomBank)}</span></div>
-    <div class="bank-details">
-      <div><div class="bank-account-num" id="accGroom">${esc(c.groomAccountNum)}</div><div class="bank-account-holder">${esc(c.groomAccountName)}</div></div>
-      <button class="btn-copy-account" onclick="copyAccount('accGroom',this)"><span>Sao chép STK</span></button>
-    </div>
-    <div class="qr-preview-box">${qrGroomHTML}<div class="qr-note">Quét QR để mừng <strong>Chú Rể ${esc(c.groomName)}</strong></div></div>
-  </div>
-  <div id="tabBrideContent" class="bank-card" style="display:none;">
-    <div class="bank-card-header"><span class="bank-owner-badge" style="background:#b3394b;">Cô Dâu</span><span class="bank-name">${esc(c.brideBank)}</span></div>
-    <div class="bank-details">
-      <div><div class="bank-account-num" id="accBride">${esc(c.brideAccountNum)}</div><div class="bank-account-holder">${esc(c.brideAccountName)}</div></div>
-      <button class="btn-copy-account" onclick="copyAccount('accBride',this)"><span>Sao chép STK</span></button>
-    </div>
-    <div class="qr-preview-box">${qrBrideHTML}<div class="qr-note">Quét QR để mừng <strong>Cô Dâu ${esc(c.brideName)}</strong></div></div>
+    <div><div class="bank-account-num">${esc(c.groomAccountNum)}</div><div class="bank-account-holder">${esc(c.groomAccountName)}</div></div>
+    <div>${qrGroomHTML}</div>
   </div>
 </section>
 
-<section class="album-section" id="album">
-  <div class="album-header-wrap"><div class="album-title-top">ALBUM</div><div class="album-title-sub">of Love</div></div>
-  <div class="album-thumbs-row" id="albumThumbsRow"></div>
-  <img id="albumMainImg" class="album-main-display" src="${imgA0}" alt="Ảnh album" onclick="openLightbox(currentAlbumIndex)"/>
-  <div class="album-zoom-hint">🔍 Nhấn để xem toàn màn hình</div>
-</section>
-
-<section class="wishes-section" id="wishes">
-  <div class="sec-header" style="padding-top:0;">
-    <span class="sec-sub">LỜI CHÚC TỪ TRÁI TIM</span>
-    <h2 class="sec-title-serif">Sổ Lưu Bút</h2>
+<section class="album-section">
+  <div class="album-thumbs-row" id="thumbs">
+    <img class="album-thumb active" src="${imgA0}"/>
+    <img class="album-thumb" src="${imgA1}"/>
+    <img class="album-thumb" src="${imgA2}"/>
+    <img class="album-thumb" src="${imgA3}"/>
   </div>
-  <div class="wishes-box">
-    <div class="wish-input-group">
-      <input class="wish-name-input" id="wishSenderName" type="text" placeholder="Tên của bạn..." maxlength="40"/>
-      <textarea class="wish-msg-input" id="wishMessageText" placeholder="Gửi lời chúc..." maxlength="200"></textarea>
-      <button class="btn-send-wish" onclick="handleSendWish()"><span>Gửi Lời Chúc</span><span>💝</span></button>
-    </div>
-    <ul class="wishes-list" id="wishesListContainer">
-      <li class="wish-bubble"><div class="wish-sender-title">Phương Mai 💕 <span>Vừa xong</span></div><div class="wish-bubble-text">Chúc hai bạn trăm năm hòa hợp, mãi mãi hạnh phúc!</div></li>
-      <li class="wish-bubble"><div class="wish-sender-title">Tuấn Kiệt 🎉 <span>5 phút trước</span></div><div class="wish-bubble-text">Chúc đôi uyên ương sớm đón thêm thành viên nhí dễ thương!</div></li>
-    </ul>
-  </div>
+  <img id="mainAlb" class="album-main-display" src="${imgA0}"/>
 </section>
 
 <footer class="footer-bar">
   <div class="footer-names">${esc(c.groomName)} &amp; ${esc(c.brideName)}</div>
-  <p>Cảm ơn bạn đã luôn đồng hành và chia sẻ niềm vui cùng chúng mình!</p>
+  <p>Cảm ơn quý khách đã đến chung vui!</p>
 </footer>
 </main>
 
-<div class="lightbox-modal" id="lightboxModal">
-  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-  <button class="lightbox-nav prev" onclick="navigateLightbox(-1)">‹</button>
-  <img id="lightboxImg" class="lightbox-img" src="" alt="Ảnh phóng to"/>
-  <button class="lightbox-nav next" onclick="navigateLightbox(1)">›</button>
-</div>
-
 <script>
-const albumList = ${albumJSON};
-let currentAlbumIndex = 0;
-const thumbsContainer = document.getElementById('albumThumbsRow');
-albumList.forEach((src, idx) => {
-  const img = document.createElement('img');
-  img.className = 'album-thumb' + (idx === 0 ? ' active' : '');
-  img.src = src; img.alt = 'Ảnh ' + (idx+1);
-  img.onclick = () => selectAlbumPhoto(idx);
-  thumbsContainer.appendChild(img);
-});
-function selectAlbumPhoto(idx) {
-  currentAlbumIndex = idx;
-  document.querySelectorAll('.album-thumb').forEach((t,i) => t.classList.toggle('active', i===idx));
-  const m = document.getElementById('albumMainImg');
-  m.style.opacity = '0'; setTimeout(() => { m.src = albumList[idx]; m.style.opacity = '1'; }, 150);
-}
-function openLightbox(idx) { currentAlbumIndex=idx; document.getElementById('lightboxImg').src=albumList[idx]; document.getElementById('lightboxModal').classList.add('active'); }
-function closeLightbox() { document.getElementById('lightboxModal').classList.remove('active'); }
-function navigateLightbox(dir) { currentAlbumIndex=(currentAlbumIndex+dir+albumList.length)%albumList.length; document.getElementById('lightboxImg').src=albumList[currentAlbumIndex]; selectAlbumPhoto(currentAlbumIndex); }
-document.getElementById('lightboxModal').addEventListener('click', e => { if(e.target.id==='lightboxModal') closeLightbox(); });
-
 const heartsBg = document.getElementById('heartsContainer');
-const heartIcons = ['♡','♥','❤','💕','💖','💗'];
+const heartIcons = ['♡','♥','❤','💕','💖'];
 function spawnHeart() {
   const el = document.createElement('div'); el.className='heart-float';
   el.textContent = heartIcons[Math.floor(Math.random()*heartIcons.length)];
   el.style.left=(Math.random()*95)+'vw'; el.style.fontSize=(12+Math.random()*16)+'px';
-  const d=7+Math.random()*8; el.style.animationDuration=d+'s';
-  heartsBg.appendChild(el); setTimeout(()=>el.remove(),(d+1)*1000);
+  el.style.animationDuration=(7+Math.random()*8)+'s';
+  heartsBg.appendChild(el); setTimeout(()=>el.remove(),15000);
 }
-setInterval(spawnHeart,900); for(let i=0;i<6;i++) setTimeout(spawnHeart,i*400);
-
-let currentLikeCount=520;
-document.getElementById('floatingLikeBtn').addEventListener('click',function(e){
-  currentLikeCount++; document.getElementById('likeCount').textContent=currentLikeCount;
-  const rect=this.getBoundingClientRect(), hs=['💖','💕','❤️','💝','✨'];
-  for(let i=0;i<5;i++) setTimeout(()=>{
-    const h=document.createElement('div'); h.className='like-burst-heart';
-    h.textContent=hs[Math.floor(Math.random()*hs.length)];
-    h.style.left=(rect.left+15)+'px'; h.style.top=(rect.top+5)+'px';
-    h.style.setProperty('--rand-x',(Math.random()-.5)*120); h.style.setProperty('--rand-rot',(Math.random()-.5)*60);
-    document.body.appendChild(h); setTimeout(()=>h.remove(),1000);
-  },i*60);
-});
-
-const musicBtn=document.getElementById('musicBtn'); let isMusicPlaying=false;
-const audio=new Audio('${esc(c.musicUrl)}'); audio.loop=true; audio.volume=${parseFloat(c.musicVolume) || 0.45};
-musicBtn.addEventListener('click',()=>{
-  if(!isMusicPlaying){audio.play().then(()=>{isMusicPlaying=true;musicBtn.classList.add('playing');}).catch(()=>{isMusicPlaying=true;musicBtn.classList.add('playing');});}
-  else{audio.pause();isMusicPlaying=false;musicBtn.classList.remove('playing');}
-});
-function initAudio(){if(!isMusicPlaying){audio.play().then(()=>{isMusicPlaying=true;musicBtn.classList.add('playing');}).catch(()=>{});}window.removeEventListener('click',initAudio);window.removeEventListener('scroll',initAudio);}
-window.addEventListener('click',initAudio,{once:true}); window.addEventListener('scroll',initAudio,{once:true});
-
-const WEDDING_TARGET=new Date('${wISO}T11:00:00');
-function updateCountdown(){
-  let diff=WEDDING_TARGET-new Date(); if(diff<0)diff=0;
-  document.getElementById('cd-days').textContent=String(Math.floor(diff/(864e5))).padStart(2,'0');
-  document.getElementById('cd-hours').textContent=String(Math.floor((diff%864e5)/36e5)).padStart(2,'0');
-  document.getElementById('cd-mins').textContent=String(Math.floor((diff%36e5)/6e4)).padStart(2,'0');
-  document.getElementById('cd-secs').textContent=String(Math.floor((diff%6e4)/1e3)).padStart(2,'0');
-}
-updateCountdown(); setInterval(updateCountdown,1000);
-
-(function buildCal(){
-  const yr=${parseInt(c.weddingYear) || 2026}, mo=${parseInt(c.weddingMonth) || 12}, wd=${parseInt(c.weddingDay) || 20};
-  const fd=new Date(yr,mo-1,1).getDay(), dim=new Date(yr,mo,0).getDate();
-  const off=fd===0?6:fd-1;
-  const grid=document.getElementById('calGrid'); if(!grid)return;
-  ['T2','T3','T4','T5','T6','T7','CN'].forEach(d=>{const h=document.createElement('div');h.className='cal-day-title';h.textContent=d;grid.appendChild(h);});
-  for(let i=0;i<off;i++){const c=document.createElement('div');c.className='cal-cell';grid.appendChild(c);}
-  for(let d=1;d<=dim;d++){const c=document.createElement('div');c.className='cal-cell'+(d===wd?' wedding-day':'');c.textContent=d;grid.appendChild(c);}
-  const rem=(off+dim)%7; if(rem>0)for(let i=0;i<7-rem;i++){const c=document.createElement('div');c.className='cal-cell';grid.appendChild(c);}
-})();
-
-function switchGiftTab(type){
-  document.getElementById('tabGroomBtn').classList.toggle('active',type==='groom');
-  document.getElementById('tabBrideBtn').classList.toggle('active',type==='bride');
-  document.getElementById('tabGroomContent').style.display=type==='groom'?'flex':'none';
-  document.getElementById('tabBrideContent').style.display=type==='bride'?'flex':'none';
-}
-
-function submitRsvpForm(){
-  const name=document.getElementById('guestName').value.trim(); if(!name)return;
-  document.getElementById('rsvpForm').style.display='none';
-  document.getElementById('rsvpSuccessMsg').classList.add('active');
-  addNewWish(name+' 💕','Rất vui vì được mời tham dự ngày trọng đại của hai bạn!');
-}
-
-function copyAccount(elementId,btnElement){
-  const text=document.getElementById(elementId).innerText.replace(/\s+/g,'');
-  navigator.clipboard.writeText(text).then(()=>{const o=btnElement.innerHTML;btnElement.classList.add('copied');btnElement.innerHTML='<span>Đã sao chép! ✓</span>';setTimeout(()=>{btnElement.classList.remove('copied');btnElement.innerHTML=o;},2200);}).catch(()=>alert('STK: '+text));
-}
-
-function addNewWish(sender,message){
-  const list=document.getElementById('wishesListContainer');
-  const item=document.createElement('li');item.className='wish-bubble';
-  item.innerHTML=\`<div class="wish-sender-title">\${sender} <span>Vừa xong</span></div><div class="wish-bubble-text">\${message}</div>\`;
-  list.insertBefore(item,list.firstChild);
-}
-
-function handleSendWish(){
-  const ni=document.getElementById('wishSenderName'),mi=document.getElementById('wishMessageText');
-  const name=ni.value.trim()||'Người bạn thân',msg=mi.value.trim();
-  if(!msg){mi.focus();return;}
-  addNewWish(name+' ✨',msg); mi.value=''; ni.value='';
-}
+setInterval(spawnHeart,1200);
 <\/script>
 </body>
 </html>`;
     }
 
     // ============================================================
-    // GENERATE & DOWNLOAD
+    // GENERATE & DOWNLOAD STATIC HTML (OFFLINE BACKUP)
     // ============================================================
     function generateWedding() {
       const c = getConfig();
-      if (!c.groomName || !c.brideName) { showToast('⚠️ Vui lòng nhập tên cô dâu và chú rể!'); return; }
-      showToast('⏳ Đang tạo thiệp...');
+      if (!c.groomName || !c.brideName) {
+        showToast('⚠️ Vui lòng nhập tên cô dâu và chú rể!');
+        return;
+      }
+      showToast('⏳ Đang tạo thiệp tĩnh...');
       setTimeout(() => {
         try {
           const html = buildWeddingHTML(c);
@@ -1661,9 +2214,11 @@ function handleSendWish(){
           const gn = c.groomName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
           const bn = c.brideName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
           a.download = 'thiep-cuoi-' + gn + '-' + bn + '.html';
-          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
           URL.revokeObjectURL(url);
-          showToast('✅ Thiệp đã được tạo và tải xuống!');
+          showToast('✅ Đã xuất và tải file HTML!');
         } catch (e) {
           showToast('❌ Lỗi: ' + e.message);
         }
@@ -1671,23 +2226,16 @@ function handleSendWish(){
     }
 
     // ============================================================
-    // TOAST
+    // TOAST NOTIFICATIONS
     // ============================================================
     let toastTimer = null;
     function showToast(msg) {
       const t = document.getElementById('toast');
-      t.textContent = msg; t.classList.add('show');
+      t.textContent = msg;
+      t.classList.add('show');
       clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
     }
-
-    // ============================================================
-    // INIT
-    // ============================================================
-    window.addEventListener('DOMContentLoaded', () => {
-      updateProgress();
-      setTimeout(() => liveUpdate(), 400);
-    });
   </script>
 </body>
 

@@ -1,0 +1,10 @@
+# HƯỚNG DẪN CẤU HÌNH CADDY TỰ ĐỘNG CẤP SSL HTTPS MIỄN PHÍ (LET'S ENCRYPT)
+# Thay yourdomain.com bằng tên miền thật của bạn đã trỏ DNS về IP của VPS.
+
+yourdomain.com {
+    reverse_proxy web:3000
+}
+
+pb.yourdomain.com {
+    reverse_proxy pocketbase:8090
+}

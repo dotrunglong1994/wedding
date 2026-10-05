@@ -1277,7 +1277,9 @@
       }
     ],
     "id": "wedding_content_col",
-    "indexes": [],
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_wedding_slug` ON `wedding_content` (`slug`) WHERE `slug` != ''"
+    ],
     "listRule": "",
     "name": "wedding_content",
     "system": false,

@@ -4,8 +4,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Thiệp Cưới - Vĩnh Quang & Thúy An</title>
-  <meta name="description" content="Thiệp mời dự lễ cưới của Vĩnh Quang & Thúy An - 20 tháng 12 năm 2026" />
+  <base href="/" />
+  <title>Thiệp Cưới Online</title>
+  <meta name="description" content="Thiệp cưới online - Trân trọng kính mời quý khách đến dự lễ cưới chung vui cùng gia đình chúng mình!" />
+  <!-- Open Graph / Facebook / Zalo Preview -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Thiệp Cưới Online" />
+  <meta property="og:description" content="Trân trọng kính mời quý khách đến dự lễ cưới chung vui cùng gia đình chúng mình!" />
+  <meta property="og:image" content="/images/wedding_couple_hero.jpg" />
+  <meta property="og:url" content="" />
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Thiệp Cưới Online" />
+  <meta name="twitter:description" content="Trân trọng kính mời quý khách đến dự lễ cưới chung vui cùng gia đình chúng mình!" />
+  <meta name="twitter:image" content="/images/wedding_couple_hero.jpg" />
   <link
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Great+Vibes&family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap"
     rel="stylesheet" />
@@ -1895,10 +1907,10 @@
   <script>
     // ====== ẢNH CƯỚI CHẤT LƯỢNG CAO ======
     const WEDDING_IMAGES = {
-      hero: './images/wedding_couple_hero.jpg',
-      p2: './images/wedding_couple_2.jpg',
-      p3: './images/wedding_couple_3.jpg',
-      p4: './images/wedding_couple_4.jpg',
+      hero: '/images/wedding_couple_hero.jpg',
+      p2: '/images/wedding_couple_2.jpg',
+      p3: '/images/wedding_couple_3.jpg',
+      p4: '/images/wedding_couple_4.jpg',
     };
 
     // Gán ảnh bìa, ảnh quote và ảnh album
@@ -2210,11 +2222,33 @@
       });
     }
 
+    function getSlugOrIdFromUrl() {
+      // 1. Kiểm tra query params trước (đảm bảo tương thích ngược link cũ)
+      const urlParams = new URLSearchParams(window.location.search);
+      const querySlug = urlParams.get('slug');
+      const queryId = urlParams.get('id');
+      if (querySlug) return { slug: querySlug, id: queryId };
+
+      // 2. Lấy từ sub-path: ví dụ /thiep/quang-va-an hoặc /t/quang-va-an
+      const path = window.location.pathname.replace(/\/+$/, '');
+      const parts = path.split('/').filter(Boolean);
+
+      if (parts.length >= 2 && (parts[0] === 'thiep' || parts[0] === 't')) {
+        return { slug: decodeURIComponent(parts[1]), id: queryId };
+      }
+
+      // Dạng /:slug trực tiếp (nếu không trùng với các trang chức năng)
+      const reserved = ['login', 'dashboard', 'admin', 'index', 'images', 'api', 'nhac.mp3'];
+      if (parts.length === 1 && !reserved.includes(parts[0].toLowerCase())) {
+        return { slug: decodeURIComponent(parts[0]), id: queryId };
+      }
+
+      return { slug: null, id: queryId };
+    }
+
     async function syncPocketBaseData() {
       try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const slug = urlParams.get('slug');
-        const id = urlParams.get('id');
+        const { slug, id } = getSlugOrIdFromUrl();
 
         let d = null;
         if (slug) {
@@ -2222,6 +2256,8 @@
             d = await pb.collection("wedding_content").getFirstListItem(`slug = "${slug}"`);
           } catch (_) {
             console.warn("Không tìm thấy thiệp cưới với slug:", slug);
+            // Thử fallback tìm theo id nếu slug trùng id
+            try { d = await pb.collection("wedding_content").getOne(slug); } catch (_) {}
           }
         }
         if (!d && id) {

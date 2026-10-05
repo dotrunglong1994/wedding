@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <base href="/" />
   <title>Thiệp Cưới - Vĩnh Quang & Thúy An</title>
   <meta name="description" content="Thiệp mời dự lễ cưới của Vĩnh Quang & Thúy An - 20 tháng 12 năm 2026" />
   <link
@@ -1895,10 +1896,10 @@
   <script>
     // ====== ẢNH CƯỚI CHẤT LƯỢNG CAO ======
     const WEDDING_IMAGES = {
-      hero: './images/wedding_couple_hero.jpg',
-      p2: './images/wedding_couple_2.jpg',
-      p3: './images/wedding_couple_3.jpg',
-      p4: './images/wedding_couple_4.jpg',
+      hero: '/images/wedding_couple_hero.jpg',
+      p2: '/images/wedding_couple_2.jpg',
+      p3: '/images/wedding_couple_3.jpg',
+      p4: '/images/wedding_couple_4.jpg',
     };
 
     // Gán ảnh bìa, ảnh quote và ảnh album
@@ -2210,11 +2211,30 @@
       });
     }
 
+    function getSlugOrIdFromUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const querySlug = urlParams.get('slug');
+      const queryId = urlParams.get('id');
+      if (querySlug) return { slug: querySlug, id: queryId };
+
+      const path = window.location.pathname.replace(/\/+$/, '');
+      const parts = path.split('/').filter(Boolean);
+
+      if (parts.length >= 2 && (parts[0] === 'thiep' || parts[0] === 't')) {
+        return { slug: decodeURIComponent(parts[1]), id: queryId };
+      }
+
+      const reserved = ['login', 'dashboard', 'admin', 'index', 'images', 'api', 'nhac.mp3'];
+      if (parts.length === 1 && !reserved.includes(parts[0].toLowerCase())) {
+        return { slug: decodeURIComponent(parts[0]), id: queryId };
+      }
+
+      return { slug: null, id: queryId };
+    }
+
     async function syncPocketBaseData() {
       try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const slug = urlParams.get('slug');
-        const id = urlParams.get('id');
+        const { slug, id } = getSlugOrIdFromUrl();
 
         let d = null;
         if (slug) {
@@ -2222,6 +2242,7 @@
             d = await pb.collection("wedding_content").getFirstListItem(`slug = "${slug}"`);
           } catch (_) {
             console.warn("Không tìm thấy thiệp cưới với slug:", slug);
+            try { d = await pb.collection("wedding_content").getOne(slug); } catch (_) {}
           }
         }
         if (!d && id) {

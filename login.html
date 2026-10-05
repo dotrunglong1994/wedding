@@ -345,9 +345,15 @@
     document.getElementById('serverUrlDisplay').textContent = currentPbUrl.replace(/^https?:\/\//, '');
     document.getElementById('customPbUrl').value = currentPbUrl;
 
-    // Check if already authenticated -> go to dashboard
+    // Check if already authenticated -> go to dashboard if approved
     if (pb.authStore.isValid && pb.authStore.model) {
-      window.location.href = 'dashboard.html';
+      const u = pb.authStore.model;
+      const isPrivileged = pb.authStore.isSuperuser || u?.collectionName === '_superusers' || u?.role === 'admin';
+      if (!isPrivileged && !u?.verified) {
+        pb.authStore.clear();
+      } else {
+        window.location.href = '/dashboard';
+      }
     }
 
     function switchTab(tab) {
@@ -410,9 +416,22 @@
         }
 
         if (authSuccess) {
+          const user = pb.authStore.model;
+          const isSuper = pb.authStore.isSuperuser || user?.collectionName === '_superusers';
+          const isAdmin = isSuper || user?.role === 'admin';
+
+          // Nếu là thành viên thông thường và chưa được duyệt
+          if (!isAdmin && !user?.verified) {
+            pb.authStore.clear();
+            showToast('⏳ Tài khoản của bạn đang chờ Admin phê duyệt! Vui lòng liên hệ Admin để được kích hoạt.');
+            btn.disabled = false;
+            btn.innerHTML = '<span>Đăng Nhập Vào Hệ Thống</span> →';
+            return;
+          }
+
           showToast('✅ Đăng nhập thành công! Đang chuyển hướng...');
           setTimeout(() => {
-            window.location.href = 'dashboard.html';
+            window.location.href = '/dashboard';
           }, 800);
         } else {
           showToast('❌ Sai email hoặc mật khẩu!');
@@ -444,21 +463,26 @@
       btn.innerHTML = '<span>Đang đăng ký tài khoản...</span>';
 
       try {
-        // Create user in PocketBase
+        // Tạo tài khoản với trạng thái mặc định: verified = false (Chờ duyệt)
         await pb.collection('users').create({
           email: email,
           password: pass,
           passwordConfirm: confirm,
-          name: name
+          name: name,
+          verified: false,
+          role: 'member'
         });
 
-        // Auto login after registration
-        await pb.collection('users').authWithPassword(email, pass);
+        showToast('🎉 Đăng ký thành công! Tài khoản đang chờ Admin phê duyệt để kích hoạt.');
+        btn.disabled = false;
+        btn.innerHTML = '<span>Tạo Tài Khoản & Bắt Đầu</span> ✦';
 
-        showToast('🎉 Đăng ký thành công! Đang vào trang quản trị...');
         setTimeout(() => {
-          window.location.href = 'dashboard.html';
-        }, 900);
+          switchTab('login');
+          document.getElementById('loginEmail').value = email;
+          document.getElementById('loginPass').value = '';
+          document.getElementById('loginPass').focus();
+        }, 1500);
       } catch (err) {
         console.error(err);
         const errDetail = err.data?.data ? JSON.stringify(err.data.data) : (err.message || '');

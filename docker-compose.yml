@@ -1,0 +1,40 @@
+services:
+  # 1. DỊCH VỤ POCKETBASE BACKEND & DATABASE
+  pocketbase:
+    build:
+      context: .
+      dockerfile: Dockerfile.pocketbase
+    container_name: wedding_pocketbase
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    volumes:
+      # Dữ liệu sqlite và ảnh upload được lưu cố định vào thư mục ./pb_data trên VPS
+      - ./pb_data:/pb/pb_data
+    networks:
+      - wedding_net
+
+  # 2. DỊCH VỤ WEB NODE.JS (CLEAN URLS & PREVIEW ZALO/FACEBOOK)
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wedding_web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      # Gọi trực tiếp qua mạng nội bộ Docker
+      - POCKETBASE_URL=http://pocketbase:8090
+      # Domain thực tế bên ngoài (cấu hình trong file .env)
+      - PUBLIC_PB_URL=${PUBLIC_PB_URL:-}
+    depends_on:
+      - pocketbase
+    networks:
+      - wedding_net
+
+networks:
+  wedding_net:
+    driver: bridge
