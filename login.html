@@ -596,18 +596,24 @@
 
       try {
         let sent = false;
+        let lastErrorMsg = '';
+
         // 1. Thử gửi qua collection users
         try {
           await pb.collection('users').requestPasswordReset(email);
           sent = true;
-        } catch (_) {}
+        } catch (err1) {
+          lastErrorMsg = err1?.message || '';
+        }
 
         // 2. Thử gửi qua collection _superusers (nếu là tài khoản Admin)
         if (!sent) {
           try {
             await pb.collection('_superusers').requestPasswordReset(email);
             sent = true;
-          } catch (_) {}
+          } catch (err2) {
+            lastErrorMsg = err2?.message || lastErrorMsg;
+          }
         }
 
         if (sent) {
@@ -617,7 +623,11 @@
             switchTab('login');
           }, 3500);
         } else {
-          showToast('❌ Không tìm thấy tài khoản với email này, hoặc máy chủ chưa bật Gmail SMTP!');
+          let errText = 'Không tìm thấy tài khoản với email này, hoặc máy chủ chưa cấu hình Gmail SMTP!';
+          if (lastErrorMsg.toLowerCase().includes('failed to send') || lastErrorMsg.toLowerCase().includes('smtp')) {
+            errText = 'Máy chủ chưa bật cấu hình Gmail SMTP hoặc sai thông tin xác thực!';
+          }
+          showToast('❌ ' + errText);
           btn.disabled = false;
           btn.innerHTML = '<span>Gửi Thư Khôi Phục Đến Gmail</span> ✉️';
         }

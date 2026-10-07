@@ -1386,7 +1386,7 @@
       return str;
     }
 
-    const RESERVED_SLUGS = ['login', 'dashboard', 'admin', 'index', 'images', 'api', 'nhac.mp3', 'thiep', 't', 'favicon.ico'];
+    const RESERVED_SLUGS = ['login', 'dashboard', 'admin', 'users', 'reset-password', 'forgot-password', 'index', 'images', 'api', 'nhac.mp3', 'thiep', 't', 'favicon.ico'];
 
     async function isSlugTaken(slug, excludeId) {
       if (!slug) return false;
@@ -1492,14 +1492,6 @@
 
       input.style.borderColor = '#10b981';
       return true;
-    }
-
-    function updateSlugPreview() {
-      const slug = (document.getElementById('weddingSlug')?.value || '').trim() || 'thiep-cuoi';
-      const el = document.getElementById('slugPreviewText');
-      if (el) {
-        el.textContent = `🔗 Link xem: /thiep/${slug}`;
-      }
     }
 
     function openPublicPage() {

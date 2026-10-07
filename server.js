@@ -6,12 +6,29 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const PB_URL = process.env.POCKETBASE_URL || 'http://127.0.0.1:8090';
 
-// Đọc sẵn template index.html vào bộ nhớ đệm
+// Đọc sẵn template index.html vào bộ nhớ đệm có kiểm tra mtime
 const INDEX_HTML_PATH = path.join(__dirname, 'index.html');
 const LOGIN_HTML_PATH = path.join(__dirname, 'login.html');
 const DASHBOARD_HTML_PATH = path.join(__dirname, 'dashboard.html');
 const ADMIN_HTML_PATH = path.join(__dirname, 'admin_pocketbase.html');
 const USERS_HTML_PATH = path.join(__dirname, 'users.html');
+
+let cachedIndexHtml = null;
+let lastIndexMtime = 0;
+
+function getIndexHtml() {
+  try {
+    const stat = fs.statSync(INDEX_HTML_PATH);
+    if (!cachedIndexHtml || stat.mtimeMs > lastIndexMtime) {
+      cachedIndexHtml = fs.readFileSync(INDEX_HTML_PATH, 'utf-8');
+      lastIndexMtime = stat.mtimeMs;
+    }
+    return cachedIndexHtml;
+  } catch (err) {
+    if (cachedIndexHtml) return cachedIndexHtml;
+    return fs.readFileSync(INDEX_HTML_PATH, 'utf-8');
+  }
+}
 
 function escapeHtml(str) {
   if (!str) return '';
@@ -23,11 +40,22 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;');
 }
 
+// Bộ nhớ đệm ngắn hạn cho metadata thiệp cưới (tránh spam request khi có nhiều crawler cùng lúc)
+const weddingCache = new Map();
+const WEDDING_CACHE_TTL = 15000; // 15 giây
+
 /**
  * Lấy thông tin thiệp cưới từ PocketBase theo slug hoặc id
  */
 async function fetchWeddingData(slugOrId) {
   if (!slugOrId) return null;
+
+  const now = Date.now();
+  const cached = weddingCache.get(slugOrId);
+  if (cached && (now - cached.timestamp < WEDDING_CACHE_TTL)) {
+    return cached.data;
+  }
+
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 2500);
@@ -38,21 +66,35 @@ async function fetchWeddingData(slugOrId) {
     const res = await fetch(slugUrl, { signal: controller.signal });
     clearTimeout(timer);
 
+    let result = null;
     if (res.ok) {
       const data = await res.json();
       if (data.items && data.items.length > 0) {
-        return data.items[0];
+        result = data.items[0];
       }
     }
 
     // 2. Fallback thử tìm theo ID (nếu slug truyền vào là ID record)
-    const idController = new AbortController();
-    const idTimer = setTimeout(() => idController.abort(), 2000);
-    const idRes = await fetch(`${PB_URL}/api/collections/wedding_content/records/${slugOrId}`, { signal: idController.signal });
-    clearTimeout(idTimer);
+    if (!result) {
+      const idController = new AbortController();
+      const idTimer = setTimeout(() => idController.abort(), 2000);
+      const idRes = await fetch(`${PB_URL}/api/collections/wedding_content/records/${slugOrId}`, { signal: idController.signal });
+      clearTimeout(idTimer);
 
-    if (idRes.ok) {
-      return await idRes.json();
+      if (idRes.ok) {
+        result = await idRes.json();
+      }
+    }
+
+    if (result) {
+      weddingCache.set(slugOrId, { data: result, timestamp: now });
+      if (result.id) weddingCache.set(result.id, { data: result, timestamp: now });
+      if (result.slug) weddingCache.set(result.slug, { data: result, timestamp: now });
+      if (weddingCache.size > 200) {
+        const oldestKey = weddingCache.keys().next().value;
+        weddingCache.delete(oldestKey);
+      }
+      return result;
     }
   } catch (err) {
     console.warn(`[PocketBase] Không thể lấy dữ liệu cho slug "${slugOrId}":`, err.message);
@@ -93,8 +135,12 @@ function injectWeddingMeta(htmlContent, wedding, req) {
   const safeImage = escapeHtml(imageUrl);
   const safeUrl = escapeHtml(fullUrl);
 
+  // Nhúng sẵn dữ liệu thiệp để trình duyệt client hiển thị tức thì không cần đợi fetch
+  const safeInitialJson = JSON.stringify(wedding).replace(/</g, '\\u003c');
+  const initialDataScript = `<script>window.__INITIAL_WEDDING_DATA__ = ${safeInitialJson};</script>`;
+
   // Thay thế các thẻ trong file HTML
-  return htmlContent
+  let output = htmlContent
     .replace(/<title>.*?<\/title>/i, `<title>${safeTitle}</title>`)
     .replace(/<meta property="og:title" content=".*?" \/>/i, `<meta property="og:title" content="${safeTitle}" />`)
     .replace(/<meta property="og:description" content=".*?" \/>/i, `<meta property="og:description" content="${safeDesc}" />`)
@@ -103,6 +149,11 @@ function injectWeddingMeta(htmlContent, wedding, req) {
     .replace(/<meta name="twitter:title" content=".*?" \/>/i, `<meta name="twitter:title" content="${safeTitle}" />`)
     .replace(/<meta name="twitter:description" content=".*?" \/>/i, `<meta name="twitter:description" content="${safeDesc}" />`)
     .replace(/<meta name="twitter:image" content=".*?" \/>/i, `<meta name="twitter:image" content="${safeImage}" />`);
+
+  if (output.includes('</head>')) {
+    output = output.replace('</head>', `${initialDataScript}\n</head>`);
+  }
+  return output;
 }
 
 // ==========================================
@@ -113,6 +164,9 @@ app.get('/dashboard.html', (req, res) => res.redirect(301, '/dashboard'));
 app.get('/users.html', (req, res) => res.redirect(301, '/users'));
 app.get(['/admin.html', '/admin_pocketbase.html'], (req, res) => res.redirect(301, '/admin'));
 app.get('/wedding.html', (req, res) => res.redirect(301, '/'));
+
+// Xử lý favicon nhanh chóng không cần query DB
+app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 // ==========================================
 // 2. STATIC FILES (Ảnh, Nhạc, Thư mục images)
@@ -163,7 +217,7 @@ app.get('/admin', (req, res) => {
 // ==========================================
 async function handleWeddingRoute(slug, req, res) {
   try {
-    let html = fs.readFileSync(INDEX_HTML_PATH, 'utf-8');
+    let html = getIndexHtml();
     const wedding = await fetchWeddingData(slug);
     if (wedding) {
       html = injectWeddingMeta(html, wedding, req);
@@ -194,7 +248,7 @@ app.get('/', async (req, res) => {
 });
 
 // Catch-all cho các slug ở root (domain.com/:slug)
-const RESERVED_ROUTES = ['login', 'dashboard', 'admin', 'users', 'index', 'images', 'api', 'nhac.mp3', 'favicon.ico'];
+const RESERVED_ROUTES = ['login', 'dashboard', 'admin', 'users', 'reset-password', 'forgot-password', 'register', 'index', 'images', 'api', 'nhac.mp3', 'favicon.ico'];
 app.get('/:slug', async (req, res, next) => {
   const slug = req.params.slug;
   if (RESERVED_ROUTES.includes(slug.toLowerCase())) {

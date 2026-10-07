@@ -67,7 +67,7 @@ def configure_smtp(gmail, app_password, app_url="http://localhost:3000", sender_
                     "username": clean_gmail,
                     "password": clean_pass,
                     "authMethod": "PLAIN",
-                    "tls": True,
+                    "tls": False,
                     "localName": ""
                 }
                 settings["meta"]["senderName"] = sender_name

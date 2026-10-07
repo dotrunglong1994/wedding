@@ -815,7 +815,14 @@
     async function loadUsersMap() {
       if (!isSuperUser) return;
       try {
-        const users = await pb.collection('users').getFullList();
+        const [users, supers] = await Promise.all([
+          pb.collection('users').getFullList().catch(e => {
+            console.warn('Chưa thể nạp danh sách users:', e);
+            return [];
+          }),
+          pb.collection('_superusers').getFullList().catch(() => [])
+        ]);
+
         users.forEach(u => {
           userMap[u.id] = {
             name: u.name || '',
@@ -823,12 +830,7 @@
             role: u.role || 'member'
           };
         });
-      } catch (e) {
-        console.warn('Chưa thể nạp danh sách users:', e);
-      }
 
-      try {
-        const supers = await pb.collection('_superusers').getFullList();
         supers.forEach(s => {
           userMap[s.id] = {
             name: s.name || s.email.split('@')[0],
@@ -836,7 +838,9 @@
             role: 'admin'
           };
         });
-      } catch (_) {}
+      } catch (e) {
+        console.warn('Lỗi nạp userMap:', e);
+      }
     }
 
     function getAuthorInfo(ownerId) {
@@ -908,21 +912,22 @@
       empty.style.display = 'none';
 
       try {
-        // Nạp danh sách người dùng song song nếu là Admin
-        if (isSuperUser) {
-          await loadUsersMap();
-        }
-
         let filterQuery = '';
         // If not superuser/admin, only show weddings owned by this user (or unowned demo records)
         if (!isSuperUser) {
           filterQuery = `owner = "${currentUser.id}" || owner = ""`;
         }
 
-        const res = await pb.collection('wedding_content').getList(1, 100, {
-          sort: '-created',
-          filter: filterQuery
-        });
+        const queryOpts = { sort: '-created' };
+        if (filterQuery) {
+          queryOpts.filter = filterQuery;
+        }
+
+        // Tải danh sách người dùng và danh sách thiệp song song để tối ưu tốc độ
+        const [_, res] = await Promise.all([
+          isSuperUser ? loadUsersMap() : Promise.resolve(),
+          pb.collection('wedding_content').getList(1, 100, queryOpts)
+        ]);
 
         allRecords = res.items || [];
         if (isSuperUser) {

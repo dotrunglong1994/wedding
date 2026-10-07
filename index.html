@@ -2170,7 +2170,8 @@
     function getPbFileUrl(record, filename, thumb) {
       if (!filename) return "";
       if (filename.startsWith("http://") || filename.startsWith("https://") || filename.startsWith("data:")) return filename;
-      return `${PB_HOST}/api/files/${record.collectionId || record.collectionName || "wedding_content"}/${record.id}/${filename}${thumb ? "?thumb=" + thumb : ""}`;
+      const base = (window.location.origin && !window.location.origin.includes(':8090')) ? '' : PB_HOST;
+      return `${base}/api/files/${record.collectionId || record.collectionName || "wedding_content"}/${record.id}/${filename}${thumb ? "?thumb=" + thumb : ""}`;
     }
 
     function setElText(id, text) {
@@ -2248,26 +2249,29 @@
 
     async function syncPocketBaseData() {
       try {
-        const { slug, id } = getSlugOrIdFromUrl();
+        let d = window.__INITIAL_WEDDING_DATA__ || null;
 
-        let d = null;
-        if (slug) {
-          try {
-            d = await pb.collection("wedding_content").getFirstListItem(`slug = "${slug}"`);
-          } catch (_) {
-            console.warn("Không tìm thấy thiệp cưới với slug:", slug);
-            // Thử fallback tìm theo id nếu slug trùng id
-            try { d = await pb.collection("wedding_content").getOne(slug); } catch (_) {}
+        if (!d) {
+          const { slug, id } = getSlugOrIdFromUrl();
+
+          if (slug) {
+            try {
+              d = await pb.collection("wedding_content").getFirstListItem(`slug = "${slug}"`);
+            } catch (_) {
+              console.warn("Không tìm thấy thiệp cưới với slug:", slug);
+              // Thử fallback tìm theo id nếu slug trùng id
+              try { d = await pb.collection("wedding_content").getOne(slug); } catch (_) {}
+            }
           }
-        }
-        if (!d && id) {
-          try {
-            d = await pb.collection("wedding_content").getOne(id);
-          } catch (_) {}
-        }
-        if (!d && !slug && !id) {
-          const records = await pb.collection("wedding_content").getList(1, 1, { sort: '-created' });
-          if (records.items && records.items.length > 0) d = records.items[0];
+          if (!d && id) {
+            try {
+              d = await pb.collection("wedding_content").getOne(id);
+            } catch (_) {}
+          }
+          if (!d && !slug && !id) {
+            const records = await pb.collection("wedding_content").getList(1, 1, { sort: '-created' });
+            if (records.items && records.items.length > 0) d = records.items[0];
+          }
         }
 
         if (!d) return;

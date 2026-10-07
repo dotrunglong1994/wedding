@@ -1321,7 +1321,7 @@
             username: gmail,
             password: pass,
             authMethod: 'PLAIN',
-            tls: true
+            tls: false
           },
           meta: {
             senderName: 'Hệ Thống Thiệp Cưới',
@@ -1351,7 +1351,7 @@
       btn.textContent = '⏳ Đang gửi...';
 
       try {
-        await pb.settings.testEmail(targetEmail, 'email-test');
+        await pb.settings.testEmail(targetEmail, 'password-reset');
         showToast(`🎉 Đã gửi thư thử nghiệm thành công tới "${targetEmail}"! Hãy kiểm tra Gmail.`);
       } catch (err) {
         console.error('Test email error:', err);
