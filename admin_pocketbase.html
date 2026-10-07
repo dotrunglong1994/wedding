@@ -731,6 +731,8 @@
                 <option value="pastel-pink">🌸 Hồng Pastel (Pastel Pink)</option>
                 <option value="sage-green">🌿 Xanh Sage (Sage Green)</option>
                 <option value="luxury-gold">✨ Hoàng Gia Gold (Royal Gold)</option>
+                <option value="ocean-blue">🌊 Xanh Đại Dương (Ocean Blue)</option>
+                <option value="lavender">💜 Tím Lavender (Romantic Lavender)</option>
               </select>
             </div>
           </div>
@@ -1965,8 +1967,18 @@
       const imgA2 = images.album2 || DEFAULT_IMAGES.album2;
       const imgA3 = images.album3 || DEFAULT_IMAGES.album3;
 
-      const qrGroomHTML = images.qrGroom ? '<img src="' + images.qrGroom + '" class="qr-img" alt="QR" />' : defaultQR('#7a0c16');
-      const qrBrideHTML = images.qrBride ? '<img src="' + images.qrBride + '" class="qr-img" alt="QR" />' : defaultQR('#b3394b');
+      const TEMPLATE_PREVIEW_THEMES = {
+        'classic-red': { primary: '#7a0c16', primaryLight: '#9c1c28', primaryDark: '#58060e', accent: '#d4a373', pinkSoft: '#fceceb', bgPage: '#e8eaee' },
+        'pastel-pink': { primary: '#be185d', primaryLight: '#db2777', primaryDark: '#9d174d', accent: '#f472b6', pinkSoft: '#fdf2f8', bgPage: '#fce7f3' },
+        'sage-green':  { primary: '#15803d', primaryLight: '#16a34a', primaryDark: '#14532d', accent: '#4ade80', pinkSoft: '#f0fdf4', bgPage: '#dcfce7' },
+        'luxury-gold': { primary: '#854d0e', primaryLight: '#a16207', primaryDark: '#713f12', accent: '#eab308', pinkSoft: '#fefce8', bgPage: '#fef08a' },
+        'ocean-blue':  { primary: '#1e40af', primaryLight: '#3b82f6', primaryDark: '#1e3a8a', accent: '#38bdf8', pinkSoft: '#f0f9ff', bgPage: '#e0f2fe' },
+        'lavender':    { primary: '#6d28d9', primaryLight: '#8b5cf6', primaryDark: '#5b21b6', accent: '#a78bfa', pinkSoft: '#f5f3ff', bgPage: '#ede9fe' }
+      };
+      const th = TEMPLATE_PREVIEW_THEMES[c.template] || TEMPLATE_PREVIEW_THEMES['classic-red'];
+
+      const qrGroomHTML = images.qrGroom ? '<img src="' + images.qrGroom + '" class="qr-img" alt="QR" />' : defaultQR(th.primary);
+      const qrBrideHTML = images.qrBride ? '<img src="' + images.qrBride + '" class="qr-img" alt="QR" />' : defaultQR(th.primaryLight);
       const albumJSON = JSON.stringify([imgA0, imgA1, imgA2, imgA3]);
 
       return `<!DOCTYPE html>
@@ -1978,20 +1990,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Great+Vibes&family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--primary:#7a0c16;--primary-light:#9c1c28;--primary-dark:#58060e;--accent:#d4a373;--gold:#c9a84c;--pink-soft:#fceceb;--dark:#231815;--text:#3c3330;--text-light:#7c726e;--bg-page:#e8eaee;--card-bg:#fff;--radius:14px;--shadow:0 8px 30px rgba(0,0,0,.08)}
+:root{--primary:${th.primary};--primary-light:${th.primaryLight};--primary-dark:${th.primaryDark};--accent:${th.accent};--gold:#c9a84c;--pink-soft:${th.pinkSoft};--dark:#231815;--text:#3c3330;--text-light:#7c726e;--bg-page:${th.bgPage};--card-bg:#fff;--radius:14px;--shadow:0 8px 30px rgba(0,0,0,.08)}
 html{scroll-behavior:smooth}
 body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg-page);min-height:100vh;display:flex;justify-content:center;align-items:flex-start;position:relative;overflow-x:hidden;color:var(--text)}
 .hearts-bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
 .heart-float{position:absolute;animation:floatHeart linear infinite;opacity:0;color:#e05f7a;user-select:none}
 @keyframes floatHeart{0%{transform:translateY(100vh) scale(.6) rotate(-15deg);opacity:0}12%{opacity:.65}80%{opacity:.45}100%{transform:translateY(-80px) scale(1.1) rotate(15deg);opacity:0}}
 .invitation-card{position:relative;z-index:1;width:100%;max-width:430px;background:var(--card-bg);box-shadow:0 0 60px rgba(0,0,0,.15);overflow:hidden}
-.music-btn{position:fixed;top:16px;right:16px;z-index:999;width:44px;height:44px;border-radius:50%;background:rgba(122,12,22,.92);border:2px solid rgba(255,255,255,.3);cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);transition:all .3s;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.music-btn{position:fixed;top:16px;right:16px;z-index:999;width:44px;height:44px;border-radius:50%;background:${th.primary};border:2px solid rgba(255,255,255,.3);cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);transition:all .3s;box-shadow:0 4px 16px rgba(0,0,0,.3)}
 .music-btn:hover{transform:scale(1.1)}
 .vinyl{width:20px;height:20px;border-radius:50%;background:conic-gradient(#fff 0deg 60deg,#aaa 60deg 120deg,#fff 120deg 180deg,#aaa 180deg 240deg,#fff 240deg 300deg,#aaa 300deg 360deg);position:relative}
-.vinyl::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;border-radius:50%;background:#7a0c16}
+.vinyl::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;border-radius:50%;background:${th.primary}}
 .music-btn.playing .vinyl{animation:spin 2s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.floating-like-btn{position:fixed;bottom:24px;right:16px;z-index:999;background:rgba(122,12,22,.92);border:2px solid rgba(255,255,255,.25);color:#fff;border-radius:50px;padding:8px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;font-family:'Be Vietnam Pro',sans-serif;backdrop-filter:blur(8px);transition:all .3s;box-shadow:0 4px 16px rgba(122,12,22,.4)}
+.floating-like-btn{position:fixed;bottom:24px;right:16px;z-index:999;background:${th.primary};border:2px solid rgba(255,255,255,.25);color:#fff;border-radius:50px;padding:8px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;font-family:'Be Vietnam Pro',sans-serif;backdrop-filter:blur(8px);transition:all .3s;box-shadow:0 4px 16px rgba(0,0,0,.25)}
 .floating-like-btn:hover{transform:scale(1.07)}
 .cover-section{position:relative;height:100svh;min-height:580px;overflow:hidden}
 .cover-img{width:100%;height:100%;object-fit:cover;display:block}

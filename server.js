@@ -139,6 +139,18 @@ function injectWeddingMeta(htmlContent, wedding, req) {
   const safeInitialJson = JSON.stringify(wedding).replace(/</g, '\\u003c');
   const initialDataScript = `<script>window.__INITIAL_WEDDING_DATA__ = ${safeInitialJson};</script>`;
 
+  // Áp dụng sẵn bảng màu template từ phía máy chủ để tránh chớp màu (FOUC)
+  const TEMPLATE_SERVER_THEMES = {
+    'classic-red': { primary: '#7a0c16', primaryLight: '#9c1c28', primaryDark: '#58060e', accent: '#d4a373', pinkSoft: '#fceceb', bgPage: '#e8eaee' },
+    'pastel-pink': { primary: '#be185d', primaryLight: '#db2777', primaryDark: '#9d174d', accent: '#f472b6', pinkSoft: '#fdf2f8', bgPage: '#fce7f3' },
+    'sage-green':  { primary: '#15803d', primaryLight: '#16a34a', primaryDark: '#14532d', accent: '#4ade80', pinkSoft: '#f0fdf4', bgPage: '#dcfce7' },
+    'luxury-gold': { primary: '#854d0e', primaryLight: '#a16207', primaryDark: '#713f12', accent: '#eab308', pinkSoft: '#fefce8', bgPage: '#fef08a' },
+    'ocean-blue':  { primary: '#1e40af', primaryLight: '#3b82f6', primaryDark: '#1e3a8a', accent: '#38bdf8', pinkSoft: '#f0f9ff', bgPage: '#e0f2fe' },
+    'lavender':    { primary: '#6d28d9', primaryLight: '#8b5cf6', primaryDark: '#5b21b6', accent: '#a78bfa', pinkSoft: '#f5f3ff', bgPage: '#ede9fe' }
+  };
+  const th = TEMPLATE_SERVER_THEMES[wedding.template];
+  const themeStyle = th ? `<style id="server-theme">:root{--primary:${th.primary};--primary-light:${th.primaryLight};--primary-dark:${th.primaryDark};--accent:${th.accent};--pink-soft:${th.pinkSoft};--bg-page:${th.bgPage};}</style>` : '';
+
   // Thay thế các thẻ trong file HTML
   let output = htmlContent
     .replace(/<title>.*?<\/title>/i, `<title>${safeTitle}</title>`)
@@ -151,7 +163,7 @@ function injectWeddingMeta(htmlContent, wedding, req) {
     .replace(/<meta name="twitter:image" content=".*?" \/>/i, `<meta name="twitter:image" content="${safeImage}" />`);
 
   if (output.includes('</head>')) {
-    output = output.replace('</head>', `${initialDataScript}\n</head>`);
+    output = output.replace('</head>', `${themeStyle}\n${initialDataScript}\n</head>`);
   }
   return output;
 }
