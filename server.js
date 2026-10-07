@@ -142,7 +142,7 @@ app.get('/api/files/:collection/:id/:filename', async (req, res) => {
 // ==========================================
 // 3. CLEAN ROUTES CHO HỆ THỐNG QUẢN TRỊ
 // ==========================================
-app.get('/login', (req, res) => {
+app.get(['/login', '/reset-password', '/forgot-password'], (req, res) => {
   res.sendFile(LOGIN_HTML_PATH);
 });
 

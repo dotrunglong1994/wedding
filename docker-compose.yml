@@ -30,6 +30,13 @@ services:
       - POCKETBASE_URL=http://pocketbase:8090
       # Domain thực tế bên ngoài (cấu hình trong file .env)
       - PUBLIC_PB_URL=${PUBLIC_PB_URL:-}
+      # Cấu hình Gmail gửi thư cho toàn hệ thống
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - SENDER_NAME=${SENDER_NAME:-Hệ Thống Thiệp Cưới}
+      - APP_URL=${APP_URL:-}
     depends_on:
       - pocketbase
     networks:

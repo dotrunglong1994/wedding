@@ -462,6 +462,161 @@
       color: #fff;
     }
 
+    .btn-reset-pwd {
+      background: rgba(139, 92, 246, 0.15);
+      color: #c4b5fd;
+      border-color: rgba(139, 92, 246, 0.35);
+    }
+
+    .btn-reset-pwd:hover {
+      background: #8b5cf6;
+      color: #fff;
+    }
+
+    /* MODAL STYLES */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+      animation: modalFadeIn 0.2s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 460px;
+      padding: 24px 28px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      gap: 12px;
+    }
+
+    .modal-title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .modal-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: rgba(139, 92, 246, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .modal-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .modal-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .btn-close-modal {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 4px;
+      transition: color 0.2s;
+    }
+
+    .btn-close-modal:hover {
+      color: #fff;
+    }
+
+    .modal-input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 40px 10px 12px;
+      color: var(--text);
+      font-size: 13.5px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .modal-input:focus {
+      border-color: var(--accent);
+    }
+
+    .btn-toggle-eye {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+
+    .btn-toggle-eye:hover {
+      opacity: 1;
+    }
+
+    .btn-quick-gen {
+      background: none;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      color: var(--accent);
+      padding: 4px 10px;
+      font-size: 11.5px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .btn-quick-gen:hover {
+      background: rgba(139, 92, 246, 0.15);
+      border-color: var(--accent);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
     /* EMPTY & LOADING */
     .empty-state {
       padding: 60px 20px;
@@ -518,6 +673,10 @@
       <a href="/dashboard" class="btn btn-secondary">
         <span>📋 Danh Sách Thiệp</span>
       </a>
+
+      <button onclick="openMyChangePasswordModal()" class="btn btn-secondary" title="Đổi mật khẩu tài khoản của bạn">
+        <span>🔑 Đổi Mật Khẩu</span>
+      </button>
 
       <a href="/admin?new=1" class="btn btn-primary">
         <span>+ Tạo Thiệp Mới</span>
@@ -578,9 +737,14 @@
         </select>
       </div>
 
-      <button onclick="loadUsers()" class="btn btn-secondary">
-        🔄 Làm mới
-      </button>
+      <div style="display: flex; gap: 8px;">
+        <button onclick="openSmtpConfigModal()" class="btn btn-secondary" title="Cài đặt Gmail để gửi thư khôi phục mật khẩu">
+          ✉️ Cấu hình Gmail SMTP
+        </button>
+        <button onclick="loadUsers()" class="btn btn-secondary">
+          🔄 Làm mới
+        </button>
+      </div>
     </div>
 
     <!-- USER TABLE -->
@@ -603,6 +767,157 @@
       </table>
     </div>
   </main>
+
+  <!-- MODAL 1: ADMIN ĐẶT LẠI MẬT KHẨU CHO NGƯỜI DÙNG -->
+  <div class="modal-backdrop" id="resetModalBackdrop" onclick="if(event.target===this) closeResetModal()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon">🔑</div>
+          <div>
+            <h3 class="modal-title">Đặt Lại Mật Khẩu Người Dùng</h3>
+            <p class="modal-desc" id="resetModalSubtitle">Cập nhật mật khẩu mới cho người dùng</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" onclick="closeResetModal()">&times;</button>
+      </div>
+
+      <form id="formResetPassword" onsubmit="handleAdminResetPassword(event)">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" style="display:block; font-size:12.5px; color:var(--text-muted); margin-bottom:6px;">Mật khẩu mới (Tối thiểu 8 ký tự)</label>
+          <div style="position: relative;">
+            <input type="password" id="resetNewPass" class="modal-input" placeholder="Nhập mật khẩu mới..." required minlength="8" autocomplete="new-password" />
+            <button type="button" class="btn-toggle-eye" onclick="togglePasswordVisibility('resetNewPass', this)" title="Hiện/Ẩn mật khẩu">👁️</button>
+          </div>
+          <div style="margin-top: 8px;">
+            <button type="button" class="btn-quick-gen" onclick="generateRandomPassword('resetNewPass', 'resetConfirmPass')">
+              🎲 Tạo mật khẩu ngẫu nhiên an toàn
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label class="form-label" style="display:block; font-size:12.5px; color:var(--text-muted); margin-bottom:6px;">Xác nhận mật khẩu mới</label>
+          <div style="position: relative;">
+            <input type="password" id="resetConfirmPass" class="modal-input" placeholder="Nhập lại mật khẩu mới..." required minlength="8" autocomplete="new-password" />
+            <button type="button" class="btn-toggle-eye" onclick="togglePasswordVisibility('resetConfirmPass', this)" title="Hiện/Ẩn mật khẩu">👁️</button>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeResetModal()">Hủy bỏ</button>
+          <button type="submit" id="btnSubmitResetPass" class="btn btn-primary">
+            <span>Lưu Mật Khẩu Mới</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: ADMIN TỰ ĐỔI MẬT KHẨU CỦA CHÍNH MÌNH -->
+  <div class="modal-backdrop" id="myChangePassModalBackdrop" onclick="if(event.target===this) closeMyChangePassModal()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon" style="background: rgba(236, 72, 153, 0.15); color: #f472b6;">🔐</div>
+          <div>
+            <h3 class="modal-title">Đổi Mật Khẩu Của Bạn</h3>
+            <p class="modal-desc">Cập nhật mật khẩu đăng nhập cho tài khoản quản trị</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" onclick="closeMyChangePassModal()">&times;</button>
+      </div>
+
+      <form id="formMyChangePass" onsubmit="handleMyChangePassword(event)">
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" style="display:block; font-size:12.5px; color:var(--text-muted); margin-bottom:6px;">Mật khẩu hiện tại</label>
+          <div style="position: relative;">
+            <input type="password" id="myCurrentPass" class="modal-input" placeholder="••••••••" required autocomplete="current-password" />
+            <button type="button" class="btn-toggle-eye" onclick="togglePasswordVisibility('myCurrentPass', this)" title="Hiện/Ẩn">👁️</button>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" style="display:block; font-size:12.5px; color:var(--text-muted); margin-bottom:6px;">Mật khẩu mới (Tối thiểu 8 ký tự)</label>
+          <div style="position: relative;">
+            <input type="password" id="myNewPassAdmin" class="modal-input" placeholder="Tối thiểu 8 ký tự..." required minlength="8" autocomplete="new-password" />
+            <button type="button" class="btn-toggle-eye" onclick="togglePasswordVisibility('myNewPassAdmin', this)" title="Hiện/Ẩn">👁️</button>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label class="form-label" style="display:block; font-size:12.5px; color:var(--text-muted); margin-bottom:6px;">Xác nhận mật khẩu mới</label>
+          <div style="position: relative;">
+            <input type="password" id="myConfirmPassAdmin" class="modal-input" placeholder="Nhập lại mật khẩu mới..." required minlength="8" autocomplete="new-password" />
+            <button type="button" class="btn-toggle-eye" onclick="togglePasswordVisibility('myConfirmPassAdmin', this)" title="Hiện/Ẩn">👁️</button>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeMyChangePassModal()">Hủy bỏ</button>
+          <button type="submit" id="btnSubmitMyPass" class="btn btn-primary">
+            <span>Cập Nhật Mật Khẩu</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: CẤU HÌNH GMAIL SMTP CHO HỆ THỐNG -->
+  <div class="modal-backdrop" id="smtpModalBackdrop" onclick="if(event.target===this) closeSmtpModal()">
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">✉️</div>
+          <div>
+            <h3 class="modal-title">Cấu Hình Gmail SMTP Gửi Thư</h3>
+            <p class="modal-desc">Gửi email khôi phục mật khẩu tự động cho người dùng</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" onclick="closeSmtpModal()">&times;</button>
+      </div>
+
+      <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.25); border-radius: 10px; padding: 12px 14px; font-size: 12px; line-height: 1.6; margin-bottom: 18px;">
+        <strong style="color: #c4b5fd;">💡 Hướng dẫn lấy Mật khẩu ứng dụng (App Password) của Gmail:</strong>
+        <ol style="margin-left: 18px; margin-top: 6px; color: var(--text-muted);">
+          <li>Bật <em>Xác thực 2 bước</em> trong tài khoản Google của bạn.</li>
+          <li>Truy cập <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener" style="color: var(--accent);">myaccount.google.com/apppasswords</a>.</li>
+          <li>Đặt tên ứng dụng (VD: <code>Thiệp Cưới</code>) & bấm <strong>Tạo</strong>.</li>
+          <li>Sao chép mã <strong>16 chữ số</strong> được Google cấp và dán vào ô bên dưới.</li>
+        </ol>
+      </div>
+
+      <form id="formSmtpConfig" onsubmit="handleSaveSmtp(event)">
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" style="display:block; font-size:12.5px; color:var(--text-muted); margin-bottom:6px;">Địa chỉ Gmail gửi thư</label>
+          <input type="email" id="smtpGmail" class="modal-input" placeholder="tenban@gmail.com" required autocomplete="email" />
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" style="display:block; font-size:12.5px; color:var(--text-muted); margin-bottom:6px;">Mật khẩu ứng dụng Google (16 ký tự)</label>
+          <div style="position: relative;">
+            <input type="password" id="smtpAppPass" class="modal-input" placeholder="••••••••••••••••" required autocomplete="new-password" />
+            <button type="button" class="btn-toggle-eye" onclick="togglePasswordVisibility('smtpAppPass', this)" title="Hiện/Ẩn">👁️</button>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 22px;">
+          <label class="form-label" style="display:block; font-size:12.5px; color:var(--text-muted); margin-bottom:6px;">Địa chỉ Web (App URL tạo link trong email)</label>
+          <input type="url" id="smtpAppUrl" class="modal-input" placeholder="http://localhost:3000" required />
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeSmtpModal()">Đóng</button>
+          <button type="button" class="btn btn-secondary" onclick="handleTestEmail()" id="btnTestEmail" style="border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+            🧪 Gửi Thử Test
+          </button>
+          <button type="submit" id="btnSubmitSmtp" class="btn btn-primary">
+            <span>Lưu Cấu Hình Gmail</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <div class="toast" id="toast"></div>
 
@@ -720,6 +1035,10 @@
                      </button>`
                 }
 
+                <button class="btn-action-sm btn-reset-pwd" onclick="openResetPasswordModal('${u.id}', '${escapeHtml(name)}', '${escapeHtml(email)}')" title="Đặt lại mật khẩu cho người dùng này">
+                  🔑 Đổi MK
+                </button>
+
                 <button class="btn-action-sm btn-secondary" onclick="toggleRole('${u.id}', '${isAdmin ? 'member' : 'admin'}', '${escapeHtml(name)}')">
                   ${isAdmin ? 'Hạ quyền' : '⭐ Admin'}
                 </button>
@@ -817,6 +1136,230 @@
       t.classList.add('show');
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // ===== QUẢN LÝ MẬT KHẨU (PASSWORD MANAGEMENT) =====
+    let targetResetUserId = null;
+    let targetResetUserName = '';
+
+    function openResetPasswordModal(userId, name, email) {
+      targetResetUserId = userId;
+      targetResetUserName = name || email;
+      document.getElementById('resetModalSubtitle').textContent = `Tài khoản: ${targetResetUserName} (${email})`;
+      document.getElementById('resetNewPass').value = '';
+      document.getElementById('resetConfirmPass').value = '';
+      document.getElementById('resetModalBackdrop').classList.add('show');
+      setTimeout(() => document.getElementById('resetNewPass').focus(), 100);
+    }
+
+    function closeResetModal() {
+      document.getElementById('resetModalBackdrop').classList.remove('show');
+      targetResetUserId = null;
+      targetResetUserName = '';
+    }
+
+    async function handleAdminResetPassword(e) {
+      e.preventDefault();
+      if (!targetResetUserId) return;
+
+      const newPass = document.getElementById('resetNewPass').value.trim();
+      const confirmPass = document.getElementById('resetConfirmPass').value.trim();
+
+      if (newPass.length < 8) {
+        showToast('⚠️ Mật khẩu mới phải có tối thiểu 8 ký tự!');
+        return;
+      }
+      if (newPass !== confirmPass) {
+        showToast('⚠️ Mật khẩu xác nhận không khớp!');
+        return;
+      }
+
+      const btn = document.getElementById('btnSubmitResetPass');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Đang lưu...</span>';
+
+      try {
+        await pb.collection('users').update(targetResetUserId, {
+          password: newPass,
+          passwordConfirm: confirmPass
+        });
+        showToast(`✅ Đã đặt lại mật khẩu thành công cho "${targetResetUserName}"!`);
+        closeResetModal();
+      } catch (err) {
+        console.error('Lỗi đặt lại mật khẩu:', err);
+        const errDetail = err.data?.data ? JSON.stringify(err.data.data) : (err.message || 'Lỗi phân quyền');
+        showToast(`❌ Thất bại: ${errDetail}`);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Lưu Mật Khẩu Mới</span>';
+      }
+    }
+
+    function openMyChangePasswordModal() {
+      document.getElementById('myCurrentPass').value = '';
+      document.getElementById('myNewPassAdmin').value = '';
+      document.getElementById('myConfirmPassAdmin').value = '';
+      document.getElementById('myChangePassModalBackdrop').classList.add('show');
+      setTimeout(() => document.getElementById('myCurrentPass').focus(), 100);
+    }
+
+    function closeMyChangePassModal() {
+      document.getElementById('myChangePassModalBackdrop').classList.remove('show');
+    }
+
+    async function handleMyChangePassword(e) {
+      e.preventDefault();
+      const oldPass = document.getElementById('myCurrentPass').value;
+      const newPass = document.getElementById('myNewPassAdmin').value.trim();
+      const confirmPass = document.getElementById('myConfirmPassAdmin').value.trim();
+
+      if (newPass.length < 8) {
+        showToast('⚠️ Mật khẩu mới phải có tối thiểu 8 ký tự!');
+        return;
+      }
+      if (newPass !== confirmPass) {
+        showToast('⚠️ Mật khẩu xác nhận không khớp!');
+        return;
+      }
+      if (oldPass === newPass) {
+        showToast('⚠️ Mật khẩu mới phải khác mật khẩu hiện tại!');
+        return;
+      }
+
+      const btn = document.getElementById('btnSubmitMyPass');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Đang lưu...</span>';
+
+      try {
+        const col = currentUser.collectionName || (pb.authStore.isSuperuser ? '_superusers' : 'users');
+        await pb.collection(col).update(currentUser.id, {
+          oldPassword: oldPass,
+          password: newPass,
+          passwordConfirm: confirmPass
+        });
+        showToast('🎉 Đổi mật khẩu tài khoản của bạn thành công!');
+        closeMyChangePassModal();
+      } catch (err) {
+        console.error('Lỗi đổi mật khẩu:', err);
+        let msg = err.message || 'Mật khẩu hiện tại không chính xác';
+        if (err.data?.data?.oldPassword?.message) {
+          msg = err.data.data.oldPassword.message;
+        }
+        showToast(`❌ Thất bại: ${msg}`);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Cập Nhật Mật Khẩu</span>';
+      }
+    }
+
+    function togglePasswordVisibility(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🔒';
+      } else {
+        input.type = 'password';
+        btn.textContent = '👁️';
+      }
+    }
+
+    function generateRandomPassword(id1, id2) {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*';
+      let pass = '';
+      for (let i = 0; i < 10; i++) {
+        pass += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      const el1 = document.getElementById(id1);
+      const el2 = document.getElementById(id2);
+      if (el1) {
+        el1.value = pass;
+        el1.type = 'text';
+      }
+      if (el2) {
+        el2.value = pass;
+        el2.type = 'text';
+      }
+      showToast('🎲 Đã tạo mật khẩu ngẫu nhiên: ' + pass);
+    }
+
+    // ===== CẤU HÌNH GMAIL SMTP (GMAIL CONFIGURATION) =====
+    async function openSmtpConfigModal() {
+      document.getElementById('smtpAppUrl').value = window.location.origin;
+      try {
+        const settings = await pb.settings.getAll();
+        if (settings.smtp && settings.smtp.username) {
+          document.getElementById('smtpGmail').value = settings.smtp.username;
+        }
+        if (settings.meta && settings.meta.appURL) {
+          document.getElementById('smtpAppUrl').value = settings.meta.appURL;
+        }
+      } catch (_) {}
+      document.getElementById('smtpModalBackdrop').classList.add('show');
+    }
+
+    function closeSmtpModal() {
+      document.getElementById('smtpModalBackdrop').classList.remove('show');
+    }
+
+    async function handleSaveSmtp(e) {
+      e.preventDefault();
+      const gmail = document.getElementById('smtpGmail').value.trim();
+      const pass = document.getElementById('smtpAppPass').value.replace(/\s+/g, '').trim();
+      const appUrl = document.getElementById('smtpAppUrl').value.trim().replace(/\/+$/, '');
+      const btn = document.getElementById('btnSubmitSmtp');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>Đang lưu cấu hình...</span>';
+
+      try {
+        await pb.settings.update({
+          smtp: {
+            enabled: true,
+            host: 'smtp.gmail.com',
+            port: 587,
+            username: gmail,
+            password: pass,
+            authMethod: 'PLAIN',
+            tls: true
+          },
+          meta: {
+            senderName: 'Hệ Thống Thiệp Cưới',
+            senderAddress: gmail,
+            appName: 'Hệ Thống Thiệp Cưới',
+            appURL: appUrl
+          }
+        });
+        showToast('✅ Đã lưu cấu hình Gmail SMTP thành công!');
+        closeSmtpModal();
+      } catch (err) {
+        console.error('Save SMTP error:', err);
+        showToast('❌ Lưu thất bại: ' + (err.message || 'Lỗi quyền Superuser'));
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Lưu Cấu Hình Gmail</span>';
+      }
+    }
+
+    async function handleTestEmail() {
+      const defaultEmail = document.getElementById('smtpGmail').value.trim();
+      const targetEmail = prompt('Nhập địa chỉ email nhận thư thử nghiệm:', defaultEmail);
+      if (!targetEmail) return;
+
+      const btn = document.getElementById('btnTestEmail');
+      btn.disabled = true;
+      btn.textContent = '⏳ Đang gửi...';
+
+      try {
+        await pb.settings.testEmail(targetEmail, 'email-test');
+        showToast(`🎉 Đã gửi thư thử nghiệm thành công tới "${targetEmail}"! Hãy kiểm tra Gmail.`);
+      } catch (err) {
+        console.error('Test email error:', err);
+        showToast('❌ Gửi thử thất bại: ' + (err.message || 'Kiểm tra lại Gmail và App Password'));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🧪 Gửi Thử Test';
+      }
     }
 
     // Khởi chạy

@@ -506,6 +506,133 @@
       color: var(--text-muted);
       font-size: 14px;
     }
+
+    /* MODAL STYLES */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+      animation: modalFadeIn 0.2s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 440px;
+      padding: 24px 28px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      gap: 12px;
+    }
+
+    .modal-title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .modal-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: rgba(139, 92, 246, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .modal-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .modal-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .btn-close-modal {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 4px;
+      transition: color 0.2s;
+    }
+
+    .btn-close-modal:hover {
+      color: #fff;
+    }
+
+    .modal-input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 40px 10px 12px;
+      color: var(--text);
+      font-size: 13.5px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .modal-input:focus {
+      border-color: var(--accent);
+    }
+
+    .btn-toggle-eye {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+
+    .btn-toggle-eye:hover {
+      opacity: 1;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 24px;
+    }
   </style>
 </head>
 
@@ -530,6 +657,10 @@
       <a href="/users" class="btn btn-secondary" id="btnManageUsers" style="display: none; border-color: rgba(139, 92, 246, 0.4); color: #c4b5fd;">
         <span>👥 Quản Lý User</span>
       </a>
+
+      <button onclick="openChangePasswordModal()" class="btn btn-secondary" title="Đổi mật khẩu tài khoản của bạn">
+        <span>🔑 Đổi Mật Khẩu</span>
+      </button>
 
       <a href="/admin?new=1" class="btn btn-primary">
         <span>+ Tạo Thiệp Mới</span>
@@ -581,6 +712,55 @@
       </a>
     </div>
   </main>
+
+  <!-- MODAL ĐỔI MẬT KHẨU CHO NGƯỜI DÙNG HIỆN TẠI -->
+  <div class="modal-backdrop" id="changePasswordModalBackdrop" onclick="if(event.target===this) closeChangePasswordModal()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon">🔑</div>
+          <div>
+            <h3 class="modal-title">Đổi Mật Khẩu Tài Khoản</h3>
+            <p class="modal-desc">Cập nhật mật khẩu đăng nhập của bạn</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" onclick="closeChangePasswordModal()">&times;</button>
+      </div>
+
+      <form id="formUserChangePass" onsubmit="handleChangePassword(event)">
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" style="display:block; font-size:12.5px; color:var(--text-muted); margin-bottom:6px;">Mật khẩu hiện tại</label>
+          <div style="position: relative;">
+            <input type="password" id="userOldPass" class="modal-input" placeholder="••••••••" required autocomplete="current-password" />
+            <button type="button" class="btn-toggle-eye" onclick="togglePasswordVisibility('userOldPass', this)" title="Hiện/Ẩn">👁️</button>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" style="display:block; font-size:12.5px; color:var(--text-muted); margin-bottom:6px;">Mật khẩu mới (Tối thiểu 8 ký tự)</label>
+          <div style="position: relative;">
+            <input type="password" id="userNewPass" class="modal-input" placeholder="Tối thiểu 8 ký tự..." required minlength="8" autocomplete="new-password" />
+            <button type="button" class="btn-toggle-eye" onclick="togglePasswordVisibility('userNewPass', this)" title="Hiện/Ẩn">👁️</button>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 22px;">
+          <label class="form-label" style="display:block; font-size:12.5px; color:var(--text-muted); margin-bottom:6px;">Xác nhận mật khẩu mới</label>
+          <div style="position: relative;">
+            <input type="password" id="userConfirmPass" class="modal-input" placeholder="Nhập lại mật khẩu mới..." required minlength="8" autocomplete="new-password" />
+            <button type="button" class="btn-toggle-eye" onclick="togglePasswordVisibility('userConfirmPass', this)" title="Hiện/Ẩn">👁️</button>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeChangePasswordModal()">Hủy bỏ</button>
+          <button type="submit" id="btnSubmitChangePass" class="btn btn-primary">
+            <span>Cập Nhật Mật Khẩu</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <div class="toast" id="toast"></div>
 
@@ -915,6 +1095,80 @@
       t.classList.add('show');
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // ===== ĐỔI MẬT KHẨU TÀI KHOẢN (USER CHANGE PASSWORD) =====
+    function openChangePasswordModal() {
+      document.getElementById('userOldPass').value = '';
+      document.getElementById('userNewPass').value = '';
+      document.getElementById('userConfirmPass').value = '';
+      document.getElementById('changePasswordModalBackdrop').classList.add('show');
+      setTimeout(() => document.getElementById('userOldPass').focus(), 100);
+    }
+
+    function closeChangePasswordModal() {
+      document.getElementById('changePasswordModalBackdrop').classList.remove('show');
+    }
+
+    async function handleChangePassword(e) {
+      e.preventDefault();
+      const oldPass = document.getElementById('userOldPass').value;
+      const newPass = document.getElementById('userNewPass').value.trim();
+      const confirmPass = document.getElementById('userConfirmPass').value.trim();
+
+      if (newPass.length < 8) {
+        showToast('⚠️ Mật khẩu mới phải có tối thiểu 8 ký tự!');
+        return;
+      }
+      if (newPass !== confirmPass) {
+        showToast('⚠️ Mật khẩu xác nhận không khớp!');
+        return;
+      }
+      if (oldPass === newPass) {
+        showToast('⚠️ Mật khẩu mới phải khác mật khẩu hiện tại!');
+        return;
+      }
+
+      const btn = document.getElementById('btnSubmitChangePass');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Đang cập nhật...</span>';
+
+      try {
+        const col = currentUser.collectionName || (pb.authStore.isSuperuser ? '_superusers' : 'users');
+        await pb.collection(col).update(currentUser.id, {
+          oldPassword: oldPass,
+          password: newPass,
+          passwordConfirm: confirmPass
+        });
+
+        showToast('🎉 Đổi mật khẩu thành công! Mật khẩu mới đã được lưu.');
+        closeChangePasswordModal();
+      } catch (err) {
+        console.error('Lỗi đổi mật khẩu:', err);
+        let msg = err.message || 'Mật khẩu hiện tại không chính xác';
+        if (err.data?.data?.oldPassword?.message) {
+          msg = err.data.data.oldPassword.message;
+        } else if (err.data?.data) {
+          const detail = Object.entries(err.data.data).map(([k, v]) => `${k}: ${v.message || v}`).join(', ');
+          if (detail) msg = detail;
+        }
+        showToast('❌ Thất bại: ' + msg);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Cập Nhật Mật Khẩu</span>';
+      }
+    }
+
+    function togglePasswordVisibility(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🔒';
+      } else {
+        input.type = 'password';
+        btn.textContent = '👁️';
+      }
     }
 
     // Initialize

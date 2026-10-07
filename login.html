@@ -287,7 +287,10 @@
         <input type="email" id="loginEmail" class="form-input" placeholder="tenban@email.com" required autocomplete="username" />
       </div>
       <div class="form-group">
-        <label class="form-label">Mật khẩu</label>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <label class="form-label" style="margin-bottom: 0;">Mật khẩu</label>
+          <a href="javascript:void(0)" onclick="switchTab('forgot')" style="color: var(--accent); font-size: 12px; text-decoration: none; font-weight: 500;">Quên mật khẩu?</a>
+        </div>
         <input type="password" id="loginPass" class="form-input" placeholder="••••••••" required autocomplete="current-password" />
       </div>
       <button type="submit" id="btnLoginSubmit" class="btn-submit">
@@ -316,6 +319,67 @@
       <button type="submit" id="btnRegSubmit" class="btn-submit">
         <span>Tạo Tài Khoản & Bắt Đầu</span> ✦
       </button>
+    </form>
+
+    <!-- Forgot Password Form (Khôi phục mật khẩu qua Gmail) -->
+    <form id="formForgot" onsubmit="handleForgotPassword(event)" style="display: none;">
+      <div style="margin-bottom: 20px; text-align: center;">
+        <div style="width: 52px; height: 52px; background: rgba(139, 92, 246, 0.15); border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 10px;">
+          ✉️
+        </div>
+        <h3 style="font-size: 17px; font-weight: 600; color: #fff;">Khôi Phục Mật Khẩu</h3>
+        <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px; line-height: 1.5;">
+          Nhập địa chỉ Gmail tài khoản của bạn. Hệ thống sẽ gửi thư chứa liên kết để tạo mật khẩu mới.
+        </p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Gmail đã đăng ký</label>
+        <input type="email" id="forgotEmail" class="form-input" placeholder="tenban@gmail.com" required autocomplete="email" />
+      </div>
+
+      <button type="submit" id="btnForgotSubmit" class="btn-submit">
+        <span>Gửi Thư Khôi Phục Đến Gmail</span> ✉️
+      </button>
+
+      <div style="text-align: center; margin-top: 20px;">
+        <a href="javascript:void(0)" onclick="switchTab('login')" style="color: var(--text-muted); font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+          ← Quay lại Đăng Nhập
+        </a>
+      </div>
+    </form>
+
+    <!-- Confirm Reset Password Form (Khi mở link từ Gmail) -->
+    <form id="formResetConfirm" onsubmit="handleConfirmReset(event)" style="display: none;">
+      <div style="margin-bottom: 20px; text-align: center;">
+        <div style="width: 52px; height: 52px; background: rgba(16, 185, 129, 0.15); border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 10px;">
+          🔐
+        </div>
+        <h3 style="font-size: 17px; font-weight: 600; color: #fff;">Tạo Mật Khẩu Mới</h3>
+        <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px; line-height: 1.5;">
+          Nhập mật khẩu mới cho tài khoản của bạn (tối thiểu 8 ký tự).
+        </p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Mật khẩu mới (Tối thiểu 8 ký tự)</label>
+        <input type="password" id="resetNewPassInput" class="form-input" placeholder="••••••••" required minlength="8" autocomplete="new-password" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Xác nhận mật khẩu mới</label>
+        <input type="password" id="resetConfirmPassInput" class="form-input" placeholder="••••••••" required minlength="8" autocomplete="new-password" />
+      </div>
+
+      <button type="submit" id="btnResetConfirmSubmit" class="btn-submit">
+        <span>Lưu Mật Khẩu Mới & Tiếp Tục</span> ✦
+      </button>
+
+      <div style="text-align: center; margin-top: 20px;">
+        <a href="javascript:void(0)" onclick="switchTab('login')" style="color: var(--text-muted); font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+          ← Quay lại Đăng Nhập
+        </a>
+      </div>
     </form>
 
     <!-- PocketBase Server Config -->
@@ -357,11 +421,40 @@
     }
 
     function switchTab(tab) {
-      const isLogin = tab === 'login';
-      document.getElementById('tabBtnLogin').classList.toggle('active', isLogin);
-      document.getElementById('tabBtnRegister').classList.toggle('active', !isLogin);
-      document.getElementById('formLogin').style.display = isLogin ? 'block' : 'none';
-      document.getElementById('formRegister').style.display = isLogin ? 'none' : 'block';
+      const tabNav = document.querySelector('.tab-nav');
+      document.getElementById('formLogin').style.display = 'none';
+      document.getElementById('formRegister').style.display = 'none';
+      document.getElementById('formForgot').style.display = 'none';
+      document.getElementById('formResetConfirm').style.display = 'none';
+
+      if (tab === 'login') {
+        tabNav.style.display = 'flex';
+        document.getElementById('tabBtnLogin').classList.add('active');
+        document.getElementById('tabBtnRegister').classList.remove('active');
+        document.getElementById('formLogin').style.display = 'block';
+      } else if (tab === 'register') {
+        tabNav.style.display = 'flex';
+        document.getElementById('tabBtnLogin').classList.remove('active');
+        document.getElementById('tabBtnRegister').classList.add('active');
+        document.getElementById('formRegister').style.display = 'block';
+      } else if (tab === 'forgot') {
+        tabNav.style.display = 'none';
+        document.getElementById('formForgot').style.display = 'block';
+        const remembered = document.getElementById('loginEmail')?.value || '';
+        if (remembered) document.getElementById('forgotEmail').value = remembered;
+        setTimeout(() => document.getElementById('forgotEmail').focus(), 80);
+      } else if (tab === 'reset') {
+        tabNav.style.display = 'none';
+        document.getElementById('formResetConfirm').style.display = 'block';
+        setTimeout(() => document.getElementById('resetNewPassInput').focus(), 80);
+      }
+    }
+
+    // Tự động kiểm tra token từ URL nếu mở link khôi phục mật khẩu từ Gmail
+    const urlParams = new URLSearchParams(window.location.search);
+    const resetToken = urlParams.get('token');
+    if (resetToken) {
+      switchTab('reset');
     }
 
     function toggleServerConfig() {
@@ -489,6 +582,110 @@
         showToast('❌ Đăng ký thất bại: ' + errDetail);
         btn.disabled = false;
         btn.innerHTML = '<span>Tạo Tài Khoản & Bắt Đầu</span> ✦';
+      }
+    }
+
+    async function handleForgotPassword(e) {
+      e.preventDefault();
+      const email = document.getElementById('forgotEmail').value.trim();
+      const btn = document.getElementById('btnForgotSubmit');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>Đang gửi email qua Gmail...</span>';
+      showToast('⏳ Đang kết nối tới máy chủ gửi email...');
+
+      try {
+        let sent = false;
+        // 1. Thử gửi qua collection users
+        try {
+          await pb.collection('users').requestPasswordReset(email);
+          sent = true;
+        } catch (_) {}
+
+        // 2. Thử gửi qua collection _superusers (nếu là tài khoản Admin)
+        if (!sent) {
+          try {
+            await pb.collection('_superusers').requestPasswordReset(email);
+            sent = true;
+          } catch (_) {}
+        }
+
+        if (sent) {
+          showToast('📩 Đã gửi thư khôi phục! Vui lòng kiểm tra Gmail (Hộp thư đến hoặc mục Spam).');
+          btn.innerHTML = '<span>Đã Gửi Thành Công!</span> ✓';
+          setTimeout(() => {
+            switchTab('login');
+          }, 3500);
+        } else {
+          showToast('❌ Không tìm thấy tài khoản với email này, hoặc máy chủ chưa bật Gmail SMTP!');
+          btn.disabled = false;
+          btn.innerHTML = '<span>Gửi Thư Khôi Phục Đến Gmail</span> ✉️';
+        }
+      } catch (err) {
+        console.error('Forgot password error:', err);
+        let msg = err.message || 'Lỗi gửi email';
+        if (msg.includes('SMTP') || msg.includes('Failed to send')) {
+          msg = 'Máy chủ chưa bật cấu hình Gmail SMTP! Vui lòng cấu hình Gmail App Password trong PocketBase.';
+        }
+        showToast('❌ ' + msg);
+        btn.disabled = false;
+        btn.innerHTML = '<span>Gửi Thư Khôi Phục Đến Gmail</span> ✉️';
+      }
+    }
+
+    async function handleConfirmReset(e) {
+      e.preventDefault();
+      const newPass = document.getElementById('resetNewPassInput').value.trim();
+      const confirmPass = document.getElementById('resetConfirmPassInput').value.trim();
+      const btn = document.getElementById('btnResetConfirmSubmit');
+
+      if (!resetToken) {
+        showToast('⚠️ Thiếu mã xác nhận (token) trong liên kết! Vui lòng kiểm tra lại liên kết trong Gmail.');
+        return;
+      }
+      if (newPass.length < 8) {
+        showToast('⚠️ Mật khẩu mới phải có tối thiểu 8 ký tự!');
+        return;
+      }
+      if (newPass !== confirmPass) {
+        showToast('⚠️ Mật khẩu xác nhận không trùng khớp!');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>Đang cập nhật mật khẩu...</span>';
+
+      try {
+        let success = false;
+        // 1. Xác nhận với collection users
+        try {
+          await pb.collection('users').confirmPasswordReset(resetToken, newPass, confirmPass);
+          success = true;
+        } catch (_) {}
+
+        // 2. Xác nhận với collection _superusers
+        if (!success) {
+          try {
+            await pb.collection('_superusers').confirmPasswordReset(resetToken, newPass, confirmPass);
+            success = true;
+          } catch (_) {}
+        }
+
+        if (success) {
+          showToast('🎉 Đặt lại mật khẩu thành công! Đang chuyển đến màn hình đăng nhập...');
+          setTimeout(() => {
+            window.location.href = '/login';
+          }, 1500);
+        } else {
+          showToast('❌ Liên kết khôi phục không hợp lệ hoặc đã hết hạn! Vui lòng gửi lại yêu cầu.');
+          btn.disabled = false;
+          btn.innerHTML = '<span>Lưu Mật Khẩu Mới & Tiếp Tục</span> ✦';
+        }
+      } catch (err) {
+        console.error('Confirm reset error:', err);
+        showToast('❌ Thất bại: ' + (err.message || 'Mã xác nhận không hợp lệ hoặc đã hết hạn'));
+        btn.disabled = false;
+        btn.innerHTML = '<span>Lưu Mật Khẩu Mới & Tiếp Tục</span> ✦';
       }
     }
 
