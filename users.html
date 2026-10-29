@@ -1005,7 +1005,7 @@
           <tr>
             <td>
               <div class="user-meta-cell">
-                <div class="u-avatar">${initial}</div>
+                <div class="u-avatar">${escapeHtml(initial)}</div>
                 <div>
                   <div class="u-name">${escapeHtml(name)}</div>
                   <div class="u-email">${escapeHtml(email)}</div>
@@ -1027,23 +1027,23 @@
             <td>
               <div class="action-group">
                 ${!isApproved 
-                  ? `<button class="btn-action-sm btn-approve" onclick="toggleApprove('${u.id}', true, '${escapeHtml(name)}')">
+                  ? `<button class="btn-action-sm btn-approve" onclick="toggleApprove(${jsArg(u.id)}, true, ${jsArg(name)})">
                       ✓ Duyệt tài khoản
                      </button>`
-                  : `<button class="btn-action-sm btn-block" onclick="toggleApprove('${u.id}', false, '${escapeHtml(name)}')">
+                  : `<button class="btn-action-sm btn-block" onclick="toggleApprove(${jsArg(u.id)}, false, ${jsArg(name)})">
                       ⏸ Khóa
                      </button>`
                 }
 
-                <button class="btn-action-sm btn-reset-pwd" onclick="openResetPasswordModal('${u.id}', '${escapeHtml(name)}', '${escapeHtml(email)}')" title="Đặt lại mật khẩu cho người dùng này">
+                <button class="btn-action-sm btn-reset-pwd" onclick="openResetPasswordModal(${jsArg(u.id)}, ${jsArg(name)}, ${jsArg(email)})" title="Đặt lại mật khẩu cho người dùng này">
                   🔑 Đổi MK
                 </button>
 
-                <button class="btn-action-sm btn-secondary" onclick="toggleRole('${u.id}', '${isAdmin ? 'member' : 'admin'}', '${escapeHtml(name)}')">
+                <button class="btn-action-sm btn-secondary" onclick="toggleRole(${jsArg(u.id)}, '${isAdmin ? 'member' : 'admin'}', ${jsArg(name)})">
                   ${isAdmin ? 'Hạ quyền' : '⭐ Admin'}
                 </button>
 
-                <button class="btn-action-sm btn-delete" onclick="deleteUser('${u.id}', '${escapeHtml(name)}')">
+                <button class="btn-action-sm btn-delete" onclick="deleteUser(${jsArg(u.id)}, ${jsArg(name)})">
                   🗑️
                 </button>
               </div>
@@ -1127,6 +1127,11 @@
       return String(str).replace(/[&<>"']/g, m => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
       })[m]);
+    }
+
+    // Chuỗi an toàn để truyền làm tham số JS bên trong thuộc tính onclick="..."
+    function jsArg(str) {
+      return escapeHtml(JSON.stringify(String(str ?? '')));
     }
 
     let toastTimer = null;

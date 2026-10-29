@@ -813,6 +813,11 @@
       })[m]);
     }
 
+    // Chuỗi an toàn để truyền làm tham số JS bên trong thuộc tính onclick="..."
+    function jsArg(str) {
+      return escapeHtml(JSON.stringify(String(str ?? '')));
+    }
+
     // Helper nạp thông tin người dùng cho Admin
     async function loadUsersMap() {
       if (!isSuperUser) return;
@@ -984,13 +989,13 @@
         return `
           <div class="wedding-card">
             <div class="card-banner">
-              <img src="${heroUrl}" alt="${groom} & ${bride}" onerror="this.src='/images/wedding_couple_hero.jpg'"/>
+              <img src="${escapeHtml(heroUrl)}" alt="${escapeHtml(groom)} & ${escapeHtml(bride)}" onerror="this.src='/images/wedding_couple_hero.jpg'"/>
               <div class="card-template-tag ${tmpl.tagClass}">${tmpl.label}</div>
               <div class="card-date-badge">🗓️ ${dateStr}</div>
             </div>
 
             <div class="card-body">
-              <h3 class="card-names">${groom} &amp; ${bride}</h3>
+              <h3 class="card-names">${escapeHtml(groom)} &amp; ${escapeHtml(bride)}</h3>
 
               ${isSuperUser && author ? `
                 <div class="card-author-row" title="Tài khoản tạo: ${escapeHtml(author.email || author.display)}">
@@ -1002,25 +1007,25 @@
               ` : ''}
 
               <div class="card-slug-row">
-                <span class="slug-text" title="${publicLink}">🔗 ${shortLink}</span>
-                <button type="button" class="btn-copy-slug" onclick="copyLink('${publicLink}')" title="Sao chép link">
+                <span class="slug-text" title="${escapeHtml(publicLink)}">🔗 ${escapeHtml(shortLink)}</span>
+                <button type="button" class="btn-copy-slug" onclick="copyLink(${jsArg(publicLink)})" title="Sao chép link">
                   📋 Sao chép
                 </button>
               </div>
 
               <div class="card-meta-info">
-                <div><strong>Địa điểm Nhà Gái:</strong> ${rec.brideVenue || 'Chưa cập nhật'}</div>
-                <div><strong>Địa điểm Nhà Trai:</strong> ${rec.groomVenue || 'Chưa cập nhật'}</div>
+                <div><strong>Địa điểm Nhà Gái:</strong> ${escapeHtml(rec.brideVenue || 'Chưa cập nhật')}</div>
+                <div><strong>Địa điểm Nhà Trai:</strong> ${escapeHtml(rec.groomVenue || 'Chưa cập nhật')}</div>
               </div>
 
               <div class="card-footer-actions">
-                <a href="${publicLink}" target="_blank" class="btn btn-secondary" title="Mở trang thiệp khách xem">
+                <a href="${escapeHtml(publicLink)}" target="_blank" class="btn btn-secondary" title="Mở trang thiệp khách xem">
                   👁️ Xem thiệp
                 </a>
-                <a href="/admin?id=${rec.id}" class="btn btn-primary" title="Chỉnh sửa nội dung thiệp">
+                <a href="/admin?id=${encodeURIComponent(rec.id)}" class="btn btn-primary" title="Chỉnh sửa nội dung thiệp">
                   ✏️ Sửa thiệp
                 </a>
-                <button type="button" class="btn btn-danger-outline" onclick="deleteWedding('${rec.id}', '${groom}', '${bride}')" title="Xóa thiệp này">
+                <button type="button" class="btn btn-danger-outline" onclick="deleteWedding(${jsArg(rec.id)}, ${jsArg(groom)}, ${jsArg(bride)})" title="Xóa thiệp này">
                   🗑️
                 </button>
               </div>

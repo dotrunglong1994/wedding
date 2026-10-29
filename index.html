@@ -2140,8 +2140,8 @@
       const item = document.createElement('li');
       item.className = 'wish-bubble';
       item.innerHTML = `
-        <div class="wish-sender-title">${sender} <span>Vừa xong</span></div>
-        <div class="wish-bubble-text">${message}</div>
+        <div class="wish-sender-title">${escHtml(sender)} <span>Vừa xong</span></div>
+        <div class="wish-bubble-text">${escHtml(message)}</div>
       `;
       list.insertBefore(item, list.firstChild);
     }
@@ -2172,6 +2172,11 @@
       if (filename.startsWith("http://") || filename.startsWith("https://") || filename.startsWith("data:")) return filename;
       const base = (window.location.origin && !window.location.origin.includes(':8090')) ? '' : PB_HOST;
       return `${base}/api/files/${record.collectionId || record.collectionName || "wedding_content"}/${record.id}/${filename}${thumb ? "?thumb=" + thumb : ""}`;
+    }
+
+    function escHtml(str) {
+      if (str === undefined || str === null) return "";
+      return String(str).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[m]);
     }
 
     function setElText(id, text) {
@@ -2373,11 +2378,11 @@
         // QR Images
         if (d.qrGroom) {
           const qrG = document.querySelector("#tabGroomContent .qr-preview-box");
-          if (qrG) qrG.innerHTML = `<img src="${getPbFileUrl(d, d.qrGroom, "300x300")}" class="qr-img" alt="QR Chú Rể" /><div class="qr-note">Quét mã QR để mừng <strong>Chú Rể ${groom}</strong></div>`;
+          if (qrG) qrG.innerHTML = `<img src="${escHtml(getPbFileUrl(d, d.qrGroom, "300x300"))}" class="qr-img" alt="QR Chú Rể" /><div class="qr-note">Quét mã QR để mừng <strong>Chú Rể ${escHtml(groom)}</strong></div>`;
         }
         if (d.qrBride) {
           const qrB = document.querySelector("#tabBrideContent .qr-preview-box");
-          if (qrB) qrB.innerHTML = `<img src="${getPbFileUrl(d, d.qrBride, "300x300")}" class="qr-img" alt="QR Cô Dâu" /><div class="qr-note">Quét mã QR để mừng <strong>Cô Dâu ${bride}</strong></div>`;
+          if (qrB) qrB.innerHTML = `<img src="${escHtml(getPbFileUrl(d, d.qrBride, "300x300"))}" class="qr-img" alt="QR Cô Dâu" /><div class="qr-note">Quét mã QR để mừng <strong>Cô Dâu ${escHtml(bride)}</strong></div>`;
         }
 
         // Music
@@ -2393,9 +2398,9 @@
             schContainer.innerHTML = d.schedule.map(s => `
               <div class="schedule-item">
                 <div class="schedule-dot"></div>
-                <div class="schedule-time">${s.time || ""}</div>
-                <div class="schedule-title">${s.title || ""}</div>
-                <div class="schedule-desc">${s.desc || ""}</div>
+                <div class="schedule-time">${escHtml(s.time)}</div>
+                <div class="schedule-title">${escHtml(s.title)}</div>
+                <div class="schedule-desc">${escHtml(s.desc)}</div>
               </div>
             `).join("");
           }

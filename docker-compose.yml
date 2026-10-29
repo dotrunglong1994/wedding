@@ -1,6 +1,7 @@
 services:
   # 1. DỊCH VỤ POCKETBASE BACKEND & DATABASE
   pocketbase:
+    image: dotrunglong1994/wedding-pocketbase:latest
     build:
       context: .
       dockerfile: Dockerfile.pocketbase
@@ -16,6 +17,7 @@ services:
 
   # 2. DỊCH VỤ WEB NODE.JS (CLEAN URLS & PREVIEW ZALO/FACEBOOK)
   web:
+    image: dotrunglong1994/wedding-web:latest
     build:
       context: .
       dockerfile: Dockerfile

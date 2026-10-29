@@ -1,0 +1,49 @@
+services:
+  # 1. DỊCH VỤ POCKETBASE BACKEND & DATABASE
+  pocketbase:
+    image: dotrunglong1994/wedding-pocketbase:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.pocketbase
+    container_name: wedding_pocketbase
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    volumes:
+      # Dữ liệu sqlite và ảnh upload được lưu cố định vào thư mục ./pb_data trên VPS
+      - ./pb_data:/pb/pb_data
+    networks:
+      - wedding_net
+
+  # 2. DỊCH VỤ WEB NODE.JS (CLEAN URLS & PREVIEW ZALO/FACEBOOK)
+  web:
+    image: dotrunglong1994/wedding-web:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wedding_web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      # Gọi trực tiếp qua mạng nội bộ Docker
+      - POCKETBASE_URL=http://pocketbase:8090
+      # Domain thực tế bên ngoài (cấu hình trong file .env)
+      - PUBLIC_PB_URL=${PUBLIC_PB_URL:-}
+      # Cấu hình Gmail gửi thư cho toàn hệ thống
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - SENDER_NAME=${SENDER_NAME:-Hệ Thống Thiệp Cưới}
+      - APP_URL=${APP_URL:-}
+    depends_on:
+      - pocketbase
+    networks:
+      - wedding_net
+
+networks:
+  wedding_net:
+    driver: bridge

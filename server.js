@@ -40,6 +40,12 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;');
 }
 
+// Chỉ chấp nhận slug/id/tên file an toàn (chặn filter injection & path traversal khi gọi PocketBase)
+const SAFE_SEGMENT_RE = /^[\p{L}\p{N}_.-]{1,200}$/u;
+function isSafeSegment(value) {
+  return typeof value === 'string' && SAFE_SEGMENT_RE.test(value) && value !== '.' && value !== '..';
+}
+
 // Bộ nhớ đệm ngắn hạn cho metadata thiệp cưới (tránh spam request khi có nhiều crawler cùng lúc)
 const weddingCache = new Map();
 const WEDDING_CACHE_TTL = 15000; // 15 giây
@@ -48,7 +54,7 @@ const WEDDING_CACHE_TTL = 15000; // 15 giây
  * Lấy thông tin thiệp cưới từ PocketBase theo slug hoặc id
  */
 async function fetchWeddingData(slugOrId) {
-  if (!slugOrId) return null;
+  if (!isSafeSegment(slugOrId)) return null;
 
   const now = Date.now();
   const cached = weddingCache.get(slugOrId);
@@ -78,7 +84,7 @@ async function fetchWeddingData(slugOrId) {
     if (!result) {
       const idController = new AbortController();
       const idTimer = setTimeout(() => idController.abort(), 2000);
-      const idRes = await fetch(`${PB_URL}/api/collections/wedding_content/records/${slugOrId}`, { signal: idController.signal });
+      const idRes = await fetch(`${PB_URL}/api/collections/wedding_content/records/${encodeURIComponent(slugOrId)}`, { signal: idController.signal });
       clearTimeout(idTimer);
 
       if (idRes.ok) {
@@ -185,14 +191,15 @@ app.get('/favicon.ico', (req, res) => res.status(204).end());
 // ==========================================
 app.use(['/images', '/thiep/images', '/t/images'], express.static(path.join(__dirname, 'images')));
 app.get(['/nhac.mp3', '/thiep/nhac.mp3', '/t/nhac.mp3'], (req, res) => res.sendFile(path.join(__dirname, 'nhac.mp3')));
-app.get('/pb_schema.json', (req, res) => res.sendFile(path.join(__dirname, 'pb_schema.json')));
 
 // Proxy ảnh/file từ PocketBase để phục vụ preview mạng xã hội và tránh lỗi CORS/cổng
 app.get('/api/files/:collection/:id/:filename', async (req, res) => {
   try {
     const { collection, id, filename } = req.params;
-    const thumb = req.query.thumb ? `?thumb=${encodeURIComponent(req.query.thumb)}` : '';
-    const pbFileUrl = `${PB_URL}/api/files/${collection}/${id}/${filename}${thumb}`;
+    if (![collection, id, filename].every(isSafeSegment)) return res.status(400).end();
+    const thumbParam = typeof req.query.thumb === 'string' && /^\d{1,4}x\d{1,4}[tbf]?$/.test(req.query.thumb) ? req.query.thumb : '';
+    const thumb = thumbParam ? `?thumb=${thumbParam}` : '';
+    const pbFileUrl = `${PB_URL}/api/files/${encodeURIComponent(collection)}/${encodeURIComponent(id)}/${encodeURIComponent(filename)}${thumb}`;
     const pbRes = await fetch(pbFileUrl);
     if (!pbRes.ok) return res.status(pbRes.status).end();
 

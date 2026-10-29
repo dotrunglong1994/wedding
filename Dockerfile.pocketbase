@@ -13,6 +13,9 @@ RUN wget -q https://github.com/pocketbase/pocketbase/releases/download/v${PB_VER
     && rm pocketbase_${PB_VERSION}_linux_amd64.zip \
     && chmod +x /pb/pocketbase
 
+# Migration siết quyền truy cập (tự chạy khi PocketBase khởi động)
+COPY pb_migrations /pb/pb_migrations
+
 EXPOSE 8090
 
 VOLUME ["/pb/pb_data"]

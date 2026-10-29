@@ -1,0 +1,12 @@
+# Không bao giờ đưa bí mật / dữ liệu vào image Docker
+.env
+.env.*
+!.env.example
+pb_data
+.git
+.gitignore
+node_modules
+*.yml
+configure_gmail_smtp.*
+.DS_Store
+Thumbs.db
